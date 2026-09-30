@@ -56,10 +56,7 @@
     font-variant-numeric: tabular-nums;
   }
   .balance.negative { color: #f87171; }
-  .player-actions {
-    display: flex;
-    gap: 0.4rem;
-  }
+  .player-actions { display: flex; gap: 0.4rem; }
   .icon-btn {
     background: transparent;
     border: 1px solid #334155;
@@ -113,7 +110,6 @@
   }
   h1 { text-align: center; margin: 0.5rem 0 1.5rem; font-size: 1.6rem; }
 
-  /* ---- Einsatz ---- */
   .bet-amount-section {
     width: 100%;
     max-width: 480px;
@@ -131,11 +127,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  .quick-bet-row {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
+  .quick-bet-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .quick-bet {
     flex: 1;
     min-width: 60px;
@@ -156,11 +148,7 @@
     color: white;
   }
   .quick-bet:disabled { opacity: 0.4; cursor: not-allowed; }
-  .custom-bet-row {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
+  .custom-bet-row { display: flex; gap: 0.5rem; align-items: center; }
   .custom-bet-row input {
     flex: 1;
     background: #0f172a;
@@ -183,13 +171,7 @@
   }
   .custom-bet-row button:hover { border-color: #4ade80; }
 
-  /* ---- Coin ---- */
-  .coin-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
+  .coin-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
   .coin-wrapper {
     perspective: 1200px;
     height: 220px;
@@ -274,12 +256,7 @@
     40%  { transform: scale(1.08); }
     100% { transform: scale(1); }
   }
-  .choice-row {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+  .choice-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
   .choice-btn {
     background: #1e293b;
     border: 2px solid #334155;
@@ -326,19 +303,12 @@
   }
   .win { color: #4ade80; font-weight: 700; }
   .lose { color: #f87171; font-weight: 700; }
-
+</style>
+<!-- TEIL 2 kommt direkt nach diesem </style> -->
+ <style>
   /* ---- Wheel ---- */
-  .wheel-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
-  .wheel-container {
-    position: relative;
-    width: 320px;
-    height: 320px;
-  }
+  .wheel-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .wheel-container { position: relative; width: 320px; height: 320px; }
   .wheel-pointer {
     position: absolute;
     top: -12px;
@@ -399,12 +369,7 @@
   .hint { font-size: 0.85rem; color: #94a3b8; margin: 0.4rem 0; }
 
   /* ---- Roulette ---- */
-  .roulette-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
+  .roulette-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
   .roulette-display {
     width: 100%;
     max-width: 460px;
@@ -464,11 +429,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  .bet-row {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
+  .bet-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .bet-btn {
     flex: 1;
     min-width: 80px;
@@ -491,11 +452,7 @@
   .bet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .bet-btn.red-btn.selected { background: #dc2626; border-color: #dc2626; }
   .bet-btn.black-btn.selected { background: #0f172a; border-color: #e2e8f0; color: white; }
-  .number-input-row {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
+  .number-input-row { display: flex; gap: 0.5rem; align-items: center; }
   .number-input-row input {
     flex: 1;
     background: #0f172a;
@@ -650,7 +607,7 @@
 
 <main>
 
-  <!-- ===== COIN PAGE ===== -->
+  <!-- ===== COIN ===== -->
   <section id="page-coin" class="page active">
     <h1>Coinflip</h1>
     <div class="coin-stage">
@@ -694,7 +651,7 @@
     </div>
   </section>
 
-  <!-- ===== WHEEL PAGE ===== -->
+  <!-- ===== WHEEL ===== -->
   <section id="page-wheel" class="page">
     <h1>Glücksrad</h1>
     <div class="wheel-stage">
@@ -717,7 +674,7 @@ Curry</textarea>
     </div>
   </section>
 
-  <!-- ===== ROULETTE PAGE ===== -->
+  <!-- ===== ROULETTE ===== -->
   <section id="page-roulette" class="page">
     <h1>Roulette</h1>
     <div class="roulette-stage">
@@ -751,8 +708,655 @@ Curry</textarea>
             <button class="bet-btn black-btn" data-bet="color" data-value="black">⚫ Schwarz</button>
           </div>
         </div>
-
         <div>
           <div class="bet-label">Gerade / Ungerade (1:1)</div>
           <div class="bet-row">
-            <button class="bet-btn" data-b
+            <button class="bet-btn" data-bet="parity" data-value="even">Gerade</button>
+            <button class="bet-btn" data-bet="parity" data-value="odd">Ungerade</button>
+          </div>
+        </div>
+        <div>
+          <div class="bet-label">Bereich (1:1)</div>
+          <div class="bet-row">
+            <button class="bet-btn" data-bet="range" data-value="low">1–18</button>
+            <button class="bet-btn" data-bet="range" data-value="high">19–36</button>
+          </div>
+        </div>
+        <div>
+          <div class="bet-label">Dutzend (2:1)</div>
+          <div class="bet-row">
+            <button class="bet-btn" data-bet="dozen" data-value="1">1–12</button>
+            <button class="bet-btn" data-bet="dozen" data-value="2">13–24</button>
+            <button class="bet-btn" data-bet="dozen" data-value="3">25–36</button>
+          </div>
+        </div>
+        <div>
+          <div class="bet-label">Direkte Zahl (35:1)</div>
+          <div class="number-input-row">
+            <input type="number" id="rouletteNumberInput" min="0" max="36" placeholder="0–36">
+            <button class="bet-btn" data-bet="number" style="flex:0 0 auto; padding:0.6rem 1.2rem;">Wählen</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="spin-btn" id="rouletteSpinBtn" onclick="doRouletteSpin()" disabled>Drehen!</button>
+      <div class="result-box" id="rouletteResult"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== PLAYER MODAL ===== -->
+<div class="modal-backdrop" id="playersModal">
+  <div class="modal">
+    <h3>👥 Spieler</h3>
+    <div class="player-list" id="playerList"></div>
+    <div class="form-row">
+      <label>Neuer Spieler</label>
+      <input type="text" id="newPlayerName" placeholder="Name (z.B. Jaden)" maxlength="20">
+    </div>
+    <div class="form-row">
+      <label>Startguthaben (€)</label>
+      <input type="number" id="newPlayerBalance" value="100" min="0" step="0.01">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('playersModal')">Schließen</button>
+      <button class="btn-primary" onclick="createPlayer()">+ Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HISTORY MODAL ===== -->
+<div class="modal-backdrop" id="historyModal">
+  <div class="modal">
+    <h3>📜 Verlauf</h3>
+    <div class="history-list" id="historyList"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="clearHistory()">Löschen</button>
+      <button class="btn-primary" onclick="closeModal('historyModal')">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ STATE ============ */
+const STORAGE_KEY = 'coinflip_players_v1';
+let players = [];         // [{id, name, balance, history: [{time, game, text, amount, win}]}]
+let currentPlayerId = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      players = parsed.players || [];
+      currentPlayerId = parsed.currentPlayerId || null;
+    }
+  } catch (e) { console.warn('Fehler beim Laden', e); }
+
+  if (players.length === 0) {
+    players = [{
+      id: uid(),
+      name: 'Gast',
+      balance: 100,
+      history: []
+    }];
+    currentPlayerId = players[0].id;
+  }
+  if (!players.find(p => p.id === currentPlayerId)) {
+    currentPlayerId = players[0].id;
+  }
+  saveState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    players, currentPlayerId
+  }));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+function getCurrentPlayer() {
+  return players.find(p => p.id === currentPlayerId);
+}
+
+function formatEuro(n) {
+  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function updateBalanceUI() {
+  const p = getCurrentPlayer();
+  document.getElementById('currentPlayerName').textContent = p.name;
+  const balEl = document.getElementById('balanceDisplay');
+  balEl.textContent = formatEuro(p.balance);
+  balEl.classList.toggle('negative', p.balance < 0);
+}
+
+/* ============ PLAYER MODAL ============ */
+function openPlayersModal() {
+  renderPlayerList();
+  document.getElementById('playersModal').classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function renderPlayerList() {
+  const list = document.getElementById('playerList');
+  list.innerHTML = '';
+  players.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'player-item' + (p.id === currentPlayerId ? ' current' : '');
+    item.innerHTML = `
+      <div class="info">
+        <span class="name">${escapeHtml(p.name)}</span>
+        <span class="bal">${formatEuro(p.balance)}</span>
+      </div>
+      ${players.length > 1 ? '<button class="delete" title="Löschen">✕</button>' : ''}
+    `;
+    item.addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete')) return;
+      currentPlayerId = p.id;
+      saveState();
+      updateBalanceUI();
+      renderPlayerList();
+      closeModal('playersModal');
+    });
+    const del = item.querySelector('.delete');
+    if (del) {
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm(`Spieler "${p.name}" wirklich löschen?`)) {
+          players = players.filter(x => x.id !== p.id);
+          if (currentPlayerId === p.id) currentPlayerId = players[0].id;
+          saveState();
+          updateBalanceUI();
+          renderPlayerList();
+        }
+      });
+    }
+    list.appendChild(item);
+  });
+}
+
+function createPlayer() {
+  const nameInput = document.getElementById('newPlayerName');
+  const balInput = document.getElementById('newPlayerBalance');
+  const name = nameInput.value.trim();
+  let bal = parseFloat(balInput.value);
+
+  if (!name) { nameInput.focus(); return; }
+  if (isNaN(bal) || bal < 0) bal = 100;
+
+  const newP = { id: uid(), name, balance: bal, history: [] };
+  players.push(newP);
+  currentPlayerId = newP.id;
+  saveState();
+  updateBalanceUI();
+  renderPlayerList();
+  nameInput.value = '';
+  balInput.value = '100';
+  closeModal('playersModal');
+}
+
+/* ============ HISTORY ============ */
+function addHistory(game, text, amount, win) {
+  const p = getCurrentPlayer();
+  p.history.unshift({
+    time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+    game, text, amount, win
+  });
+  if (p.history.length > 50) p.history.length = 50;
+  saveState();
+}
+
+function openHistoryModal() {
+  const p = getCurrentPlayer();
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  if (!p.history.length) {
+    list.innerHTML = '<p class="hint" style="text-align:center">Noch keine Einträge.</p>';
+  } else {
+    p.history.forEach(h => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      const sign = h.win ? '+' : '−';
+      item.innerHTML = `
+        <span>${h.time} · ${escapeHtml(h.game)}<br><small style="color:#94a3b8">${escapeHtml(h.text)}</small></span>
+        <span class="amount ${h.win ? 'win' : 'lose'}">${sign}${formatEuro(Math.abs(h.amount))}</span>
+      `;
+      list.appendChild(item);
+    });
+  }
+  document.getElementById('historyModal').classList.add('open');
+}
+
+function clearHistory() {
+  if (!confirm('Verlauf wirklich löschen?')) return;
+  getCurrentPlayer().history = [];
+  saveState();
+  openHistoryModal();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* ============ NAV ============ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'wheel') renderWheel();
+}
+
+/* ============ EINSATZ-AUSWAHL ============ */
+let coinBet = 0;
+let rouletteBetAmount = 0;
+
+function setCoinBet(amount, btn) {
+  coinBet = amount;
+  document.getElementById('coinCustomBet').value = '';
+  document.querySelectorAll('#coinQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  updateCoinButtonState();
+}
+function applyCoinCustom() {
+  const v = parseFloat(document.getElementById('coinCustomBet').value);
+  if (isNaN(v) || v <= 0) return;
+  coinBet = v;
+  document.querySelectorAll('#coinQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  updateCoinButtonState();
+}
+function updateCoinButtonState() {
+  const p = getCurrentPlayer();
+  const canPlay = chosen && coinBet > 0 && coinBet <= p.balance && !flipping;
+  document.getElementById('flipBtn').disabled = !canPlay;
+}
+
+function setRouletteBet(amount, btn) {
+  rouletteBetAmount = amount;
+  document.getElementById('rouletteCustomBet').value = '';
+  document.querySelectorAll('#rouletteQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  updateRouletteButtonState();
+}
+function applyRouletteCustom() {
+  const v = parseFloat(document.getElementById('rouletteCustomBet').value);
+  if (isNaN(v) || v <= 0) return;
+  rouletteBetAmount = v;
+  document.querySelectorAll('#rouletteQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  updateRouletteButtonState();
+}
+function updateRouletteButtonState() {
+  const p = getCurrentPlayer();
+  const canPlay = rouletteBet && rouletteBetAmount > 0 && rouletteBetAmount <= p.balance && !rouletteSpinning;
+  document.getElementById('rouletteSpinBtn').disabled = !canPlay;
+}
+
+/* ============ COINFLIP ============ */
+let chosen = null;
+let flipping = false;
+let currentRotation = 0;
+
+function pickChoice(c) {
+  if (flipping) return;
+  chosen = c;
+  document.getElementById('btn-kopf').classList.toggle('selected', c === 'kopf');
+  document.getElementById('btn-zahl').classList.toggle('selected', c === 'zahl');
+  const label = c === 'kopf' ? 'Kopf' : 'Zahl';
+  document.getElementById('choiceDisplay').innerHTML = `Deine Wahl: <b>${label}</b>`;
+  document.getElementById('coinResult').textContent = '';
+  updateCoinButtonState();
+}
+
+async function doFlip() {
+  if (!chosen || flipping) return;
+  const p = getCurrentPlayer();
+  if (coinBet <= 0 || coinBet > p.balance) {
+    document.getElementById('coinResult').innerHTML = '<span class="lose">Einsatz ungültig oder zu hoch!</span>';
+    return;
+  }
+  flipping = true;
+
+  const coin = document.getElementById('coin');
+  const flipBtn = document.getElementById('flipBtn');
+  const btnKopf = document.getElementById('btn-kopf');
+  const btnZahl = document.getElementById('btn-zahl');
+  const resultEl = document.getElementById('coinResult');
+
+  flipBtn.disabled = true;
+  btnKopf.disabled = true;
+  btnZahl.disabled = true;
+  resultEl.textContent = '';
+
+  const res = await fetch('/api/coinflip', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({choice: chosen})
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    resultEl.textContent = data.error;
+    resetCoinControls();
+    return;
+  }
+
+  const targetFace = data.result === 'kopf' ? 0 : 180;
+  const normalized = ((currentRotation % 360) + 360) % 360;
+  let delta = targetFace - normalized;
+  if (delta < 0) delta += 360;
+  currentRotation += 6 * 360 + delta;
+
+  coin.classList.add('flipping');
+  coin.classList.remove('settle');
+  coin.style.transform = `rotateY(${currentRotation}deg)`;
+
+  setTimeout(() => {
+    coin.classList.remove('flipping');
+    coin.classList.add('settle');
+
+    const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
+    const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
+
+    // Geld verrechnen
+    const win = data.win;
+    const netChange = win ? coinBet : -coinBet;
+    p.balance += netChange;
+    saveState();
+    updateBalanceUI();
+
+    addHistory('🪙 Coinflip',
+      `${choiceText} → ${resultText}`,
+      coinBet, win);
+
+    resultEl.innerHTML =
+      `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
+      (win
+        ? `<span class="win">🎉 Gewonnen! +${formatEuro(coinBet)}</span>`
+        : `<span class="lose">😢 Verloren! −${formatEuro(coinBet)}</span>`);
+
+    resetCoinControls();
+  }, 2700);
+}
+
+function resetCoinControls() {
+  flipping = false;
+  document.getElementById('btn-kopf').disabled = false;
+  document.getElementById('btn-zahl').disabled = false;
+  updateCoinButtonState();
+}
+
+/* ============ GLÜCKSRAD (unverändert) ============ */
+const WHEEL_COLORS = [
+  '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
+  '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
+  '#84cc16', '#06b6d4', '#a855f7', '#eab308'
+];
+let wheelRotation = 0;
+let spinning = false;
+
+function getWheelOptions() {
+  const raw = document.getElementById('wheelOptions').value;
+  return raw.split('\n').map(s => s.trim()).filter(Boolean);
+}
+
+function renderWheel() {
+  const options = getWheelOptions();
+  const svg = document.getElementById('wheelSvg');
+  svg.innerHTML = '';
+  if (options.length < 2) {
+    svg.innerHTML = '<circle cx="100" cy="100" r="95" fill="#1e293b" stroke="#334155" stroke-width="2"/>' +
+      '<text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="10">Mind. 2 Optionen</text>';
+    return;
+  }
+  const n = options.length;
+  const angle = 360 / n;
+  const cx = 100, cy = 100, r = 95;
+
+  function polar(angleDeg, radius) {
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+  }
+
+  for (let i = 0; i < n; i++) {
+    const start = i * angle;
+    const end = start + angle;
+    const [x1, y1] = polar(start, r);
+    const [x2, y2] = polar(end, r);
+    const largeArc = angle > 180 ? 1 : 0;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`);
+    path.setAttribute('fill', WHEEL_COLORS[i % WHEEL_COLORS.length]);
+    path.setAttribute('stroke', '#0f172a');
+    path.setAttribute('stroke-width', '1');
+    svg.appendChild(path);
+
+    const mid = start + angle / 2;
+    const [tx, ty] = polar(mid, r * 0.62);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', tx);
+    text.setAttribute('y', ty);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('fill', 'white');
+    text.setAttribute('font-size', n > 8 ? '7' : '9');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('transform', `rotate(${mid} ${tx} ${ty})`);
+    let label = options[i];
+    if (label.length > 12) label = label.slice(0, 11) + '…';
+    text.textContent = label;
+    svg.appendChild(text);
+  }
+}
+
+async function doSpin() {
+  if (spinning) return;
+  const options = getWheelOptions();
+  if (options.length < 2) {
+    document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!';
+    return;
+  }
+  if (options.length > 12) {
+    document.getElementById('wheelResult').textContent = '⚠️ Maximal 12 Optionen!';
+    return;
+  }
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('wheelResult').textContent = '';
+
+  const res = await fetch('/api/wheel', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({options})
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById('wheelResult').textContent = '⚠️ ' + data.error;
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+    return;
+  }
+
+  const n = options.length;
+  const anglePer = 360 / n;
+  const winnerIndex = data.index;
+  const segmentMid = winnerIndex * anglePer + anglePer / 2;
+  const extraSpins = 6 * 360;
+  const currentNormalized = ((wheelRotation % 360) + 360) % 360;
+  const desired = ((-segmentMid) % 360 + 360) % 360;
+  let delta = desired - currentNormalized;
+  if (delta < 0) delta += 360;
+  wheelRotation += extraSpins + delta;
+
+  const svg = document.getElementById('wheelSvg');
+  svg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.16, 1)';
+  svg.style.transform = `rotate(${wheelRotation}deg)`;
+
+  setTimeout(() => {
+    document.getElementById('wheelResult').innerHTML =
+      `🎯 Ergebnis: <b>${data.result}</b>`;
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+  }, 4100);
+}
+
+document.getElementById('wheelOptions').addEventListener('input', () => {
+  if (document.getElementById('page-wheel').classList.contains('active')) {
+    renderWheel();
+  }
+});
+
+/* ============ ROULETTE ============ */
+let rouletteBet = null;
+let rouletteSpinning = false;
+
+function setupRouletteButtons() {
+  document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (rouletteSpinning) return;
+      const betType = btn.dataset.bet;
+      const betValue = btn.dataset.value;
+
+      if (betType === 'number') {
+        const input = document.getElementById('rouletteNumberInput');
+        const val = input.value.trim();
+        if (val === '' || isNaN(val)) {
+          input.focus();
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => input.style.borderColor = '#334155', 800);
+          return;
+        }
+        const num = parseInt(val, 10);
+        if (num < 0 || num > 36) {
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => input.style.borderColor = '#334155', 800);
+          return;
+        }
+        rouletteBet = { type: 'number', value: String(num) };
+      } else {
+        rouletteBet = { type: betType, value: betValue };
+      }
+
+      document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('rouletteHint').textContent = 'Wette gesetzt – bereit zum Drehen!';
+      document.getElementById('rouletteResult').textContent = '';
+      updateRouletteButtonState();
+    });
+  });
+}
+
+async function doRouletteSpin() {
+  if (!rouletteBet || rouletteSpinning) return;
+  const p = getCurrentPlayer();
+  if (rouletteBetAmount <= 0 || rouletteBetAmount > p.balance) {
+    document.getElementById('rouletteResult').innerHTML = '<span class="lose">Einsatz ungültig oder zu hoch!</span>';
+    return;
+  }
+  rouletteSpinning = true;
+
+  const spinBtn = document.getElementById('rouletteSpinBtn');
+  const allBtns = document.querySelectorAll('.roulette-bet-section .bet-btn');
+  const numberEl = document.getElementById('rouletteNumber');
+  const badge = document.getElementById('rouletteBadge');
+  const hint = document.getElementById('rouletteHint');
+  const resultEl = document.getElementById('rouletteResult');
+
+  spinBtn.disabled = true;
+  allBtns.forEach(b => b.disabled = true);
+  numberEl.classList.remove('red', 'black', 'green');
+  numberEl.classList.add('rolling');
+  numberEl.textContent = '?';
+  badge.className = 'roulette-color-badge';
+  badge.textContent = 'Dreht...';
+  hint.textContent = '';
+  resultEl.textContent = '';
+
+  const res = await fetch('/api/roulette', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value })
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    resultEl.textContent = '⚠️ ' + data.error;
+    numberEl.classList.remove('rolling');
+    rouletteSpinning = false;
+    allBtns.forEach(b => b.disabled = false);
+    updateRouletteButtonState();
+    return;
+  }
+
+  let counter = 0;
+  const rollInterval = setInterval(() => {
+    const rand = Math.floor(Math.random() * 37);
+    numberEl.textContent = rand;
+    counter++;
+    if (counter >= 20) {
+      clearInterval(rollInterval);
+      numberEl.classList.remove('rolling');
+      numberEl.classList.add(data.color);
+      numberEl.textContent = data.number;
+      badge.className = 'roulette-color-badge ' + data.color;
+      badge.textContent = data.color === 'red' ? 'Rot' : data.color === 'black' ? 'Schwarz' : 'Grün';
+
+      // Geld verrechnen
+      const win = data.win;
+      let netChange;
+      let text;
+      if (win) {
+        // payout = N bedeutet: N × Einsatz Gewinn (netto) + Einsatz zurück
+        netChange = rouletteBetAmount * data.payout;
+        text = `Gewinn (${data.payout}:1)`;
+      } else {
+        netChange = -rouletteBetAmount;
+        text = `Verlust`;
+      }
+      p.balance += netChange;
+      saveState();
+      updateBalanceUI();
+
+      addHistory('🎰 Roulette',
+        `${data.number} ${data.color === 'red' ? '🔴' : data.color === 'black' ? '⚫' : '🟢'} · ${text}`,
+        rouletteBetAmount, win);
+
+      resultEl.innerHTML = win
+        ? `<span class="win">🎉 Gewonnen! +${formatEuro(netChange)}</span>`
+        : `<span class="lose">😢 Verloren −${formatEuro(rouletteBetAmount)}</span>`;
+
+      hint.textContent = 'Wähle eine neue Wette';
+
+      rouletteSpinning = false;
+      allBtns.forEach(b => b.disabled = false);
+      allBtns.forEach(b => b.classList.remove('selected'));
+      rouletteBet = null;
+      updateRouletteButtonState();
+    }
+  }, 80);
+}
+
+/* ============ INIT ============ */
+loadState();
+updateBalanceUI();
+renderWheel();
+setupRouletteButtons();
+
+// Modal-Klick außerhalb schließt
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) backdrop.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

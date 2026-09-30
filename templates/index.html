@@ -880,6 +880,7 @@ function createPlayer() {
   let bal = parseFloat(balInput.value);
   if (!name) { nameInput.focus(); return; }
   if (isNaN(bal) || bal < 0) bal = 100;
+  if (bal > 100) bal = 100;
   const newP = { id: uid(), name, balance: bal, history: [] };
   players.push(newP);
   currentPlayerId = newP.id;

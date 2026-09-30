@@ -70,7 +70,6 @@
     align-items: center;
     gap: 1.5rem;
   }
-
   .coin-wrapper {
     perspective: 1200px;
     height: 220px;
@@ -79,7 +78,6 @@
     align-items: center;
     justify-content: center;
   }
-
   .coin {
     width: 180px;
     height: 180px;
@@ -88,13 +86,11 @@
     transition: transform 2.6s cubic-bezier(0.4, 0.0, 0.2, 1);
     will-change: transform;
   }
-
   .coin-inner {
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
   }
-
   .coin .face {
     position: absolute;
     inset: 0;
@@ -111,7 +107,6 @@
       0 12px 30px rgba(0,0,0,0.55);
     overflow: hidden;
   }
-  /* Riffelrand der Münze */
   .coin .face::before {
     content: '';
     position: absolute;
@@ -120,32 +115,26 @@
     border: 2px dashed rgba(0,0,0,0.15);
   }
   .coin .kopf {
-    background:
-      radial-gradient(circle at 30% 25%, #fef3c7, #f59e0b 55%, #b45309 100%);
+    background: radial-gradient(circle at 30% 25%, #fef3c7, #f59e0b 55%, #b45309 100%);
     color: #78350f;
     text-shadow: 0 1px 0 rgba(255,255,255,0.4);
   }
   .coin .zahl {
-    background:
-      radial-gradient(circle at 30% 25%, #f8fafc, #cbd5e1 55%, #64748b 100%);
+    background: radial-gradient(circle at 30% 25%, #f8fafc, #cbd5e1 55%, #64748b 100%);
     color: #1e293b;
     transform: rotateY(180deg);
     text-shadow: 0 1px 0 rgba(255,255,255,0.5);
   }
-  /* Dicker Rand als "Kante" */
   .coin .edge {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background:
-      linear-gradient(90deg,
-        #92400e 0%, #fbbf24 20%, #b45309 40%,
-        #fcd34d 60%, #92400e 80%, #fbbf24 100%);
+    background: linear-gradient(90deg,
+      #92400e 0%, #fbbf24 20%, #b45309 40%,
+      #fcd34d 60%, #92400e 80%, #fbbf24 100%);
     transform: translateZ(-10px);
     box-shadow: 0 12px 30px rgba(0,0,0,0.55);
   }
-
-  /* Glanz-Effekt während des Drehens */
   .coin.flipping .face::after {
     content: '';
     position: absolute;
@@ -159,16 +148,12 @@
     from { transform: translateX(-100%); }
     to   { transform: translateX(100%); }
   }
-
-  .coin.settle {
-    animation: settle 0.4s ease-out;
-  }
+  .coin.settle { animation: settle 0.4s ease-out; }
   @keyframes settle {
     0%   { transform: scale(1); }
     40%  { transform: scale(1.08); }
     100% { transform: scale(1); }
   }
-
   .choice-row {
     display: flex;
     gap: 0.75rem;
@@ -194,7 +179,6 @@
     box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
   }
   .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
   .flip-btn {
     background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     color: white;
@@ -209,14 +193,12 @@
   }
   .flip-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .flip-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
   .choice-display {
     font-size: 1.05rem;
     color: #94a3b8;
     min-height: 1.5rem;
   }
   .choice-display b { color: #60a5fa; }
-
   .result-box {
     text-align: center;
     min-height: 2rem;
@@ -225,7 +207,7 @@
   .win { color: #4ade80; font-weight: 700; }
   .lose { color: #f87171; font-weight: 700; }
 
-  /* ================= WHEEL (unverändert) ================= */
+  /* ================= WHEEL ================= */
   .wheel-stage {
     display: flex;
     flex-direction: column;
@@ -282,7 +264,6 @@
   }
   .spin-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
   textarea {
     width: 100%;
     min-height: 110px;
@@ -323,9 +304,7 @@
     display: inline-block;
     min-width: 1.6em;
   }
-  .roulette-number.rolling {
-    animation: pulse 0.15s linear infinite alternate;
-  }
+  .roulette-number.rolling { animation: pulse 0.15s linear infinite alternate; }
   @keyframes pulse {
     from { transform: scale(1); }
     to   { transform: scale(1.08); }
@@ -333,7 +312,6 @@
   .roulette-number.red { color: #ef4444; text-shadow: 0 0 20px rgba(239,68,68,0.5); }
   .roulette-number.black { color: #e2e8f0; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
   .roulette-number.green { color: #22c55e; text-shadow: 0 0 20px rgba(34,197,94,0.6); }
-
   .roulette-color-badge {
     display: inline-block;
     padding: 0.25rem 0.9rem;
@@ -348,7 +326,6 @@
   .roulette-color-badge.red { background: #7f1d1d; color: #fecaca; }
   .roulette-color-badge.black { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; }
   .roulette-color-badge.green { background: #14532d; color: #bbf7d0; }
-
   .roulette-bet-section {
     width: 100%;
     max-width: 460px;
@@ -394,7 +371,6 @@
   .bet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .bet-btn.red-btn.selected { background: #dc2626; border-color: #dc2626; }
   .bet-btn.black-btn.selected { background: #0f172a; border-color: #e2e8f0; color: white; }
-
   .number-input-row {
     display: flex;
     gap: 0.5rem;
@@ -431,13 +407,10 @@
   <!-- ===== COIN PAGE ===== -->
   <section id="page-coin" class="page active">
     <h1>Coinflip</h1>
-
     <div class="coin-stage">
-
       <div class="choice-display" id="choiceDisplay">
         Wähle <b>Kopf</b> oder <b>Zahl</b>
       </div>
-
       <div class="coin-wrapper">
         <div class="coin" id="coin">
           <div class="edge"></div>
@@ -447,34 +420,26 @@
           </div>
         </div>
       </div>
-
       <div class="choice-row">
         <button class="choice-btn" id="btn-kopf" onclick="pickChoice('kopf')">Kopf</button>
         <button class="choice-btn" id="btn-zahl" onclick="pickChoice('zahl')">Zahl</button>
       </div>
-
       <button class="flip-btn" id="flipBtn" onclick="doFlip()" disabled>Flip!</button>
-
       <div class="result-box" id="coinResult"></div>
     </div>
   </section>
 
-  <!-- ===== WHEEL PAGE (unverändert) ===== -->
+  <!-- ===== WHEEL PAGE ===== -->
   <section id="page-wheel" class="page">
     <h1>Glücksrad</h1>
-
     <div class="wheel-stage">
-
       <div class="wheel-container">
         <div class="wheel-pointer"></div>
         <svg class="wheel-svg" id="wheelSvg" viewBox="0 0 200 200"></svg>
         <div class="wheel-hub"></div>
       </div>
-
       <div class="result-box" id="wheelResult"></div>
-
       <button class="spin-btn" id="spinBtn" onclick="doSpin()">Drehen!</button>
-
       <div style="width: 100%; max-width: 480px;">
         <p class="hint">Eine Option pro Zeile (mind. 2, max. 12):</p>
         <textarea id="wheelOptions">Pizza
@@ -490,7 +455,6 @@ Curry</textarea>
   <!-- ===== ROULETTE PAGE ===== -->
   <section id="page-roulette" class="page">
     <h1>Roulette</h1>
-
     <div class="roulette-stage">
 
       <div class="roulette-display">
@@ -537,15 +501,12 @@ Curry</textarea>
           <div class="bet-label">Direkte Zahl (35:1)</div>
           <div class="number-input-row">
             <input type="number" id="rouletteNumberInput" min="0" max="36" placeholder="0–36">
-            <button class="bet-btn" data-bet="number" style="flex:0 0 auto; padding:0.6rem 1.2rem;">Wählen</button>
+            <button class="bet-btn" id="numberBetBtn" data-bet="number" style="flex:0 0 auto; padding:0.6rem 1.2rem;">Wählen</button>
           </div>
         </div>
       </div>
 
-      <button class="spin-btn" id="rouletteSpinBtn" onclick="doRouletteSpin()" disabled>
-        Drehen!
-      </button>
-
+      <button class="spin-btn" id="rouletteSpinBtn" onclick="doRouletteSpin()" disabled>Drehen!</button>
       <div class="result-box" id="rouletteResult"></div>
     </div>
   </section>
@@ -572,10 +533,8 @@ function pickChoice(c) {
   chosen = c;
   document.getElementById('btn-kopf').classList.toggle('selected', c === 'kopf');
   document.getElementById('btn-zahl').classList.toggle('selected', c === 'zahl');
-
   const label = c === 'kopf' ? 'Kopf' : 'Zahl';
-  document.getElementById('choiceDisplay').innerHTML =
-    `Deine Wahl: <b>${label}</b>`;
+  document.getElementById('choiceDisplay').innerHTML = `Deine Wahl: <b>${label}</b>`;
   document.getElementById('flipBtn').disabled = false;
   document.getElementById('coinResult').textContent = '';
 }
@@ -595,7 +554,6 @@ async function doFlip() {
   btnZahl.disabled = true;
   resultEl.textContent = '';
 
-  // Server fragen
   const res = await fetch('/api/coinflip', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -609,22 +567,18 @@ async function doFlip() {
     return;
   }
 
-  // Zielrotation: kopf = 0°, zahl = 180° (mod 360)
   const targetFace = data.result === 'kopf' ? 0 : 180;
   const normalized = ((currentRotation % 360) + 360) % 360;
   let delta = targetFace - normalized;
   if (delta < 0) delta += 360;
 
-  // 6 volle Drehungen + Landung
   const extraSpins = 6 * 360;
   currentRotation += extraSpins + delta;
 
-  // Animation starten
   coin.classList.add('flipping');
   coin.classList.remove('settle');
   coin.style.transform = `rotateY(${currentRotation}deg)`;
 
-  // Nach der Animation
   setTimeout(() => {
     coin.classList.remove('flipping');
     coin.classList.add('settle');
@@ -649,7 +603,7 @@ function resetCoinControls() {
   document.getElementById('btn-zahl').disabled = false;
 }
 
-/* ============ Glücksrad (unverändert) ============ */
+/* ============ Glücksrad ============ */
 const WHEEL_COLORS = [
   '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
@@ -687,7 +641,6 @@ function renderWheel() {
   for (let i = 0; i < n; i++) {
     const start = i * angle;
     const end = start + angle;
-
     const [x1, y1] = polar(start, r);
     const [x2, y2] = polar(end, r);
     const largeArc = angle > 180 ? 1 : 0;
@@ -779,4 +732,122 @@ document.getElementById('wheelOptions').addEventListener('input', () => {
   }
 });
 
-/* ============ Roulette =========
+/* ============ Roulette ============ */
+let rouletteBet = null;   // {type, value}
+let rouletteSpinning = false;
+
+function setupRouletteButtons() {
+  document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (rouletteSpinning) return;
+
+      const betType = btn.dataset.bet;
+      const betValue = btn.dataset.value;
+
+      // Direkte Zahl über Input
+      if (betType === 'number') {
+        const input = document.getElementById('rouletteNumberInput');
+        const val = input.value.trim();
+        if (val === '' || isNaN(val)) {
+          input.focus();
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => input.style.borderColor = '#334155', 800);
+          return;
+        }
+        const num = parseInt(val, 10);
+        if (num < 0 || num > 36) {
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => input.style.borderColor = '#334155', 800);
+          return;
+        }
+        rouletteBet = { type: 'number', value: String(num) };
+      } else {
+        rouletteBet = { type: betType, value: betValue };
+      }
+
+      // Alle markierten aufheben, nur den aktuellen markieren
+      document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+
+      document.getElementById('rouletteSpinBtn').disabled = false;
+      document.getElementById('rouletteHint').textContent = 'Wette gesetzt – bereit zum Drehen!';
+      document.getElementById('rouletteResult').textContent = '';
+    });
+  });
+}
+
+async function doRouletteSpin() {
+  if (!rouletteBet || rouletteSpinning) return;
+
+  rouletteSpinning = true;
+  const spinBtn = document.getElementById('rouletteSpinBtn');
+  const allBtns = document.querySelectorAll('.roulette-bet-section .bet-btn');
+  const numberEl = document.getElementById('rouletteNumber');
+  const badge = document.getElementById('rouletteBadge');
+  const hint = document.getElementById('rouletteHint');
+  const resultEl = document.getElementById('rouletteResult');
+
+  spinBtn.disabled = true;
+  allBtns.forEach(b => b.disabled = true);
+  numberEl.classList.remove('red', 'black', 'green');
+  numberEl.classList.add('rolling');
+  numberEl.textContent = '?';
+  badge.className = 'roulette-color-badge';
+  badge.textContent = 'Dreht...';
+  hint.textContent = '';
+  resultEl.textContent = '';
+
+  const res = await fetch('/api/roulette', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value })
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    resultEl.textContent = '⚠️ ' + data.error;
+    numberEl.classList.remove('rolling');
+    rouletteSpinning = false;
+    spinBtn.disabled = false;
+    allBtns.forEach(b => b.disabled = false);
+    return;
+  }
+
+  // Rollier-Animation: 20 zufällige Zahlen
+  let counter = 0;
+  const rollInterval = setInterval(() => {
+    const rand = Math.floor(Math.random() * 37);
+    numberEl.textContent = rand;
+    counter++;
+    if (counter >= 20) {
+      clearInterval(rollInterval);
+      numberEl.classList.remove('rolling');
+      numberEl.classList.add(data.color);
+      numberEl.textContent = data.number;
+      badge.className = 'roulette-color-badge ' + data.color;
+      badge.textContent = data.color === 'red' ? 'Rot' : data.color === 'black' ? 'Schwarz' : 'Grün';
+
+      resultEl.innerHTML = data.win
+        ? `<span class="win">🎉 Gewonnen! (${data.payout}:1)</span>`
+        : `<span class="lose">😢 Verloren</span>`;
+
+      hint.textContent = 'Wähle eine neue Wette';
+
+      rouletteSpinning = false;
+      spinBtn.disabled = false;
+      allBtns.forEach(b => b.disabled = false);
+
+      // Auswahl zurücksetzen
+      allBtns.forEach(b => b.classList.remove('selected'));
+      rouletteBet = null;
+      spinBtn.disabled = true;
+    }
+  }, 80);
+}
+
+/* ============ Init ============ */
+renderWheel();
+setupRouletteButtons();
+</script>
+</body>
+</html>

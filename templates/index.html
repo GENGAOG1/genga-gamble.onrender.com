@@ -18,19 +18,69 @@
   }
   header {
     width: 100%;
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(15, 23, 42, 0.9);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #1e293b;
     position: sticky;
     top: 0;
     z-index: 10;
   }
+  .topbar {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0.7rem 1rem 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .player-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #0f172a;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid #334155;
+  }
+  .player-name {
+    font-weight: 700;
+    color: #60a5fa;
+    cursor: pointer;
+  }
+  .player-name:hover { text-decoration: underline; }
+  .balance {
+    font-weight: 800;
+    color: #4ade80;
+    font-variant-numeric: tabular-nums;
+  }
+  .balance.negative { color: #f87171; }
+  .player-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: #1e293b; border-color: #64748b; }
   nav {
     max-width: 900px;
     margin: 0 auto;
     display: flex;
     gap: 0.5rem;
-    padding: 0.8rem 1rem;
+    padding: 0 1rem 0.7rem;
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -63,7 +113,77 @@
   }
   h1 { text-align: center; margin: 0.5rem 0 1.5rem; font-size: 1.6rem; }
 
-  /* ================= COIN ================= */
+  /* ---- Einsatz ---- */
+  .bet-amount-section {
+    width: 100%;
+    max-width: 480px;
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .bet-amount-section .bet-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .quick-bet-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .quick-bet {
+    flex: 1;
+    min-width: 60px;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .quick-bet:hover:not(:disabled) { border-color: #64748b; }
+  .quick-bet.selected {
+    border-color: #4ade80;
+    background: #14532d;
+    color: white;
+  }
+  .quick-bet:disabled { opacity: 0.4; cursor: not-allowed; }
+  .custom-bet-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .custom-bet-row input {
+    flex: 1;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 0.55rem 0.9rem;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .custom-bet-row input:focus { outline: none; border-color: #4ade80; }
+  .custom-bet-row button {
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .custom-bet-row button:hover { border-color: #4ade80; }
+
+  /* ---- Coin ---- */
   .coin-stage {
     display: flex;
     flex-direction: column;
@@ -202,12 +322,12 @@
   .result-box {
     text-align: center;
     min-height: 2rem;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
   .win { color: #4ade80; font-weight: 700; }
   .lose { color: #f87171; font-weight: 700; }
 
-  /* ================= WHEEL ================= */
+  /* ---- Wheel ---- */
   .wheel-stage {
     display: flex;
     flex-direction: column;
@@ -278,7 +398,7 @@
   }
   .hint { font-size: 0.85rem; color: #94a3b8; margin: 0.4rem 0; }
 
-  /* ================= ROULETTE ================= */
+  /* ---- Roulette ---- */
   .roulette-stage {
     display: flex;
     flex-direction: column;
@@ -386,15 +506,141 @@
     font-size: 1rem;
     font-family: inherit;
   }
-  .number-input-row input:focus {
-    outline: none;
-    border-color: #3b82f6;
+  .number-input-row input:focus { outline: none; border-color: #3b82f6; }
+
+  /* ---- Modal ---- */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
   }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    border: 1px solid #334155;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 { margin: 0 0 1rem; }
+  .modal .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .modal .form-row label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .modal .form-row input {
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .modal .form-row input:focus { outline: none; border-color: #3b82f6; }
+  .modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+  .modal-actions button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .btn-primary { background: #3b82f6; color: white; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-secondary { background: #334155; color: #e2e8f0; }
+  .btn-secondary:hover { background: #475569; }
+
+  .player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0.8rem 0;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .player-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .player-item:hover { border-color: #64748b; }
+  .player-item.current { border-color: #3b82f6; background: #1d4ed8; }
+  .player-item .info { display: flex; flex-direction: column; }
+  .player-item .name { font-weight: 700; }
+  .player-item .bal { font-size: 0.85rem; color: #94a3b8; }
+  .player-item.current .bal { color: #cbd5e1; }
+  .player-item .delete {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 0.3rem;
+  }
+  .player-item .delete:hover { color: #f87171; }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-top: 0.6rem;
+  }
+  .history-item {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .history-item .amount.win { color: #4ade80; }
+  .history-item .amount.lose { color: #f87171; }
 </style>
 </head>
 <body>
 
 <header>
+  <div class="topbar">
+    <div class="player-info">
+      <span class="player-name" onclick="openPlayersModal()" id="currentPlayerName">Gast</span>
+      <span class="balance" id="balanceDisplay">100,00 €</span>
+      <div class="player-actions">
+        <button class="icon-btn" title="Spieler wechseln" onclick="openPlayersModal()">👥</button>
+        <button class="icon-btn" title="Verlauf" onclick="openHistoryModal()">📜</button>
+      </div>
+    </div>
+  </div>
   <nav>
     <button id="nav-coin" class="active" onclick="showPage('coin')">🪙 Coinflip</button>
     <button id="nav-wheel" onclick="showPage('wheel')">🎡 Glücksrad</button>
@@ -408,9 +654,26 @@
   <section id="page-coin" class="page active">
     <h1>Coinflip</h1>
     <div class="coin-stage">
+
+      <div class="bet-amount-section">
+        <div class="bet-label">Einsatz wählen</div>
+        <div class="quick-bet-row" id="coinQuickBets">
+          <button class="quick-bet" data-amount="1" onclick="setCoinBet(1, this)">1 €</button>
+          <button class="quick-bet" data-amount="2" onclick="setCoinBet(2, this)">2 €</button>
+          <button class="quick-bet" data-amount="5" onclick="setCoinBet(5, this)">5 €</button>
+          <button class="quick-bet" data-amount="10" onclick="setCoinBet(10, this)">10 €</button>
+          <button class="quick-bet" data-amount="25" onclick="setCoinBet(25, this)">25 €</button>
+        </div>
+        <div class="custom-bet-row">
+          <input type="number" id="coinCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
+          <button onclick="applyCoinCustom()">OK</button>
+        </div>
+      </div>
+
       <div class="choice-display" id="choiceDisplay">
         Wähle <b>Kopf</b> oder <b>Zahl</b>
       </div>
+
       <div class="coin-wrapper">
         <div class="coin" id="coin">
           <div class="edge"></div>
@@ -420,10 +683,12 @@
           </div>
         </div>
       </div>
+
       <div class="choice-row">
         <button class="choice-btn" id="btn-kopf" onclick="pickChoice('kopf')">Kopf</button>
         <button class="choice-btn" id="btn-zahl" onclick="pickChoice('zahl')">Zahl</button>
       </div>
+
       <button class="flip-btn" id="flipBtn" onclick="doFlip()" disabled>Flip!</button>
       <div class="result-box" id="coinResult"></div>
     </div>
@@ -457,6 +722,21 @@ Curry</textarea>
     <h1>Roulette</h1>
     <div class="roulette-stage">
 
+      <div class="bet-amount-section">
+        <div class="bet-label">Einsatz wählen</div>
+        <div class="quick-bet-row" id="rouletteQuickBets">
+          <button class="quick-bet" data-amount="1" onclick="setRouletteBet(1, this)">1 €</button>
+          <button class="quick-bet" data-amount="2" onclick="setRouletteBet(2, this)">2 €</button>
+          <button class="quick-bet" data-amount="5" onclick="setRouletteBet(5, this)">5 €</button>
+          <button class="quick-bet" data-amount="10" onclick="setRouletteBet(10, this)">10 €</button>
+          <button class="quick-bet" data-amount="25" onclick="setRouletteBet(25, this)">25 €</button>
+        </div>
+        <div class="custom-bet-row">
+          <input type="number" id="rouletteCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
+          <button onclick="applyRouletteCustom()">OK</button>
+        </div>
+      </div>
+
       <div class="roulette-display">
         <div class="roulette-color-badge" id="rouletteBadge">Bereit</div>
         <div class="roulette-number" id="rouletteNumber">–</div>
@@ -475,379 +755,4 @@ Curry</textarea>
         <div>
           <div class="bet-label">Gerade / Ungerade (1:1)</div>
           <div class="bet-row">
-            <button class="bet-btn" data-bet="parity" data-value="even">Gerade</button>
-            <button class="bet-btn" data-bet="parity" data-value="odd">Ungerade</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="bet-label">Bereich (1:1)</div>
-          <div class="bet-row">
-            <button class="bet-btn" data-bet="range" data-value="low">1–18</button>
-            <button class="bet-btn" data-bet="range" data-value="high">19–36</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="bet-label">Dutzend (2:1)</div>
-          <div class="bet-row">
-            <button class="bet-btn" data-bet="dozen" data-value="1">1–12</button>
-            <button class="bet-btn" data-bet="dozen" data-value="2">13–24</button>
-            <button class="bet-btn" data-bet="dozen" data-value="3">25–36</button>
-          </div>
-        </div>
-
-        <div>
-          <div class="bet-label">Direkte Zahl (35:1)</div>
-          <div class="number-input-row">
-            <input type="number" id="rouletteNumberInput" min="0" max="36" placeholder="0–36">
-            <button class="bet-btn" id="numberBetBtn" data-bet="number" style="flex:0 0 auto; padding:0.6rem 1.2rem;">Wählen</button>
-          </div>
-        </div>
-      </div>
-
-      <button class="spin-btn" id="rouletteSpinBtn" onclick="doRouletteSpin()" disabled>Drehen!</button>
-      <div class="result-box" id="rouletteResult"></div>
-    </div>
-  </section>
-
-</main>
-
-<script>
-/* ============ Navigation ============ */
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.getElementById('nav-' + name).classList.add('active');
-  if (name === 'wheel') renderWheel();
-}
-
-/* ============ Coinflip ============ */
-let chosen = null;
-let flipping = false;
-let currentRotation = 0;
-
-function pickChoice(c) {
-  if (flipping) return;
-  chosen = c;
-  document.getElementById('btn-kopf').classList.toggle('selected', c === 'kopf');
-  document.getElementById('btn-zahl').classList.toggle('selected', c === 'zahl');
-  const label = c === 'kopf' ? 'Kopf' : 'Zahl';
-  document.getElementById('choiceDisplay').innerHTML = `Deine Wahl: <b>${label}</b>`;
-  document.getElementById('flipBtn').disabled = false;
-  document.getElementById('coinResult').textContent = '';
-}
-
-async function doFlip() {
-  if (!chosen || flipping) return;
-  flipping = true;
-
-  const coin = document.getElementById('coin');
-  const flipBtn = document.getElementById('flipBtn');
-  const btnKopf = document.getElementById('btn-kopf');
-  const btnZahl = document.getElementById('btn-zahl');
-  const resultEl = document.getElementById('coinResult');
-
-  flipBtn.disabled = true;
-  btnKopf.disabled = true;
-  btnZahl.disabled = true;
-  resultEl.textContent = '';
-
-  const res = await fetch('/api/coinflip', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({choice: chosen})
-  });
-  const data = await res.json();
-
-  if (data.error) {
-    resultEl.textContent = data.error;
-    resetCoinControls();
-    return;
-  }
-
-  const targetFace = data.result === 'kopf' ? 0 : 180;
-  const normalized = ((currentRotation % 360) + 360) % 360;
-  let delta = targetFace - normalized;
-  if (delta < 0) delta += 360;
-
-  const extraSpins = 6 * 360;
-  currentRotation += extraSpins + delta;
-
-  coin.classList.add('flipping');
-  coin.classList.remove('settle');
-  coin.style.transform = `rotateY(${currentRotation}deg)`;
-
-  setTimeout(() => {
-    coin.classList.remove('flipping');
-    coin.classList.add('settle');
-
-    const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
-    const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
-
-    resultEl.innerHTML =
-      `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
-      (data.win
-        ? '<span class="win">🎉 Gewonnen!</span>'
-        : '<span class="lose">😢 Verloren!</span>');
-
-    resetCoinControls();
-  }, 2700);
-}
-
-function resetCoinControls() {
-  flipping = false;
-  document.getElementById('flipBtn').disabled = false;
-  document.getElementById('btn-kopf').disabled = false;
-  document.getElementById('btn-zahl').disabled = false;
-}
-
-/* ============ Glücksrad ============ */
-const WHEEL_COLORS = [
-  '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
-  '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
-  '#84cc16', '#06b6d4', '#a855f7', '#eab308'
-];
-
-let wheelRotation = 0;
-let spinning = false;
-
-function getWheelOptions() {
-  const raw = document.getElementById('wheelOptions').value;
-  return raw.split('\n').map(s => s.trim()).filter(Boolean);
-}
-
-function renderWheel() {
-  const options = getWheelOptions();
-  const svg = document.getElementById('wheelSvg');
-  svg.innerHTML = '';
-
-  if (options.length < 2) {
-    svg.innerHTML = '<circle cx="100" cy="100" r="95" fill="#1e293b" stroke="#334155" stroke-width="2"/>' +
-      '<text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="10">Mind. 2 Optionen</text>';
-    return;
-  }
-
-  const n = options.length;
-  const angle = 360 / n;
-  const cx = 100, cy = 100, r = 95;
-
-  function polar(angleDeg, radius) {
-    const rad = (angleDeg - 90) * Math.PI / 180;
-    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
-  }
-
-  for (let i = 0; i < n; i++) {
-    const start = i * angle;
-    const end = start + angle;
-    const [x1, y1] = polar(start, r);
-    const [x2, y2] = polar(end, r);
-    const largeArc = angle > 180 ? 1 : 0;
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`);
-    path.setAttribute('fill', WHEEL_COLORS[i % WHEEL_COLORS.length]);
-    path.setAttribute('stroke', '#0f172a');
-    path.setAttribute('stroke-width', '1');
-    svg.appendChild(path);
-
-    const mid = start + angle / 2;
-    const [tx, ty] = polar(mid, r * 0.62);
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', tx);
-    text.setAttribute('y', ty);
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('dominant-baseline', 'middle');
-    text.setAttribute('fill', 'white');
-    text.setAttribute('font-size', n > 8 ? '7' : '9');
-    text.setAttribute('font-weight', '700');
-    text.setAttribute('transform', `rotate(${mid} ${tx} ${ty})`);
-    let label = options[i];
-    if (label.length > 12) label = label.slice(0, 11) + '…';
-    text.textContent = label;
-    svg.appendChild(text);
-  }
-}
-
-async function doSpin() {
-  if (spinning) return;
-  const options = getWheelOptions();
-
-  if (options.length < 2) {
-    document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!';
-    return;
-  }
-  if (options.length > 12) {
-    document.getElementById('wheelResult').textContent = '⚠️ Maximal 12 Optionen!';
-    return;
-  }
-
-  spinning = true;
-  document.getElementById('spinBtn').disabled = true;
-  document.getElementById('wheelResult').textContent = '';
-
-  const res = await fetch('/api/wheel', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({options})
-  });
-  const data = await res.json();
-
-  if (data.error) {
-    document.getElementById('wheelResult').textContent = '⚠️ ' + data.error;
-    spinning = false;
-    document.getElementById('spinBtn').disabled = false;
-    return;
-  }
-
-  const n = options.length;
-  const anglePer = 360 / n;
-  const winnerIndex = data.index;
-
-  const segmentMid = winnerIndex * anglePer + anglePer / 2;
-  const extraSpins = 6 * 360;
-  const currentNormalized = ((wheelRotation % 360) + 360) % 360;
-  const desired = ((-segmentMid) % 360 + 360) % 360;
-  let delta = desired - currentNormalized;
-  if (delta < 0) delta += 360;
-
-  wheelRotation += extraSpins + delta;
-
-  const svg = document.getElementById('wheelSvg');
-  svg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.16, 1)';
-  svg.style.transform = `rotate(${wheelRotation}deg)`;
-
-  setTimeout(() => {
-    document.getElementById('wheelResult').innerHTML =
-      `🎯 Ergebnis: <b>${data.result}</b>`;
-    spinning = false;
-    document.getElementById('spinBtn').disabled = false;
-  }, 4100);
-}
-
-document.getElementById('wheelOptions').addEventListener('input', () => {
-  if (document.getElementById('page-wheel').classList.contains('active')) {
-    renderWheel();
-  }
-});
-
-/* ============ Roulette ============ */
-let rouletteBet = null;   // {type, value}
-let rouletteSpinning = false;
-
-function setupRouletteButtons() {
-  document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (rouletteSpinning) return;
-
-      const betType = btn.dataset.bet;
-      const betValue = btn.dataset.value;
-
-      // Direkte Zahl über Input
-      if (betType === 'number') {
-        const input = document.getElementById('rouletteNumberInput');
-        const val = input.value.trim();
-        if (val === '' || isNaN(val)) {
-          input.focus();
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => input.style.borderColor = '#334155', 800);
-          return;
-        }
-        const num = parseInt(val, 10);
-        if (num < 0 || num > 36) {
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => input.style.borderColor = '#334155', 800);
-          return;
-        }
-        rouletteBet = { type: 'number', value: String(num) };
-      } else {
-        rouletteBet = { type: betType, value: betValue };
-      }
-
-      // Alle markierten aufheben, nur den aktuellen markieren
-      document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-
-      document.getElementById('rouletteSpinBtn').disabled = false;
-      document.getElementById('rouletteHint').textContent = 'Wette gesetzt – bereit zum Drehen!';
-      document.getElementById('rouletteResult').textContent = '';
-    });
-  });
-}
-
-async function doRouletteSpin() {
-  if (!rouletteBet || rouletteSpinning) return;
-
-  rouletteSpinning = true;
-  const spinBtn = document.getElementById('rouletteSpinBtn');
-  const allBtns = document.querySelectorAll('.roulette-bet-section .bet-btn');
-  const numberEl = document.getElementById('rouletteNumber');
-  const badge = document.getElementById('rouletteBadge');
-  const hint = document.getElementById('rouletteHint');
-  const resultEl = document.getElementById('rouletteResult');
-
-  spinBtn.disabled = true;
-  allBtns.forEach(b => b.disabled = true);
-  numberEl.classList.remove('red', 'black', 'green');
-  numberEl.classList.add('rolling');
-  numberEl.textContent = '?';
-  badge.className = 'roulette-color-badge';
-  badge.textContent = 'Dreht...';
-  hint.textContent = '';
-  resultEl.textContent = '';
-
-  const res = await fetch('/api/roulette', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value })
-  });
-  const data = await res.json();
-
-  if (data.error) {
-    resultEl.textContent = '⚠️ ' + data.error;
-    numberEl.classList.remove('rolling');
-    rouletteSpinning = false;
-    spinBtn.disabled = false;
-    allBtns.forEach(b => b.disabled = false);
-    return;
-  }
-
-  // Rollier-Animation: 20 zufällige Zahlen
-  let counter = 0;
-  const rollInterval = setInterval(() => {
-    const rand = Math.floor(Math.random() * 37);
-    numberEl.textContent = rand;
-    counter++;
-    if (counter >= 20) {
-      clearInterval(rollInterval);
-      numberEl.classList.remove('rolling');
-      numberEl.classList.add(data.color);
-      numberEl.textContent = data.number;
-      badge.className = 'roulette-color-badge ' + data.color;
-      badge.textContent = data.color === 'red' ? 'Rot' : data.color === 'black' ? 'Schwarz' : 'Grün';
-
-      resultEl.innerHTML = data.win
-        ? `<span class="win">🎉 Gewonnen! (${data.payout}:1)</span>`
-        : `<span class="lose">😢 Verloren</span>`;
-
-      hint.textContent = 'Wähle eine neue Wette';
-
-      rouletteSpinning = false;
-      spinBtn.disabled = false;
-      allBtns.forEach(b => b.disabled = false);
-
-      // Auswahl zurücksetzen
-      allBtns.forEach(b => b.classList.remove('selected'));
-      rouletteBet = null;
-      spinBtn.disabled = true;
-    }
-  }, 80);
-}
-
-/* ============ Init ============ */
-renderWheel();
-setupRouletteButtons();
-</script>
-</body>
-</html>
+            <button class="bet-btn" data-b

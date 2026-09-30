@@ -8,108 +8,484 @@
   * { box-sizing: border-box; }
   body {
     font-family: system-ui, -apple-system, sans-serif;
-    background: #0f172a;
+    background: radial-gradient(circle at top, #1e293b, #0b1220 70%);
     color: #e2e8f0;
     margin: 0;
-    padding: 2rem 1rem;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
   }
-  h1 { margin-bottom: 0.5rem; }
-  .card {
-    background: #1e293b;
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin: 1rem 0;
+  header {
     width: 100%;
-    max-width: 480px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #1e293b;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
-  h2 { margin-top: 0; }
-  button {
+  nav {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    justify-content: center;
+  }
+  nav button {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 0.55rem 1.2rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  nav button:hover { background: #1e293b; }
+  nav button.active {
     background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+  }
+  main {
+    width: 100%;
+    max-width: 720px;
+    padding: 2rem 1rem 4rem;
+  }
+  .page { display: none; }
+  .page.active { display: block; animation: fade 0.3s ease; }
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  h1 { text-align: center; margin: 0.5rem 0 1.5rem; font-size: 1.6rem; }
+
+  /* ---- Coin ---- */
+  .coin-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .coin-wrapper {
+    perspective: 900px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .coin {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 2.2s cubic-bezier(0.25, 0.8, 0.3, 1);
+  }
+  .coin .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.6rem;
+    font-weight: 700;
+    backface-visibility: hidden;
+    box-shadow:
+      inset 0 0 0 8px rgba(255,255,255,0.15),
+      0 10px 30px rgba(0,0,0,0.5);
+  }
+  .coin .kopf {
+    background: radial-gradient(circle at 30% 30%, #fde68a, #d97706 70%);
+    color: #78350f;
+  }
+  .coin .zahl {
+    background: radial-gradient(circle at 30% 30%, #e2e8f0, #94a3b8 70%);
+    color: #1e293b;
+    transform: rotateY(180deg);
+  }
+  .coin .edge {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #b45309, #fbbf24, #b45309);
+    transform: translateZ(-6px);
+  }
+
+  .choice-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .choice-btn {
+    background: #1e293b;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.7rem 1.6rem;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 110px;
+  }
+  .choice-btn:hover:not(:disabled) { border-color: #64748b; }
+  .choice-btn.selected {
+    border-color: #3b82f6;
+    background: #1d4ed8;
+    color: white;
+  }
+  .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .flip-btn {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     color: white;
     border: none;
-    border-radius: 8px;
-    padding: 0.7rem 1.2rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  button:hover { background: #2563eb; }
-  button.choice { margin-right: 0.5rem; }
-  .result {
-    margin-top: 1rem;
+    padding: 0.85rem 2.2rem;
+    border-radius: 12px;
     font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    transition: transform 0.1s;
+  }
+  .flip-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .flip-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .choice-display {
+    font-size: 1.05rem;
+    color: #94a3b8;
     min-height: 1.5rem;
   }
-  .win { color: #4ade80; font-weight: bold; }
-  .lose { color: #f87171; font-weight: bold; }
+  .choice-display b { color: #60a5fa; }
+
+  .result-box {
+    text-align: center;
+    min-height: 2rem;
+    font-size: 1.1rem;
+  }
+  .win { color: #4ade80; font-weight: 700; }
+  .lose { color: #f87171; font-weight: 700; }
+
+  /* ---- Wheel ---- */
+  .wheel-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .wheel-container {
+    position: relative;
+    width: 320px;
+    height: 320px;
+  }
+  .wheel-pointer {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 26px solid #f87171;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+    z-index: 2;
+  }
+  .wheel-svg {
+    width: 100%;
+    height: 100%;
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.16, 1);
+    filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));
+  }
+  .wheel-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #f8fafc, #64748b);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 1;
+  }
+  .spin-btn {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    border: none;
+    padding: 0.85rem 2.2rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    transition: transform 0.1s;
+  }
+  .spin-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
   textarea {
     width: 100%;
-    min-height: 100px;
-    border-radius: 8px;
+    min-height: 110px;
+    border-radius: 10px;
     border: 1px solid #334155;
     background: #0f172a;
     color: #e2e8f0;
-    padding: 0.6rem;
+    padding: 0.7rem;
     font-family: inherit;
     font-size: 0.95rem;
+    resize: vertical;
   }
-  .hint { font-size: 0.85rem; color: #94a3b8; }
+  .hint { font-size: 0.85rem; color: #94a3b8; margin: 0.4rem 0; }
 </style>
 </head>
 <body>
 
-  <h1>🪙 Coinflip & 🎡 Glücksrad</h1>
+<header>
+  <nav>
+    <button id="nav-coin" class="active" onclick="showPage('coin')">🪙 Coinflip</button>
+    <button id="nav-wheel" onclick="showPage('wheel')">🎡 Glücksrad</button>
+  </nav>
+</header>
 
-  <!-- Coinflip -->
-  <div class="card">
-    <h2>Coinflip</h2>
-    <p class="hint">Wähle Kopf oder Zahl:</p>
-    <button class="choice" onclick="flip('kopf')">Kopf</button>
-    <button class="choice" onclick="flip('zahl')">Zahl</button>
-    <div class="result" id="coinResult"></div>
-  </div>
+<main>
 
-  <!-- Glücksrad -->
-  <div class="card">
-    <h2>Glücksrad</h2>
-    <p class="hint">Eine Option pro Zeile:</p>
-    <textarea id="wheelOptions">Pizza
+  <!-- ===== COIN PAGE ===== -->
+  <section id="page-coin" class="page active">
+    <h1>Coinflip</h1>
+
+    <div class="coin-stage">
+
+      <div class="choice-display" id="choiceDisplay">
+        Wähle <b>Kopf</b> oder <b>Zahl</b>
+      </div>
+
+      <div class="coin-wrapper">
+        <div class="coin" id="coin">
+          <div class="edge"></div>
+          <div class="face kopf">K</div>
+          <div class="face zahl">Z</div>
+        </div>
+      </div>
+
+      <div class="choice-row">
+        <button class="choice-btn" id="btn-kopf" onclick="pickChoice('kopf')">Kopf</button>
+        <button class="choice-btn" id="btn-zahl" onclick="pickChoice('zahl')">Zahl</button>
+      </div>
+
+      <button class="flip-btn" id="flipBtn" onclick="doFlip()" disabled>Flip!</button>
+
+      <div class="result-box" id="coinResult"></div>
+    </div>
+  </section>
+
+  <!-- ===== WHEEL PAGE ===== -->
+  <section id="page-wheel" class="page">
+    <h1>Glücksrad</h1>
+
+    <div class="wheel-stage">
+
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <svg class="wheel-svg" id="wheelSvg" viewBox="0 0 200 200"></svg>
+        <div class="wheel-hub"></div>
+      </div>
+
+      <div class="result-box" id="wheelResult"></div>
+
+      <button class="spin-btn" id="spinBtn" onclick="doSpin()">Drehen!</button>
+
+      <div style="width: 100%; max-width: 480px;">
+        <p class="hint">Eine Option pro Zeile (mind. 2, max. 12):</p>
+        <textarea id="wheelOptions">Pizza
 Burger
 Sushi
-Pasta</textarea>
-    <br><br>
-    <button onclick="spin()">Drehen!</button>
-    <div class="result" id="wheelResult"></div>
-  </div>
+Pasta
+Salat
+Curry</textarea>
+      </div>
+    </div>
+  </section>
+
+</main>
 
 <script>
-async function flip(choice) {
+/* ============ Navigation ============ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'wheel') renderWheel();
+}
+
+/* ============ Coinflip ============ */
+let chosen = null;
+let flipping = false;
+let currentRotation = 0; // kumulierte Rotation in Grad
+
+function pickChoice(c) {
+  if (flipping) return;
+  chosen = c;
+  document.getElementById('btn-kopf').classList.toggle('selected', c === 'kopf');
+  document.getElementById('btn-zahl').classList.toggle('selected', c === 'zahl');
+
+  const label = c === 'kopf' ? 'Kopf' : 'Zahl';
+  document.getElementById('choiceDisplay').innerHTML =
+    `Deine Wahl: <b>${label}</b>`;
+  document.getElementById('flipBtn').disabled = false;
+  document.getElementById('coinResult').textContent = '';
+}
+
+async function doFlip() {
+  if (!chosen || flipping) return;
+  flipping = true;
+
+  document.getElementById('flipBtn').disabled = true;
+  document.getElementById('btn-kopf').disabled = true;
+  document.getElementById('btn-zahl').disabled = true;
+  document.getElementById('coinResult').textContent = '';
+
   const res = await fetch('/api/coinflip', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({choice})
+    body: JSON.stringify({choice: chosen})
   });
   const data = await res.json();
-  const el = document.getElementById('coinResult');
-  if (data.error) { el.textContent = data.error; return; }
 
-  const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
-  const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
+  if (data.error) {
+    document.getElementById('coinResult').textContent = data.error;
+    resetCoinControls();
+    return;
+  }
 
-  el.innerHTML = `Du hast <b>${choiceText}</b> gewählt — Ergebnis: <b>${resultText}</b><br>` +
-    (data.win
-      ? '<span class="win">🎉 Gewonnen!</span>'
-      : '<span class="lose">😢 Verloren!</span>');
+  // Rotation berechnen: mehrere volle Drehungen + Endseite
+  // "kopf" zeigt nach vorne = 0°, "zahl" zeigt nach vorne = 180°
+  const targetFace = data.result === 'kopf' ? 0 : 180;
+
+  // Aktuelle Rotation normalisieren (welche Seite zeigt gerade nach vorne?)
+  const normalized = ((currentRotation % 360) + 360) % 360;
+  // Um von "normalized" auf "targetFace" zu kommen, brauchen wir einen Delta
+  let delta = targetFace - normalized;
+  if (delta < 0) delta += 360;
+
+  // Zusätzliche volle Drehungen für den Effekt (z.B. 5 Runden)
+  const extraSpins = 5 * 360;
+  const newRotation = currentRotation + extraSpins + delta;
+  currentRotation = newRotation;
+
+  const coin = document.getElementById('coin');
+  coin.style.transform = `rotateY(${newRotation}deg)`;
+
+  // Auf Ende der Animation warten (2.2s aus CSS)
+  setTimeout(() => {
+    const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
+    const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
+    const el = document.getElementById('coinResult');
+    el.innerHTML =
+      `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
+      (data.win
+        ? '<span class="win">🎉 Gewonnen!</span>'
+        : '<span class="lose">😢 Verloren!</span>');
+    resetCoinControls();
+  }, 2300);
 }
 
-async function spin() {
+function resetCoinControls() {
+  flipping = false;
+  document.getElementById('flipBtn').disabled = false;
+  document.getElementById('btn-kopf').disabled = false;
+  document.getElementById('btn-zahl').disabled = false;
+}
+
+/* ============ Glücksrad ============ */
+const WHEEL_COLORS = [
+  '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
+  '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
+  '#84cc16', '#06b6d4', '#a855f7', '#eab308'
+];
+
+let wheelRotation = 0;
+let spinning = false;
+
+function getWheelOptions() {
   const raw = document.getElementById('wheelOptions').value;
-  const options = raw.split('\n').map(s => s.trim()).filter(Boolean);
+  return raw.split('\n').map(s => s.trim()).filter(Boolean);
+}
+
+function renderWheel() {
+  const options = getWheelOptions();
+  const svg = document.getElementById('wheelSvg');
+  svg.innerHTML = '';
+
+  if (options.length < 2) {
+    svg.innerHTML = '<circle cx="100" cy="100" r="95" fill="#1e293b" stroke="#334155" stroke-width="2"/>' +
+      '<text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="10">Mind. 2 Optionen</text>';
+    return;
+  }
+
+  const n = options.length;
+  const angle = 360 / n;
+  const cx = 100, cy = 100, r = 95;
+
+  function polar(angleDeg, radius) {
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+  }
+
+  for (let i = 0; i < n; i++) {
+    const start = i * angle;
+    const end = start + angle;
+
+    const [x1, y1] = polar(start, r);
+    const [x2, y2] = polar(end, r);
+    const largeArc = angle > 180 ? 1 : 0;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`);
+    path.setAttribute('fill', WHEEL_COLORS[i % WHEEL_COLORS.length]);
+    path.setAttribute('stroke', '#0f172a');
+    path.setAttribute('stroke-width', '1');
+    svg.appendChild(path);
+
+    // Text
+    const mid = start + angle / 2;
+    const [tx, ty] = polar(mid, r * 0.62);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', tx);
+    text.setAttribute('y', ty);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('fill', 'white');
+    text.setAttribute('font-size', n > 8 ? '7' : '9');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('transform', `rotate(${mid} ${tx} ${ty})`);
+    let label = options[i];
+    if (label.length > 12) label = label.slice(0, 11) + '…';
+    text.textContent = label;
+    svg.appendChild(text);
+  }
+}
+
+async function doSpin() {
+  if (spinning) return;
+  const options = getWheelOptions();
+
+  if (options.length < 2) {
+    document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!';
+    return;
+  }
+  if (options.length > 12) {
+    document.getElementById('wheelResult').textContent = '⚠️ Maximal 12 Optionen!';
+    return;
+  }
+
+  spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('wheelResult').textContent = '';
 
   const res = await fetch('/api/wheel', {
     method: 'POST',
@@ -117,10 +493,54 @@ async function spin() {
     body: JSON.stringify({options})
   });
   const data = await res.json();
-  const el = document.getElementById('wheelResult');
-  if (data.error) { el.textContent = '⚠️ ' + data.error; return; }
-  el.innerHTML = `🎯 Ergebnis: <b>${data.result}</b>`;
+
+  if (data.error) {
+    document.getElementById('wheelResult').textContent = '⚠️ ' + data.error;
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+    return;
+  }
+
+  const n = options.length;
+  const anglePer = 360 / n;
+  const winnerIndex = data.index;
+
+  // Wir wollen, dass der Mittelpunkt des Gewinner-Segments oben (bei -90°, also 0° in unserem System) landet.
+  // Segment i reicht von i*anglePer bis (i+1)*anglePer, Mitte bei i*anglePer + anglePer/2.
+  // Um diesen Mittelpunkt nach oben zu drehen, muss das Rad um -(Mitte) gedreht werden.
+  const segmentMid = winnerIndex * anglePer + anglePer / 2;
+
+  // Zusätzliche volle Drehungen
+  const extraSpins = 6 * 360;
+  // Zielrotation so, dass segmentMid oben landet. Wir akkumulieren.
+  const currentNormalized = ((wheelRotation % 360) + 360) % 360;
+  const desired = ((-segmentMid) % 360 + 360) % 360;
+  let delta = desired - currentNormalized;
+  if (delta < 0) delta += 360;
+
+  wheelRotation += extraSpins + delta;
+
+  const svg = document.getElementById('wheelSvg');
+  svg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.16, 1)';
+  svg.style.transform = `rotate(${wheelRotation}deg)`;
+
+  setTimeout(() => {
+    document.getElementById('wheelResult').innerHTML =
+      `🎯 Ergebnis: <b>${data.result}</b>`;
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+  }, 4100);
 }
+
+// Rad initial rendern, wenn Änderungen im Textfeld
+document.getElementById('wheelOptions').addEventListener('input', () => {
+  if (document.getElementById('page-wheel').classList.contains('active')) {
+    renderWheel();
+  }
+});
+
+// Initial rendern
+renderWheel();
 </script>
 </body>
 </html>

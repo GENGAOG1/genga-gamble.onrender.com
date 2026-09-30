@@ -950,11 +950,11 @@ function applyCoinCustom() {
 function updateCoinButtonState() {
   const p = getCurrentPlayer();
   const canPlay = chosen && coinBet > 0 && coinBet <= p.balance && !flipping;
-  document.getElementById('flipBtn').disabled = !canPlay;
+  document.getElementById('flipBtn').disabled = ! roucanPlay;
 }
 
 function setRouletteBet(amount, btn) {
-  rouletteBetAmount = amount;
+ letteBetAmount = amount;
   document.getElementById('rouletteCustomBet').value = '';
   document.querySelectorAll('#rouletteQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
   if (btn) btn.classList.add('selected');
@@ -1120,14 +1120,14 @@ function renderWheel() {
     text.setAttribute('font-weight', '700');
     text.setAttribute('transform', `rotate(${mid} ${tx} ${ty})`);
     let label = options[i];
-    if (label.length > 12) label = label.slice( (0, 11) + '…';
-    text.textContent =sp label;
+    if (label.length > 12) label = label.slice(0, 11) + '…';
+    text.textContent = label;
     svg.appendChild(text);
   }
 }
 
-async function doinningSpin)() {
-  if return;
+async function doSpin() {
+  if (spinning) return;
   const options = getWheelOptions();
   if (options.length < 2) {
     document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!';

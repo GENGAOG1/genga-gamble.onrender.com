@@ -43,7 +43,6 @@ def wheel():
         "options": cleaned
     })
 
-# ---- Roulette ----
 ROULETTE_RED = {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36}
 
 @app.route("/api/roulette", methods=["POST"])
@@ -52,7 +51,6 @@ def roulette():
     bet_type = data.get("bet_type", "")
     bet_value = data.get("bet_value", None)
 
-    # Zahl 0-36
     number = secrets.randbelow(37)
 
     if number == 0:
@@ -68,15 +66,13 @@ def roulette():
     if bet_type == "color" and bet_value in ("red", "black"):
         if color == bet_value:
             win = True
-            payout = 1  # 1:1
-
+            payout = 1
     elif bet_type == "parity" and bet_value in ("even", "odd"):
         if number != 0:
             is_even = number % 2 == 0
             if (bet_value == "even" and is_even) or (bet_value == "odd" and not is_even):
                 win = True
                 payout = 1
-
     elif bet_type == "range" and bet_value in ("low", "high"):
         if bet_value == "low" and 1 <= number <= 18:
             win = True
@@ -84,21 +80,19 @@ def roulette():
         elif bet_value == "high" and 19 <= number <= 36:
             win = True
             payout = 1
-
     elif bet_type == "dozen" and bet_value in ("1", "2", "3"):
         d = int(bet_value)
         lo = (d - 1) * 12 + 1
         hi = d * 12
         if lo <= number <= hi:
             win = True
-            payout = 2  # 2:1
-
+            payout = 2
     elif bet_type == "number":
         try:
             n = int(bet_value)
             if 0 <= n <= 36 and n == number:
                 win = True
-                payout = 35  # 35:1
+                payout = 35
         except (TypeError, ValueError):
             return jsonify({"error": "Ungültige Zahl."}), 400
     else:

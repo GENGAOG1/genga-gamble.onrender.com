@@ -303,10 +303,7 @@
   }
   .win { color: #4ade80; font-weight: 700; }
   .lose { color: #f87171; font-weight: 700; }
-</style>
-<!-- TEIL 2 kommt direkt nach diesem </style> -->
- <style>
-  /* ---- Wheel ---- */
+
   .wheel-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
   .wheel-container { position: relative; width: 320px; height: 320px; }
   .wheel-pointer {
@@ -368,7 +365,6 @@
   }
   .hint { font-size: 0.85rem; color: #94a3b8; margin: 0.4rem 0; }
 
-  /* ---- Roulette ---- */
   .roulette-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
   .roulette-display {
     width: 100%;
@@ -465,7 +461,6 @@
   }
   .number-input-row input:focus { outline: none; border-color: #3b82f6; }
 
-  /* ---- Modal ---- */
   .modal-backdrop {
     display: none;
     position: fixed;
@@ -607,11 +602,9 @@
 
 <main>
 
-  <!-- ===== COIN ===== -->
   <section id="page-coin" class="page active">
     <h1>Coinflip</h1>
     <div class="coin-stage">
-
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="coinQuickBets">
@@ -651,7 +644,6 @@
     </div>
   </section>
 
-  <!-- ===== WHEEL ===== -->
   <section id="page-wheel" class="page">
     <h1>Glücksrad</h1>
     <div class="wheel-stage">
@@ -674,11 +666,9 @@ Curry</textarea>
     </div>
   </section>
 
-  <!-- ===== ROULETTE ===== -->
   <section id="page-roulette" class="page">
     <h1>Roulette</h1>
     <div class="roulette-stage">
-
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="rouletteQuickBets">
@@ -746,7 +736,6 @@ Curry</textarea>
 
 </main>
 
-<!-- ===== PLAYER MODAL ===== -->
 <div class="modal-backdrop" id="playersModal">
   <div class="modal">
     <h3>👥 Spieler</h3>
@@ -766,7 +755,6 @@ Curry</textarea>
   </div>
 </div>
 
-<!-- ===== HISTORY MODAL ===== -->
 <div class="modal-backdrop" id="historyModal">
   <div class="modal">
     <h3>📜 Verlauf</h3>
@@ -779,9 +767,8 @@ Curry</textarea>
 </div>
 
 <script>
-/* ============ STATE ============ */
 const STORAGE_KEY = 'coinflip_players_v1';
-let players = [];         // [{id, name, balance, history: [{time, game, text, amount, win}]}]
+let players = [];
 let currentPlayerId = null;
 
 function loadState() {
@@ -795,12 +782,7 @@ function loadState() {
   } catch (e) { console.warn('Fehler beim Laden', e); }
 
   if (players.length === 0) {
-    players = [{
-      id: uid(),
-      name: 'Gast',
-      balance: 100,
-      history: []
-    }];
+    players = [{ id: uid(), name: 'Gast', balance: 100, history: [] }];
     currentPlayerId = players[0].id;
   }
   if (!players.find(p => p.id === currentPlayerId)) {
@@ -810,9 +792,7 @@ function loadState() {
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    players, currentPlayerId
-  }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ players, currentPlayerId }));
 }
 
 function uid() {
@@ -835,7 +815,6 @@ function updateBalanceUI() {
   balEl.classList.toggle('negative', p.balance < 0);
 }
 
-/* ============ PLAYER MODAL ============ */
 function openPlayersModal() {
   renderPlayerList();
   document.getElementById('playersModal').classList.add('open');
@@ -886,10 +865,8 @@ function createPlayer() {
   const balInput = document.getElementById('newPlayerBalance');
   const name = nameInput.value.trim();
   let bal = parseFloat(balInput.value);
-
   if (!name) { nameInput.focus(); return; }
   if (isNaN(bal) || bal < 0) bal = 100;
-
   const newP = { id: uid(), name, balance: bal, history: [] };
   players.push(newP);
   currentPlayerId = newP.id;
@@ -901,7 +878,6 @@ function createPlayer() {
   closeModal('playersModal');
 }
 
-/* ============ HISTORY ============ */
 function addHistory(game, text, amount, win) {
   const p = getCurrentPlayer();
   p.history.unshift({
@@ -946,7 +922,6 @@ function escapeHtml(s) {
   }[c]));
 }
 
-/* ============ NAV ============ */
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -955,7 +930,6 @@ function showPage(name) {
   if (name === 'wheel') renderWheel();
 }
 
-/* ============ EINSATZ-AUSWAHL ============ */
 let coinBet = 0;
 let rouletteBetAmount = 0;
 
@@ -999,7 +973,6 @@ function updateRouletteButtonState() {
   document.getElementById('rouletteSpinBtn').disabled = !canPlay;
 }
 
-/* ============ COINFLIP ============ */
 let chosen = null;
 let flipping = false;
 let currentRotation = 0;
@@ -1065,16 +1038,13 @@ async function doFlip() {
     const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
     const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
 
-    // Geld verrechnen
     const win = data.win;
     const netChange = win ? coinBet : -coinBet;
     p.balance += netChange;
     saveState();
     updateBalanceUI();
 
-    addHistory('🪙 Coinflip',
-      `${choiceText} → ${resultText}`,
-      coinBet, win);
+    addHistory('🪙 Coinflip', `${choiceText} → ${resultText}`, coinBet, win);
 
     resultEl.innerHTML =
       `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
@@ -1093,7 +1063,6 @@ function resetCoinControls() {
   updateCoinButtonState();
 }
 
-/* ============ GLÜCKSRAD (unverändert) ============ */
 const WHEEL_COLORS = [
   '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
@@ -1151,14 +1120,14 @@ function renderWheel() {
     text.setAttribute('font-weight', '700');
     text.setAttribute('transform', `rotate(${mid} ${tx} ${ty})`);
     let label = options[i];
-    if (label.length > 12) label = label.slice(0, 11) + '…';
-    text.textContent = label;
+    if (label.length > 12) label = label.slice( (0, 11) + '…';
+    text.textContent =sp label;
     svg.appendChild(text);
   }
 }
 
-async function doSpin() {
-  if (spinning) return;
+async function doinningSpin)() {
+  if return;
   const options = getWheelOptions();
   if (options.length < 2) {
     document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!';
@@ -1202,8 +1171,7 @@ async function doSpin() {
   svg.style.transform = `rotate(${wheelRotation}deg)`;
 
   setTimeout(() => {
-    document.getElementById('wheelResult').innerHTML =
-      `🎯 Ergebnis: <b>${data.result}</b>`;
+    document.getElementById('wheelResult').innerHTML = `🎯 Ergebnis: <b>${data.result}</b>`;
     spinning = false;
     document.getElementById('spinBtn').disabled = false;
   }, 4100);
@@ -1215,7 +1183,6 @@ document.getElementById('wheelOptions').addEventListener('input', () => {
   }
 });
 
-/* ============ ROULETTE ============ */
 let rouletteBet = null;
 let rouletteSpinning = false;
 
@@ -1310,12 +1277,10 @@ async function doRouletteSpin() {
       badge.className = 'roulette-color-badge ' + data.color;
       badge.textContent = data.color === 'red' ? 'Rot' : data.color === 'black' ? 'Schwarz' : 'Grün';
 
-      // Geld verrechnen
       const win = data.win;
       let netChange;
       let text;
       if (win) {
-        // payout = N bedeutet: N × Einsatz Gewinn (netto) + Einsatz zurück
         netChange = rouletteBetAmount * data.payout;
         text = `Gewinn (${data.payout}:1)`;
       } else {
@@ -1345,13 +1310,11 @@ async function doRouletteSpin() {
   }, 80);
 }
 
-/* ============ INIT ============ */
 loadState();
 updateBalanceUI();
 renderWheel();
 setupRouletteButtons();
 
-// Modal-Klick außerhalb schließt
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) backdrop.classList.remove('open');

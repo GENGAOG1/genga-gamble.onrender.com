@@ -771,7 +771,7 @@ const STORAGE_KEY = 'coinflip_players_v1';
 let players = [];
 let currentPlayerId = null;
 
-// Zustandsvariablen ganz oben — verhindert ReferenceError
+/* ============ ZUSTANDSVARIABLEN (alle oben!) ============ */
 let chosen = null;
 let flipping = false;
 let currentRotation = 0;
@@ -782,6 +782,7 @@ let rouletteSpinning = false;
 let wheelRotation = 0;
 let spinning = false;
 
+/* ============ STATE ============ */
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -826,6 +827,7 @@ function updateBalanceUI() {
   balEl.classList.toggle('negative', p.balance < 0);
 }
 
+/* ============ PLAYER MODAL ============ */
 function openPlayersModal() {
   renderPlayerList();
   document.getElementById('playersModal').classList.add('open');
@@ -889,6 +891,7 @@ function createPlayer() {
   closeModal('playersModal');
 }
 
+/* ============ HISTORY ============ */
 function addHistory(game, text, amount, win) {
   const p = getCurrentPlayer();
   p.history.unshift({
@@ -933,6 +936,7 @@ function escapeHtml(s) {
   }[c]));
 }
 
+/* ============ NAV ============ */
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -941,9 +945,7 @@ function showPage(name) {
   if (name === 'wheel') renderWheel();
 }
 
-let coinBet = 0;
-let rouletteBetAmount = 0;
-
+/* ============ EINSATZ-AUSWAHL ============ */
 function setCoinBet(amount, btn) {
   coinBet = amount;
   document.getElementById('coinCustomBet').value = '';
@@ -961,11 +963,11 @@ function applyCoinCustom() {
 function updateCoinButtonState() {
   const p = getCurrentPlayer();
   const canPlay = chosen && coinBet > 0 && coinBet <= p.balance && !flipping;
-  document.getElementById('flipBtn').disabled = ! roucanPlay;
+  document.getElementById('flipBtn').disabled = !canPlay;
 }
 
 function setRouletteBet(amount, btn) {
- letteBetAmount = amount;
+  rouletteBetAmount = amount;
   document.getElementById('rouletteCustomBet').value = '';
   document.querySelectorAll('#rouletteQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
   if (btn) btn.classList.add('selected');
@@ -984,10 +986,7 @@ function updateRouletteButtonState() {
   document.getElementById('rouletteSpinBtn').disabled = !canPlay;
 }
 
-let chosen = null;
-let flipping = false;
-let currentRotation = 0;
-
+/* ============ COINFLIP ============ */
 function pickChoice(c) {
   if (flipping) return;
   chosen = c;
@@ -1074,13 +1073,12 @@ function resetCoinControls() {
   updateCoinButtonState();
 }
 
+/* ============ GLÜCKSRAD ============ */
 const WHEEL_COLORS = [
   '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
   '#84cc16', '#06b6d4', '#a855f7', '#eab308'
 ];
-let wheelRotation = 0;
-let spinning = false;
 
 function getWheelOptions() {
   const raw = document.getElementById('wheelOptions').value;
@@ -1194,9 +1192,7 @@ document.getElementById('wheelOptions').addEventListener('input', () => {
   }
 });
 
-let rouletteBet = null;
-let rouletteSpinning = false;
-
+/* ============ ROULETTE ============ */
 function setupRouletteButtons() {
   document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1321,6 +1317,7 @@ async function doRouletteSpin() {
   }, 80);
 }
 
+/* ============ INIT ============ */
 loadState();
 updateBalanceUI();
 renderWheel();

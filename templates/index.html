@@ -771,6 +771,17 @@ const STORAGE_KEY = 'coinflip_players_v1';
 let players = [];
 let currentPlayerId = null;
 
+// Zustandsvariablen ganz oben — verhindert ReferenceError
+let chosen = null;
+let flipping = false;
+let currentRotation = 0;
+let coinBet = 0;
+let rouletteBetAmount = 0;
+let rouletteBet = null;
+let rouletteSpinning = false;
+let wheelRotation = 0;
+let spinning = false;
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

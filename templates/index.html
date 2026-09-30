@@ -1,1 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coinflip & Glücksrad</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 { margin-bottom: 0.5rem; }
+  .card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  h2 { margin-top: 0; }
+  button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover { background: #2563eb; }
+  button.choice { margin-right: 0.5rem; }
+  .result {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    min-height: 1.5rem;
+  }
+  .win { color: #4ade80; font-weight: bold; }
+  .lose { color: #f87171; font-weight: bold; }
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 0.6rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  .hint { font-size: 0.85rem; color: #94a3b8; }
+</style>
+</head>
+<body>
 
+  <h1>🪙 Coinflip & 🎡 Glücksrad</h1>
+
+  <!-- Coinflip -->
+  <div class="card">
+    <h2>Coinflip</h2>
+    <p class="hint">Wähle Kopf oder Zahl:</p>
+    <button class="choice" onclick="flip('kopf')">Kopf</button>
+    <button class="choice" onclick="flip('zahl')">Zahl</button>
+    <div class="result" id="coinResult"></div>
+  </div>
+
+  <!-- Glücksrad -->
+  <div class="card">
+    <h2>Glücksrad</h2>
+    <p class="hint">Eine Option pro Zeile:</p>
+    <textarea id="wheelOptions">Pizza
+Burger
+Sushi
+Pasta</textarea>
+    <br><br>
+    <button onclick="spin()">Drehen!</button>
+    <div class="result" id="wheelResult"></div>
+  </div>
+
+<script>
+async function flip(choice) {
+  const res = await fetch('/api/coinflip', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({choice})
+  });
+  const data = await res.json();
+  const el = document.getElementById('coinResult');
+  if (data.error) { el.textContent = data.error; return; }
+
+  const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
+  const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
+
+  el.innerHTML = `Du hast <b>${choiceText}</b> gewählt — Ergebnis: <b>${resultText}</b><br>` +
+    (data.win
+      ? '<span class="win">🎉 Gewonnen!</span>'
+      : '<span class="lose">😢 Verloren!</span>');
+}
+
+async function spin() {
+  const raw = document.getElementById('wheelOptions').value;
+  const options = raw.split('\n').map(s => s.trim()).filter(Boolean);
+
+  const res = await fetch('/api/wheel', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({options})
+  });
+  const data = await res.json();
+  const el = document.getElementById('wheelResult');
+  if (data.error) { el.textContent = '⚠️ ' + data.error; return; }
+  el.innerHTML = `🎯 Ergebnis: <b>${data.result}</b>`;
+}
+</script>
+</body>
+</html>

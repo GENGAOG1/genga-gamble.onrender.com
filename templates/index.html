@@ -43,6 +43,8 @@
     padding: 0.4rem 0.9rem;
     border-radius: 999px;
     border: 1px solid #334155;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .player-name {
     font-weight: 700;
@@ -50,6 +52,16 @@
     cursor: pointer;
   }
   .player-name:hover { text-decoration: underline; }
+  .account-badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .account-badge.guest { background: #334155; color: #94a3b8; }
+  .account-badge.real { background: #14532d; color: #bbf7d0; }
   .balance {
     font-weight: 800;
     color: #4ade80;
@@ -109,616 +121,108 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   h1 { text-align: center; margin: 0.5rem 0 1.5rem; font-size: 1.6rem; }
+  h2 { text-align: center; margin: 0.5rem 0 1rem; font-size: 1.3rem; }
 
-  .bet-amount-section {
-    width: 100%;
-    max-width: 480px;
-    background: #1e293b;
-    border-radius: 14px;
-    padding: 1rem 1.2rem;
+  /* ---- Start-Screen ---- */
+  .start-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
-  }
-  .bet-amount-section .bet-label {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .quick-bet-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .quick-bet {
-    flex: 1;
-    min-width: 60px;
-    background: #0f172a;
-    border: 2px solid #334155;
-    color: #e2e8f0;
-    padding: 0.55rem 0.6rem;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .quick-bet:hover:not(:disabled) { border-color: #64748b; }
-  .quick-bet.selected {
-    border-color: #4ade80;
-    background: #14532d;
-    color: white;
-  }
-  .quick-bet:disabled { opacity: 0.4; cursor: not-allowed; }
-  .custom-bet-row { display: flex; gap: 0.5rem; align-items: center; }
-  .custom-bet-row input {
-    flex: 1;
-    background: #0f172a;
-    border: 2px solid #334155;
-    color: #e2e8f0;
-    border-radius: 10px;
-    padding: 0.55rem 0.9rem;
-    font-size: 1rem;
-    font-family: inherit;
-  }
-  .custom-bet-row input:focus { outline: none; border-color: #4ade80; }
-  .custom-bet-row button {
-    background: #0f172a;
-    border: 2px solid #334155;
-    color: #e2e8f0;
-    padding: 0.55rem 1rem;
-    border-radius: 10px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .custom-bet-row button:hover { border-color: #4ade80; }
-
-  .coin-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-  .coin-wrapper {
-    perspective: 1200px;
-    height: 220px;
-    width: 220px;
-    display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 1rem;
+    max-width: 460px;
+    margin: 0 auto;
+    padding-top: 1rem;
   }
-  .coin {
-    width: 180px;
-    height: 180px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 2.6s cubic-bezier(0.4, 0.0, 0.2, 1);
-    will-change: transform;
+  .start-card {
+    width: 100%;
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
   }
-  .coin-inner {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-  }
-  .coin .face {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
+  .start-card h2 { margin: 0 0 0.4rem; }
+  .start-card p { font-size: 0.9rem; color: #94a3b8; margin: 0 0 1rem; }
+  .start-actions {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.8rem;
-    font-weight: 800;
-    backface-visibility: hidden;
-    box-shadow:
-      inset 0 0 0 6px rgba(255,255,255,0.25),
-      inset 0 0 30px rgba(0,0,0,0.25),
-      0 12px 30px rgba(0,0,0,0.55);
-    overflow: hidden;
+    flex-direction: column;
+    gap: 0.6rem;
   }
-  .coin .face::before {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    border-radius: 50%;
-    border: 2px dashed rgba(0,0,0,0.15);
-  }
-  .coin .kopf {
-    background: radial-gradient(circle at 30% 25%, #fef3c7, #f59e0b 55%, #b45309 100%);
-    color: #78350f;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
-  }
-  .coin .zahl {
-    background: radial-gradient(circle at 30% 25%, #f8fafc, #cbd5e1 55%, #64748b 100%);
-    color: #1e293b;
-    transform: rotateY(180deg);
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
-  }
-  .coin .edge {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(90deg,
-      #92400e 0%, #fbbf24 20%, #b45309 40%,
-      #fcd34d 60%, #92400e 80%, #fbbf24 100%);
-    transform: translateZ(-10px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.55);
-  }
-  .coin.flipping .face::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(120deg,
-      transparent 30%, rgba(255,255,255,0.7) 50%, transparent 70%);
-    animation: shine 0.4s linear infinite;
-  }
-  @keyframes shine {
-    from { transform: translateX(-100%); }
-    to   { transform: translateX(100%); }
-  }
-  .coin.settle { animation: settle 0.4s ease-out; }
-  @keyframes settle {
-    0%   { transform: scale(1); }
-    40%  { transform: scale(1.08); }
-    100% { transform: scale(1); }
-  }
-  .choice-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
-  .choice-btn {
-    background: #1e293b;
-    border: 2px solid #334155;
-    color: #e2e8f0;
-    padding: 0.7rem 1.6rem;
-    border-radius: 12px;
-    font-size: 1.05rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    min-width: 110px;
-  }
-  .choice-btn:hover:not(:disabled) { border-color: #64748b; }
-  .choice-btn.selected {
-    border-color: #3b82f6;
-    background: #1d4ed8;
-    color: white;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
-  }
-  .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .flip-btn {
+  .big-btn {
     background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     color: white;
     border: none;
-    padding: 0.85rem 2.2rem;
+    padding: 0.85rem 1.4rem;
     border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    transition: transform 0.1s;
-  }
-  .flip-btn:hover:not(:disabled) { transform: translateY(-2px); }
-  .flip-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .choice-display {
-    font-size: 1.05rem;
-    color: #94a3b8;
-    min-height: 1.5rem;
-  }
-  .choice-display b { color: #60a5fa; }
-  .result-box {
-    text-align: center;
-    min-height: 2rem;
-    font-size: 1.05rem;
-  }
-  .win { color: #4ade80; font-weight: 700; }
-  .lose { color: #f87171; font-weight: 700; }
-
-  .wheel-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-  .wheel-container { position: relative; width: 320px; height: 320px; }
-  .wheel-pointer {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 14px solid transparent;
-    border-right: 14px solid transparent;
-    border-top: 26px solid #f87171;
-    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
-    z-index: 2;
-  }
-  .wheel-svg {
-    width: 100%;
-    height: 100%;
-    transition: transform 4s cubic-bezier(0.17, 0.67, 0.16, 1);
-    filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));
-  }
-  .wheel-hub {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #f8fafc, #64748b);
-    transform: translate(-50%, -50%);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    z-index: 1;
-  }
-  .spin-btn {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    color: white;
-    border: none;
-    padding: 0.85rem 2.2rem;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-    transition: transform 0.1s;
-  }
-  .spin-btn:hover:not(:disabled) { transform: translateY(-2px); }
-  .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  textarea {
-    width: 100%;
-    min-height: 110px;
-    border-radius: 10px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: #e2e8f0;
-    padding: 0.7rem;
-    font-family: inherit;
-    font-size: 0.95rem;
-    resize: vertical;
-  }
-  .hint { font-size: 0.85rem; color: #94a3b8; margin: 0.4rem 0; }
-
-  .roulette-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
-  .roulette-display {
-    width: 100%;
-    max-width: 460px;
-    background: linear-gradient(180deg, #1e293b, #0f172a);
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 1.2rem;
-    text-align: center;
-  }
-  .roulette-number {
-    font-size: 4rem;
-    font-weight: 800;
-    line-height: 1;
-    margin: 0.3rem 0 0.5rem;
-    transition: color 0.3s, transform 0.2s;
-    color: #94a3b8;
-    display: inline-block;
-    min-width: 1.6em;
-  }
-  .roulette-number.rolling { animation: pulse 0.15s linear infinite alternate; }
-  @keyframes pulse {
-    from { transform: scale(1); }
-    to   { transform: scale(1.08); }
-  }
-  .roulette-number.red { color: #ef4444; text-shadow: 0 0 20px rgba(239,68,68,0.5); }
-  .roulette-number.black { color: #e2e8f0; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-  .roulette-number.green { color: #22c55e; text-shadow: 0 0 20px rgba(34,197,94,0.6); }
-  .roulette-color-badge {
-    display: inline-block;
-    padding: 0.25rem 0.9rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    background: #334155;
-    color: #94a3b8;
+    cursor: pointer;
+    transition: transform 0.1s;
   }
-  .roulette-color-badge.red { background: #7f1d1d; color: #fecaca; }
-  .roulette-color-badge.black { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; }
-  .roulette-color-badge.green { background: #14532d; color: #bbf7d0; }
-  .roulette-bet-section {
-    width: 100%;
-    max-width: 460px;
-    background: #1e293b;
-    border-radius: 14px;
-    padding: 1.2rem;
+  .big-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .big-btn.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+  .big-btn.gray { background: linear-gradient(135deg, #334155, #1e293b); }
+
+  /* ---- Auth Form ---- */
+  .form-row {
     display: flex;
     flex-direction: column;
-    gap: 0.9rem;
+    gap: 0.4rem;
+    margin-bottom: 0.9rem;
+    text-align: left;
   }
-  .bet-label {
+  .form-row label {
     font-size: 0.85rem;
     color: #94a3b8;
-    margin-bottom: 0.4rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
-  .bet-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .bet-btn {
-    flex: 1;
-    min-width: 80px;
-    background: #0f172a;
-    border: 2px solid #334155;
-    color: #e2e8f0;
-    padding: 0.6rem 0.8rem;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .bet-btn:hover:not(:disabled) { border-color: #64748b; }
-  .bet-btn.selected {
-    border-color: #3b82f6;
-    background: #1d4ed8;
-    color: white;
-  }
-  .bet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .bet-btn.red-btn.selected { background: #dc2626; border-color: #dc2626; }
-  .bet-btn.black-btn.selected { background: #0f172a; border-color: #e2e8f0; color: white; }
-  .number-input-row { display: flex; gap: 0.5rem; align-items: center; }
-  .number-input-row input {
-    flex: 1;
+  .form-row input {
     background: #0f172a;
     border: 2px solid #334155;
     color: #e2e8f0;
     border-radius: 10px;
-    padding: 0.6rem 0.9rem;
+    padding: 0.7rem 0.9rem;
     font-size: 1rem;
     font-family: inherit;
   }
-  .number-input-row input:focus { outline: none; border-color: #3b82f6; }
-
-  .modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
+  .form-row input:focus { outline: none; border-color: #3b82f6; }
+  .code-display {
+    background: #0f172a;
+    border: 2px dashed #4ade80;
+    border-radius: 12px;
     padding: 1rem;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal {
-    background: #1e293b;
-    border-radius: 16px;
-    padding: 1.5rem;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-    border: 1px solid #334155;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal h3 { margin: 0 0 1rem; }
-  .modal .form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    margin-bottom: 1rem;
-  }
-  .modal .form-row label {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    font-weight: 600;
-  }
-  .modal .form-row input {
-    background: #0f172a;
-    border: 2px solid #334155;
-    color: #e2e8f0;
-    border-radius: 10px;
-    padding: 0.65rem 0.9rem;
-    font-size: 1rem;
-    font-family: inherit;
-  }
-  .modal .form-row input:focus { outline: none; border-color: #3b82f6; }
-  .modal-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    margin-top: 0.5rem;
-  }
-  .modal-actions button {
-    padding: 0.6rem 1.2rem;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-  }
-  .btn-primary { background: #3b82f6; color: white; }
-  .btn-primary:hover { background: #2563eb; }
-  .btn-secondary { background: #334155; color: #e2e8f0; }
-  .btn-secondary:hover { background: #475569; }
-
-  .player-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    margin: 0.8rem 0;
-    max-height: 240px;
-    overflow-y: auto;
-  }
-  .player-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #0f172a;
-    border: 2px solid #334155;
-    border-radius: 10px;
-    padding: 0.6rem 0.9rem;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .player-item:hover { border-color: #64748b; }
-  .player-item.current { border-color: #3b82f6; background: #1d4ed8; }
-  .player-item .info { display: flex; flex-direction: column; }
-  .player-item .name { font-weight: 700; }
-  .player-item .bal { font-size: 0.85rem; color: #94a3b8; }
-  .player-item.current .bal { color: #cbd5e1; }
-  .player-item .delete {
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0 0.3rem;
-  }
-  .player-item .delete:hover { color: #f87171; }
-
-  .history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    max-height: 320px;
-    overflow-y: auto;
-    margin-top: 0.6rem;
-  }
-  .history-item {
-    background: #0f172a;
-    border-radius: 8px;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.9rem;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-  .history-item .amount.win { color: #4ade80; }
-  .history-item .amount.lose { color: #f87171; }
-
-  /* ---- Chicken Road ---- */
-  .chicken-road-wrapper {
-    width: 100%;
-    max-width: 500px;
-    background: linear-gradient(180deg, #1e293b, #0f172a);
-    border-radius: 14px;
-    border: 2px solid #334155;
-    padding: 0.8rem;
-    position: relative;
-    overflow: hidden;
-  }
-  .chicken-road-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9rem;
-    margin-bottom: 0.6rem;
-    padding: 0 0.3rem;
-  }
-  .chicken-road-header .mult {
-    font-weight: 800;
-    color: #facc15;
-    font-variant-numeric: tabular-nums;
-  }
-  .chicken-road-header .step {
-    color: #94a3b8;
-  }
-  .crossy-track {
-    position: relative;
-    height: 260px;
-    background: #0b1220;
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-  }
-  .crossy-cell {
-    flex: 1;
-    border-right: 1px dashed #334155;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 0.6rem;
-    transition: background 0.2s;
-  }
-  .crossy-cell:last-child { border-right: none; }
-  .crossy-cell.passed {
-    background: rgba(74, 222, 128, 0.12);
-  }
-  .crossy-cell.crashed {
-    background: rgba(248, 113, 113, 0.25);
-  }
-  .crossy-cell .mult-label {
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #facc15;
-    font-variant-numeric: tabular-nums;
     text-align: center;
-    line-height: 1.1;
+    margin: 0.8rem 0;
   }
-  .crossy-cell.passed .mult-label { color: #4ade80; }
-  .crossy-cell .car-icon {
-    position: absolute;
-    bottom: 8px;
-    font-size: 1.6rem;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .crossy-cell.crashed .car-icon { opacity: 1; }
-  .crossy-road {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: repeating-linear-gradient(
-      90deg,
-      #1e293b 0px, #1e293b 20px,
-      #111827 20px, #111827 40px
-    );
-    border-top: 2px solid #334155;
-    pointer-events: none;
-  }
-  #crossyChicken {
-    position: absolute;
-    bottom: 12px;
-    width: 44px;
-    height: 44px;
-    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
-    z-index: 5;
-    pointer-events: none;
-  }
-  #crossyChicken svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  .crossy-controls {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    max-width: 500px;
-  }
-  .cashout-btn {
-    background: linear-gradient(135deg, #f59e0b, #dc2626);
-    color: white;
-    border: none;
-    padding: 0.85rem 1.4rem;
-    border-radius: 12px;
-    font-size: 1rem;
+  .code-display .code {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
     font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    transition: transform 0.1s;
-    flex: 1;
-    min-width: 160px;
+    letter-spacing: 0.3em;
+    color: #4ade80;
+    text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
   }
-  .cashout-btn:hover:not(:disabled) { transform: translateY(-2px); }
-  .cashout-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .go-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    border: none;
-    padding: 0.85rem 1.4rem;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
-    transition: transform 0.1s;
-    flex: 1;
-    min-width: 120px;
+  .code-display .hint {
+    font-size: 0.8rem;
+    color: #f87171;
+    margin-top: 0.4rem;
+    font-weight: 700;
   }
-  .go-btn:hover:not(:disabled) { transform: translateY(-2px); }
-  .go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .error-msg {
+    color: #f87171;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    min-height: 1.2rem;
+    text-align: center;
+  }
+  .success-msg {
+    color: #4ade80;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    min-height: 1.2rem;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -726,10 +230,10 @@
 <header>
   <div class="topbar">
     <div class="player-info">
-      <span class="player-name" onclick="openPlayersModal()" id="currentPlayerName">Gast</span>
+      <span class="player-name" onclick="openAccountModal()" id="currentPlayerName">Gast</span>
+      <span class="account-badge guest" id="accountBadge">Gast</span>
       <span class="balance" id="balanceDisplay">100,00 €</span>
       <div class="player-actions">
-        <button class="icon-btn" title="Spieler wechseln" onclick="openPlayersModal()">👥</button>
         <button class="icon-btn" title="Verlauf" onclick="openHistoryModal()">📜</button>
       </div>
     </div>
@@ -744,28 +248,51 @@
 
 <main>
 
-  <section id="page-coin" class="page active">
+  <!-- ===== START / LOGIN ===== -->
+  <section id="page-start" class="page active">
+    <div class="start-wrapper">
+      <h1>Willkommen! 🎲</h1>
+
+      <div class="start-card">
+        <h2>Als Gast spielen</h2>
+        <p>Sofort loslegen — Guthaben wird lokal gespeichert.</p>
+        <div class="start-actions">
+          <button class="big-btn green" onclick="playAsGuest()">🎮 Als Gast spielen</button>
+        </div>
+      </div>
+
+      <div class="start-card">
+        <h2>Account</h2>
+        <p>Geräteübergreifend spielen mit Nutzername + Code.</p>
+        <div class="start-actions">
+          <button class="big-btn" onclick="showAuthForm('register')">✨ Account erstellen</button>
+          <button class="big-btn gray" onclick="showAuthForm('login')">🔑 Einloggen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COIN ===== -->
+  <section id="page-coin" class="page">
     <h1>Coinflip</h1>
     <div class="coin-stage">
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="coinQuickBets">
-          <button class="quick-bet" data-amount="1" onclick="setCoinBet(1, this)">1 €</button>
-          <button class="quick-bet" data-amount="2" onclick="setCoinBet(2, this)">2 €</button>
-          <button class="quick-bet" data-amount="5" onclick="setCoinBet(5, this)">5 €</button>
-          <button class="quick-bet" data-amount="10" onclick="setCoinBet(10, this)">10 €</button>
-          <button class="quick-bet" data-amount="25" onclick="setCoinBet(25, this)">25 €</button>
+          <button class="quick-bet" onclick="setCoinBet(1, this)">1 €</button>
+          <button class="quick-bet" onclick="setCoinBet(2, this)">2 €</button>
+          <button class="quick-bet" onclick="setCoinBet(5, this)">5 €</button>
+          <button class="quick-bet" onclick="setCoinBet(10, this)">10 €</button>
+          <button class="quick-bet" onclick="setCoinBet(25, this)">25 €</button>
         </div>
         <div class="custom-bet-row">
           <input type="number" id="coinCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
           <button onclick="applyCoinCustom()">OK</button>
         </div>
       </div>
-
       <div class="choice-display" id="choiceDisplay">
         Wähle <b>Kopf</b> oder <b>Zahl</b>
       </div>
-
       <div class="coin-wrapper">
         <div class="coin" id="coin">
           <div class="edge"></div>
@@ -775,17 +302,16 @@
           </div>
         </div>
       </div>
-
       <div class="choice-row">
         <button class="choice-btn" id="btn-kopf" onclick="pickChoice('kopf')">Kopf</button>
         <button class="choice-btn" id="btn-zahl" onclick="pickChoice('zahl')">Zahl</button>
       </div>
-
       <button class="flip-btn" id="flipBtn" onclick="doFlip()" disabled>Flip!</button>
       <div class="result-box" id="coinResult"></div>
     </div>
   </section>
 
+  <!-- ===== WHEEL ===== -->
   <section id="page-wheel" class="page">
     <h1>Glücksrad</h1>
     <div class="wheel-stage">
@@ -808,30 +334,29 @@ Curry</textarea>
     </div>
   </section>
 
+  <!-- ===== ROULETTE ===== -->
   <section id="page-roulette" class="page">
     <h1>Roulette</h1>
     <div class="roulette-stage">
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="rouletteQuickBets">
-          <button class="quick-bet" data-amount="1" onclick="setRouletteBet(1, this)">1 €</button>
-          <button class="quick-bet" data-amount="2" onclick="setRouletteBet(2, this)">2 €</button>
-          <button class="quick-bet" data-amount="5" onclick="setRouletteBet(5, this)">5 €</button>
-          <button class="quick-bet" data-amount="10" onclick="setRouletteBet(10, this)">10 €</button>
-          <button class="quick-bet" data-amount="25" onclick="setRouletteBet(25, this)">25 €</button>
+          <button class="quick-bet" onclick="setRouletteBet(1, this)">1 €</button>
+          <button class="quick-bet" onclick="setRouletteBet(2, this)">2 €</button>
+          <button class="quick-bet" onclick="setRouletteBet(5, this)">5 €</button>
+          <button class="quick-bet" onclick="setRouletteBet(10, this)">10 €</button>
+          <button class="quick-bet" onclick="setRouletteBet(25, this)">25 €</button>
         </div>
         <div class="custom-bet-row">
           <input type="number" id="rouletteCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
           <button onclick="applyRouletteCustom()">OK</button>
         </div>
       </div>
-
       <div class="roulette-display">
         <div class="roulette-color-badge" id="rouletteBadge">Bereit</div>
         <div class="roulette-number" id="rouletteNumber">–</div>
         <div class="hint" id="rouletteHint">Wähle deine Wette unten</div>
       </div>
-
       <div class="roulette-bet-section">
         <div>
           <div class="bet-label">Farbe (1:1)</div>
@@ -870,27 +395,25 @@ Curry</textarea>
           </div>
         </div>
       </div>
-
       <button class="spin-btn" id="rouletteSpinBtn" onclick="doRouletteSpin()" disabled>Drehen!</button>
       <div class="result-box" id="rouletteResult"></div>
     </div>
   </section>
 
+  <!-- ===== CROSSY ===== -->
   <section id="page-crossy" class="page">
     <h1>🐔 Chicken Road</h1>
     <div class="coin-stage" style="gap:1rem;">
-
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="crossyQuickBets">
-          <button class="quick-bet" data-amount="1" onclick="setCrossyBet(1, this)">1 €</button>
-          <button class="quick-bet" data-amount="2" onclick="setCrossyBet(2, this)">2 €</button>
-          <button class="quick-bet" data-amount="5" onclick="setCrossyBet(5, this)">5 €</button>
-          <button class="quick-bet" data-amount="10" onclick="setCrossyBet(10, this)">10 €</button>
-          <button class="quick-bet" data-amount="25" onclick="setCrossyBet(25, this)">25 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(1, this)">1 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(2, this)">2 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(5, this)">5 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(10, this)">10 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(25, this)">25 €</button>
         </div>
       </div>
-
       <div class="chicken-road-wrapper">
         <div class="chicken-road-header">
           <span class="step">Schritt: <b id="crossyStep">0</b> / 8</span>
@@ -898,16 +421,12 @@ Curry</textarea>
         </div>
         <div class="crossy-track" id="crossyTrack"></div>
       </div>
-
       <div class="crossy-controls">
         <button class="cashout-btn" id="crossyCashoutBtn" onclick="crossyCashOut()" disabled>
           CASH OUT (<span id="crossyCashoutValue">0,00 €</span>)
         </button>
-        <button class="go-btn" id="crossyGoBtn" onclick="crossyGoClick()" disabled>
-          GO! 🐔
-        </button>
+        <button class="go-btn" id="crossyGoBtn" onclick="crossyGoClick()" disabled>GO! 🐔</button>
       </div>
-
       <div class="hint" id="crossyHint">Einsatz wählen und „GO! 🐔" drücken.</div>
       <div class="result-box" id="crossyResult"></div>
     </div>
@@ -915,25 +434,21 @@ Curry</textarea>
 
 </main>
 
-<div class="modal-backdrop" id="playersModal">
+<!-- ===== ACCOUNT MODAL ===== -->
+<div class="modal-backdrop" id="accountModal">
   <div class="modal">
-    <h3>👥 Spieler</h3>
-    <div class="player-list" id="playerList"></div>
-    <div class="form-row">
-      <label>Neuer Spieler</label>
-      <input type="text" id="newPlayerName" placeholder="Name (z.B. Jaden)" maxlength="20">
-    </div>
-    <div class="form-row">
-      <label>Startguthaben (€) – max. 100</label>
-      <input type="number" id="newPlayerBalance" value="100" min="0" max="100" step="0.01">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal('playersModal')">Schließen</button>
-      <button class="btn-primary" onclick="createPlayer()">+ Anlegen</button>
-    </div>
+    <div id="accountModalContent"></div>
   </div>
 </div>
 
+<!-- ===== AUTH MODAL (Register / Login) ===== -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal">
+    <div id="authModalContent"></div>
+  </div>
+</div>
+
+<!-- ===== HISTORY MODAL ===== -->
 <div class="modal-backdrop" id="historyModal">
   <div class="modal">
     <h3>📜 Verlauf</h3>
@@ -946,11 +461,14 @@ Curry</textarea>
 </div>
 
 <script>
-const STORAGE_KEY = 'coinflip_players_v1';
-let players = [];
-let currentPlayerId = null;
+/* =================================================
+   STATE
+================================================= */
+const GUEST_KEY = 'coinflip_guest_v1';
+let account = null;         // {username, email, balance, history} wenn eingeloggt
+let isGuest = false;
+let guestState = null;      // {name, balance, history} wenn Gast
 
-/* Zustandsvariablen */
 let chosen = null;
 let flipping = false;
 let currentRotation = 0;
@@ -963,132 +481,323 @@ let spinning = false;
 let crossyBet = 0;
 let crossyState = null;
 
-/* STATE */
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      players = parsed.players || [];
-      currentPlayerId = parsed.currentPlayerId || null;
-    }
-  } catch (e) { console.warn('Fehler beim Laden', e); }
-  if (players.length === 0) {
-    players = [{ id: uid(), name: 'Gast', balance: 100, history: [] }];
-    currentPlayerId = players[0].id;
-  }
-  if (!players.find(p => p.id === currentPlayerId)) {
-    currentPlayerId = players[0].id;
-  }
-  saveState();
-}
-
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ players, currentPlayerId }));
-}
-
-function uid() {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
-
+/* =================================================
+   PLAYER / BALANCE / HISTORY
+================================================= */
 function getCurrentPlayer() {
-  return players.find(p => p.id === currentPlayerId);
+  if (account) {
+    return { name: account.username, balance: account.balance, history: account.history };
+  }
+  return guestState || { name: 'Gast', balance: 0, history: [] };
+}
+
+function updateBalanceUI() {
+  const p = getCurrentPlayer();
+  document.getElementById('currentPlayerName').textContent = p.name;
+  document.getElementById('balanceDisplay').textContent = formatEuro(p.balance);
+  document.getElementById('balanceDisplay').classList.toggle('negative', p.balance < 0);
+  const badge = document.getElementById('accountBadge');
+  if (account) {
+    badge.textContent = 'Account';
+    badge.className = 'account-badge real';
+  } else {
+    badge.textContent = 'Gast';
+    badge.className = 'account-badge guest';
+  }
+  if (typeof updateCrossyButtons === 'function') updateCrossyButtons();
+  if (typeof updateCoinButtonState === 'function') updateCoinButtonState();
+  if (typeof updateRouletteButtonState === 'function') updateRouletteButtonState();
 }
 
 function formatEuro(n) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
 
-function updateBalanceUI() {
-  const p = getCurrentPlayer();
-  document.getElementById('currentPlayerName').textContent = p.name;
-  const balEl = document.getElementById('balanceDisplay');
-  balEl.textContent = formatEuro(p.balance);
-  balEl.classList.toggle('negative', p.balance < 0);
-  if (typeof updateCrossyButtons === 'function') updateCrossyButtons();
-}
-
-/* PLAYER MODAL */
-function openPlayersModal() {
-  renderPlayerList();
-  document.getElementById('playersModal').classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-function renderPlayerList() {
-  const list = document.getElementById('playerList');
-  list.innerHTML = '';
-  players.forEach(p => {
-    const item = document.createElement('div');
-    item.className = 'player-item' + (p.id === currentPlayerId ? ' current' : '');
-    item.innerHTML = `
-      <div class="info">
-        <span class="name">${escapeHtml(p.name)}</span>
-        <span class="bal">${formatEuro(p.balance)}</span>
-      </div>
-      ${players.length > 1 ? '<button class="delete" title="Löschen">✕</button>' : ''}
-    `;
-    item.addEventListener('click', (e) => {
-      if (e.target.classList.contains('delete')) return;
-      currentPlayerId = p.id;
-      saveState();
-      updateBalanceUI();
-      renderPlayerList();
-      closeModal('playersModal');
-    });
-    const del = item.querySelector('.delete');
-    if (del) {
-      del.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (confirm(`Spieler "${p.name}" wirklich löschen?`)) {
-          players = players.filter(x => x.id !== p.id);
-          if (currentPlayerId === p.id) currentPlayerId = players[0].id;
-          saveState();
-          updateBalanceUI();
-          renderPlayerList();
-        }
-      });
-    }
-    list.appendChild(item);
-  });
-}
-
-function createPlayer() {
-  const nameInput = document.getElementById('newPlayerName');
-  const balInput = document.getElementById('newPlayerBalance');
-  const name = nameInput.value.trim();
-  let bal = parseFloat(balInput.value);
-  if (!name) { nameInput.focus(); return; }
-  if (isNaN(bal) || bal < 0) bal = 100;
-  if (bal > 100) bal = 100;
-  const newP = { id: uid(), name, balance: bal, history: [] };
-  players.push(newP);
-  currentPlayerId = newP.id;
-  saveState();
-  updateBalanceUI();
-  renderPlayerList();
-  nameInput.value = '';
-  balInput.value = '100';
-  closeModal('playersModal');
-}
-
-/* HISTORY */
 function addHistory(game, text, amount, win) {
-  const p = getCurrentPlayer();
-  p.history.unshift({
+  const entry = {
     time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
     game, text, amount, win
-  });
-  if (p.history.length > 50) p.history.length = 50;
-  saveState();
+  };
+  if (account) {
+    account.history.unshift(entry);
+    if (account.history.length > 50) account.history.length = 50;
+    // Kein extra Speichern nötig — Server speichert bereits bei jeder Wette
+  } else if (guestState) {
+    guestState.history.unshift(entry);
+    if (guestState.history.length > 50) guestState.history.length = 50;
+    saveGuestState();
+  }
 }
 
+/* =================================================
+   GUEST
+================================================= */
+function loadGuestState() {
+  try {
+    const raw = localStorage.getItem(GUEST_KEY);
+    if (raw) {
+      guestState = JSON.parse(raw);
+    }
+  } catch (e) {}
+  if (!guestState) {
+    guestState = { name: 'Gast', balance: 100, history: [] };
+    saveGuestState();
+  }
+}
+
+function saveGuestState() {
+  localStorage.setItem(GUEST_KEY, JSON.stringify(guestState));
+}
+
+function playAsGuest() {
+  isGuest = true;
+  account = null;
+  loadGuestState();
+  showPage('coin');
+  updateBalanceUI();
+}
+
+/* =================================================
+   AUTH
+================================================= */
+async function checkLogin() {
+  try {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    if (data.logged_in) {
+      account = data.account;
+      isGuest = false;
+      showPage('coin');
+      updateBalanceUI();
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+function showAuthForm(mode) {
+  const modal = document.getElementById('authModal');
+  const content = document.getElementById('authModalContent');
+
+  if (mode === 'register') {
+    content.innerHTML = `
+      <h3>✨ Account erstellen</h3>
+      <div class="form-row">
+        <label>Nutzername (3–20 Zeichen)</label>
+        <input type="text" id="regUsername" maxlength="20" placeholder="z.B. Jaden">
+      </div>
+      <div class="form-row">
+        <label>E-Mail</label>
+        <input type="email" id="regEmail" placeholder="deine@email.de">
+      </div>
+      <div class="error-msg" id="authError"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
+        <button class="btn-primary" onclick="doRegister()">Erstellen</button>
+      </div>
+    `;
+  } else {
+    content.innerHTML = `
+      <h3>🔑 Einloggen</h3>
+      <div class="form-row">
+        <label>Nutzername</label>
+        <input type="text" id="loginUsername" maxlength="20" placeholder="z.B. Jaden">
+      </div>
+      <div class="form-row">
+        <label>6-stelliger Code</label>
+        <input type="text" id="loginCode" maxlength="12" placeholder="ABC123" style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace; font-weight:700;">
+      </div>
+      <div class="error-msg" id="authError"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
+        <button class="btn-primary" onclick="doLogin()">Einloggen</button>
+      </div>
+    `;
+  }
+  modal.classList.add('open');
+}
+
+async function doRegister() {
+  const username = document.getElementById('regUsername').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, email})
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Fehler beim Erstellen.';
+      return;
+    }
+    // Erfolg — Code anzeigen!
+    document.getElementById('authModalContent').innerHTML = `
+      <h3>🎉 Account erstellt!</h3>
+      <p style="color:#94a3b8; font-size:0.9rem;">Speichere diesen Code <b>sofort</b>! Er ist dein Login für andere Geräte.</p>
+      <div class="code-display">
+        <div class="code">${data.code}</div>
+        <div class="hint">⚠️ Notiere dir diesen Code!</div>
+      </div>
+      <div class="form-row">
+        <label>Nutzername</label>
+        <input type="text" value="${data.username}" disabled>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="closeModal('authModal'); loadLoggedInAccount();">Verstanden, weiter!</button>
+      </div>
+    `;
+  } catch (e) {
+    errEl.textContent = 'Netzwerkfehler.';
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const code = document.getElementById('loginCode').value.trim().toUpperCase();
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, code})
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Login fehlgeschlagen.';
+      return;
+    }
+    account = data.account;
+    isGuest = false;
+    closeModal('authModal');
+    showPage('coin');
+    updateBalanceUI();
+  } catch (e) {
+    errEl.textContent = 'Netzwerkfehler.';
+  }
+}
+
+async function loadLoggedInAccount() {
+  try {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    if (data.logged_in) {
+      account = data.account;
+      isGuest = false;
+      showPage('coin');
+      updateBalanceUI();
+    }
+  } catch (e) {}
+}
+
+/* =================================================
+   ACCOUNT MODAL (Verwaltung)
+================================================= */
+function openAccountModal() {
+  const modal = document.getElementById('accountModal');
+  const content = document.getElementById('accountModalContent');
+
+  if (account) {
+    content.innerHTML = `
+      <h3>👤 Account: ${escapeHtml(account.username)}</h3>
+      <div class="form-row">
+        <label>E-Mail</label>
+        <input type="email" id="accEmail" value="${escapeHtml(account.email)}">
+      </div>
+      <div class="form-row">
+        <label>Neuer Code (4–12 Zeichen, A–Z, 0–9)</label>
+        <input type="text" id="accCode" placeholder="Leer lassen = nicht ändern"
+               style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace;">
+      </div>
+      <div class="error-msg" id="accError"></div>
+      <div class="success-msg" id="accSuccess"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="doLogout()">Ausloggen</button>
+        <button class="btn-primary" onclick="saveAccount()">Speichern</button>
+      </div>
+      <div style="margin-top:0.8rem;">
+        <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal')">Schließen</button>
+      </div>
+    `;
+  } else {
+    content.innerHTML = `
+      <h3>👤 Gast-Modus</h3>
+      <p style="color:#94a3b8; font-size:0.9rem;">Du spielst aktuell als Gast. Dein Guthaben wird nur lokal gespeichert.</p>
+      <p style="color:#94a3b8; font-size:0.9rem;">Erstelle einen Account, um geräteübergreifend zu spielen.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('accountModal')">Schließen</button>
+        <button class="btn-primary" onclick="closeModal('accountModal'); showAuthForm('register');">Account erstellen</button>
+      </div>
+    `;
+  }
+  modal.classList.add('open');
+}
+
+async function saveAccount() {
+  const errEl = document.getElementById('accError');
+  const okEl = document.getElementById('accSuccess');
+  errEl.textContent = '';
+  okEl.textContent = '';
+
+  const email = document.getElementById('accEmail').value.trim();
+  const newCode = document.getElementById('accCode').value.trim().toUpperCase();
+
+  try {
+    if (email && email !== account.email) {
+      const res = await fetch('/api/update_email', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email})
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error; return; }
+      account.email = data.email;
+    }
+    if (newCode) {
+      const res = await fetch('/api/update_code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({new_code: newCode})
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error; return; }
+      okEl.textContent = `✅ Neuer Code: ${data.code}`;
+    } else {
+      okEl.textContent = '✅ Gespeichert.';
+    }
+  } catch (e) {
+    errEl.textContent = 'Netzwerkfehler.';
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch('/api/logout', { method: 'POST' });
+  } catch (e) {}
+  account = null;
+  isGuest = false;
+  closeModal('accountModal');
+  document.getElementById('page-start').classList.add('active');
+  document.querySelectorAll('.page').forEach(p => {
+    if (p.id !== 'page-start') p.classList.remove('active');
+  });
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  updateBalanceUI();
+}
+
+/* =================================================
+   HISTORY MODAL
+================================================= */
 function openHistoryModal() {
   const p = getCurrentPlayer();
   const list = document.getElementById('historyList');
   list.innerHTML = '';
-  if (!p.history.length) {
+  if (!p.history || !p.history.length) {
     list.innerHTML = '<p class="hint" style="text-align:center">Noch keine Einträge.</p>';
   } else {
     p.history.forEach(h => {
@@ -1107,28 +816,38 @@ function openHistoryModal() {
 
 function clearHistory() {
   if (!confirm('Verlauf wirklich löschen?')) return;
-  getCurrentPlayer().history = [];
-  saveState();
+  if (account) {
+    account.history = [];
+  } else if (guestState) {
+    guestState.history = [];
+    saveGuestState();
+  }
   openHistoryModal();
 }
 
+/* =================================================
+   HELPERS
+================================================= */
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 }
 
-/* NAV */
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.getElementById('nav-' + name).classList.add('active');
+  const pageEl = document.getElementById('page-' + name);
+  if (pageEl) pageEl.classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
   if (name === 'wheel') renderWheel();
   if (name === 'crossy') renderCrossyTrack();
 }
 
-/* EINSATZ */
+/* =================================================
+   EINSATZ (Bet)
+================================================= */
 function setCoinBet(amount, btn) {
   coinBet = amount;
   document.getElementById('coinCustomBet').value = '';
@@ -1146,7 +865,8 @@ function applyCoinCustom() {
 function updateCoinButtonState() {
   const p = getCurrentPlayer();
   const canPlay = chosen && coinBet > 0 && coinBet <= p.balance && !flipping;
-  document.getElementById('flipBtn').disabled = !canPlay;
+  const btn = document.getElementById('flipBtn');
+  if (btn) btn.disabled = !canPlay;
 }
 
 function setRouletteBet(amount, btn) {
@@ -1166,10 +886,33 @@ function applyRouletteCustom() {
 function updateRouletteButtonState() {
   const p = getCurrentPlayer();
   const canPlay = rouletteBet && rouletteBetAmount > 0 && rouletteBetAmount <= p.balance && !rouletteSpinning;
-  document.getElementById('rouletteSpinBtn').disabled = !canPlay;
+  const btn = document.getElementById('rouletteSpinBtn');
+  if (btn) btn.disabled = !canPlay;
 }
 
-/* COINFLIP */
+/* =================================================
+   BALANCE UPDATE (Account = Server, Gast = lokal)
+================================================= */
+function applyBalanceChange(delta) {
+  if (account) {
+    account.balance += delta;
+  } else if (guestState) {
+    guestState.balance += delta;
+    saveGuestState();
+  }
+  updateBalanceUI();
+}
+
+function setBalanceFromServer(newBalance) {
+  if (account && typeof newBalance === 'number') {
+    account.balance = newBalance;
+    updateBalanceUI();
+  }
+}
+
+/* =================================================
+   COINFLIP
+================================================= */
 function pickChoice(c) {
   if (flipping) return;
   chosen = c;
@@ -1203,7 +946,7 @@ async function doFlip() {
   const res = await fetch('/api/coinflip', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({choice: chosen})
+    body: JSON.stringify({choice: chosen, bet: coinBet})
   });
   const data = await res.json();
 
@@ -1229,16 +972,20 @@ async function doFlip() {
     const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
     const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
     const win = data.win;
-    const netChange = win ? coinBet : -coinBet;
-    p.balance += netChange;
-    saveState();
-    updateBalanceUI();
+
+    if (account && typeof data.new_balance === 'number') {
+      setBalanceFromServer(data.new_balance);
+    } else {
+      applyBalanceChange(win ? coinBet : -coinBet);
+    }
     addHistory('🪙 Coinflip', `${choiceText} → ${resultText}`, coinBet, win);
+
     resultEl.innerHTML =
       `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
       (win
         ? `<span class="win">🎉 Gewonnen! +${formatEuro(coinBet)}</span>`
         : `<span class="lose">😢 Verloren! −${formatEuro(coinBet)}</span>`);
+
     resetCoinControls();
   }, 2700);
 }
@@ -1250,7 +997,9 @@ function resetCoinControls() {
   updateCoinButtonState();
 }
 
-/* GLÜCKSRAD */
+/* =================================================
+   GLÜCKSRAD
+================================================= */
 const WHEEL_COLORS = [
   '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
@@ -1265,6 +1014,7 @@ function getWheelOptions() {
 function renderWheel() {
   const options = getWheelOptions();
   const svg = document.getElementById('wheelSvg');
+  if (!svg) return;
   svg.innerHTML = '';
   if (options.length < 2) {
     svg.innerHTML = '<circle cx="100" cy="100" r="95" fill="#1e293b" stroke="#334155" stroke-width="2"/>' +
@@ -1274,15 +1024,12 @@ function renderWheel() {
   const n = options.length;
   const angle = 360 / n;
   const cx = 100, cy = 100, r = 95;
-
-  function polar(angleDeg, radius) {
-    const rad = (angleDeg - 90) * Math.PI / 180;
-    return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+  function polar(a, rad) {
+    const rr = (a - 90) * Math.PI / 180;
+    return [cx + rad * Math.cos(rr), cy + rad * Math.sin(rr)];
   }
-
   for (let i = 0; i < n; i++) {
-    const start = i * angle;
-    const end = start + angle;
+    const start = i * angle, end = start + angle;
     const [x1, y1] = polar(start, r);
     const [x2, y2] = polar(end, r);
     const largeArc = angle > 180 ? 1 : 0;
@@ -1292,7 +1039,6 @@ function renderWheel() {
     path.setAttribute('stroke', '#0f172a');
     path.setAttribute('stroke-width', '1');
     svg.appendChild(path);
-
     const mid = start + angle / 2;
     const [tx, ty] = polar(mid, r * 0.62);
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -1368,7 +1114,9 @@ document.getElementById('wheelOptions').addEventListener('input', () => {
   }
 });
 
-/* ROULETTE */
+/* =================================================
+   ROULETTE
+================================================= */
 function setupRouletteButtons() {
   document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1395,7 +1143,6 @@ function setupRouletteButtons() {
       } else {
         rouletteBet = { type: betType, value: betValue };
       }
-
       document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       document.getElementById('rouletteHint').textContent = 'Wette gesetzt – bereit zum Drehen!';
@@ -1413,7 +1160,6 @@ async function doRouletteSpin() {
     return;
   }
   rouletteSpinning = true;
-
   const spinBtn = document.getElementById('rouletteSpinBtn');
   const allBtns = document.querySelectorAll('.roulette-bet-section .bet-btn');
   const numberEl = document.getElementById('rouletteNumber');
@@ -1434,7 +1180,11 @@ async function doRouletteSpin() {
   const res = await fetch('/api/roulette', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value })
+    body: JSON.stringify({
+      bet_type: rouletteBet.type,
+      bet_value: rouletteBet.value,
+      bet: rouletteBetAmount
+    })
   });
   const data = await res.json();
 
@@ -1470,9 +1220,12 @@ async function doRouletteSpin() {
         netChange = -rouletteBetAmount;
         text = `Verlust`;
       }
-      p.balance += netChange;
-      saveState();
-      updateBalanceUI();
+
+      if (account && typeof data.new_balance === 'number') {
+        setBalanceFromServer(data.new_balance);
+      } else {
+        applyBalanceChange(netChange);
+      }
       addHistory('🎰 Roulette',
         `${data.number} ${data.color === 'red' ? '🔴' : data.color === 'black' ? '⚫' : '🟢'} · ${text}`,
         rouletteBetAmount, win);
@@ -1480,8 +1233,8 @@ async function doRouletteSpin() {
       resultEl.innerHTML = win
         ? `<span class="win">🎉 Gewonnen! +${formatEuro(netChange)}</span>`
         : `<span class="lose">😢 Verloren −${formatEuro(rouletteBetAmount)}</span>`;
-
       hint.textContent = 'Wähle eine neue Wette';
+
       rouletteSpinning = false;
       allBtns.forEach(b => b.disabled = false);
       allBtns.forEach(b => b.classList.remove('selected'));
@@ -1491,7 +1244,9 @@ async function doRouletteSpin() {
   }, 80);
 }
 
-/* CHICKEN ROAD */
+/* =================================================
+   CROSSY (Chicken Road)
+================================================= */
 const CROSSY_STEPS = 8;
 const CROSSY_MULTS = [1.00, 1.20, 1.50, 1.95, 2.60, 3.55, 4.90, 6.80, 9.60];
 
@@ -1552,11 +1307,7 @@ function renderCrossyTrack() {
 
 function crossyReset() {
   crossyState = {
-    active: false,
-    step: 0,
-    crashed: false,
-    cashedOut: false,
-    pattern: []
+    active: false, step: 0, crashed: false, cashedOut: false, pattern: []
   };
   for (let i = 0; i < CROSSY_STEPS; i++) {
     const crashChance = 0.08 + i * 0.06;
@@ -1575,9 +1326,7 @@ function crossyReset() {
   document.getElementById('crossyResult').innerHTML = '';
   document.getElementById('crossyHint').textContent = 'Einsatz wählen und „GO! 🐔" drücken.';
   const goBtn = document.getElementById('crossyGoBtn');
-  const cashBtn = document.getElementById('crossyCashoutBtn');
   if (goBtn) goBtn.textContent = 'GO! 🐔';
-  if (cashBtn) cashBtn.disabled = true;
   updateCrossyButtons();
 }
 
@@ -1597,9 +1346,7 @@ function crossyStart() {
   }
   crossyReset();
   crossyState.active = true;
-  const goBtn = document.getElementById('crossyGoBtn');
-  goBtn.disabled = false;
-  goBtn.textContent = 'GO! 🐔';
+  document.getElementById('crossyGoBtn').disabled = false;
   document.getElementById('crossyCashoutBtn').disabled = true;
   document.getElementById('crossyHint').textContent = 'Klick „GO! 🐔" für den ersten Schritt.';
   updateCrossyCashoutValue();
@@ -1624,10 +1371,7 @@ function crossyGo() {
     document.getElementById('crossyHint').textContent = '💥 Vom Auto erwischt!';
     document.getElementById('crossyResult').innerHTML =
       `<span class="lose">💥 Verloren! −${formatEuro(crossyBet)}</span>`;
-    const p = getCurrentPlayer();
-    p.balance -= crossyBet;
-    saveState();
-    updateBalanceUI();
+    applyBalanceChange(-crossyBet);
     addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
     updateCrossyButtons();
     return;
@@ -1643,32 +1387,23 @@ function crossyGo() {
   document.getElementById('crossyHint').textContent =
     `Sicher! Weiter oder Cash Out (${formatEuro(crossyBet * mult)}).`;
 
-  if (crossyState.step >= CROSSY_STEPS) {
-    crossyCashOut();
-  }
+  if (crossyState.step >= CROSSY_STEPS) crossyCashOut();
 }
 
 function updateCrossyCashoutValue() {
   const mult = CROSSY_MULTS[crossyState ? crossyState.step : 0];
-  const total = crossyBet * mult;
-  document.getElementById('crossyCashoutValue').textContent = formatEuro(total);
+  document.getElementById('crossyCashoutValue').textContent = formatEuro(crossyBet * mult);
 }
 
 function crossyCashOut() {
   if (!crossyState) return;
   if (crossyState.step === 0) return;
-  if (!crossyState.active && !crossyState.crashed) return;
   if (crossyState.cashedOut || crossyState.crashed) return;
-
   const mult = CROSSY_MULTS[crossyState.step];
   const total = crossyBet * mult;
   const profit = total - crossyBet;
-  const p = getCurrentPlayer();
-  p.balance += profit;
-  saveState();
-  updateBalanceUI();
+  applyBalanceChange(profit);
   addHistory('🐔 Chicken Road', `${crossyState.step} Schritte · ${mult.toFixed(2)}x`, profit, true);
-
   crossyState.active = false;
   crossyState.cashedOut = true;
   document.getElementById('crossyGoBtn').disabled = true;
@@ -1679,19 +1414,31 @@ function crossyCashOut() {
   updateCrossyButtons();
 }
 
-/* INIT */
-loadState();
-updateBalanceUI();
-renderWheel();
-setupRouletteButtons();
-renderCrossyTrack();
-crossyReset();
+/* =================================================
+   INIT
+================================================= */
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
 
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) backdrop.classList.remove('open');
   });
 });
+
+async function init() {
+  renderWheel();
+  setupRouletteButtons();
+  renderCrossyTrack();
+  crossyReset();
+  updateBalanceUI();
+
+  // Login-Check
+  await checkLogin();
+}
+
+init();
 </script>
 </body>
 </html>

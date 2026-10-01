@@ -985,6 +985,7 @@ let wheelRotation = 0;
 let spinning = false;
 let crossyBet = 0;
 let crossyState = null;
+let autoRefreshInterval = null;
 
 /* =================================================
    PLAYER / BALANCE
@@ -1077,7 +1078,6 @@ function saveGuestState() {
 }
 
 async function ensureGuestOnServer() {
-  // Wenn schon eine ID vorhanden → beim Server nach aktuellem Stand fragen
   if (guestId) {
     try {
       const res = await fetch('/api/guest/me', {
@@ -1087,7 +1087,6 @@ async function ensureGuestOnServer() {
       });
       const data = await res.json();
       if (data.exists) {
-        // ✅ Server-Guthaben übernehmen (Admin kann es geändert haben)
         guestState.balance = data.guest.balance;
         guestState.history = data.guest.history || [];
         saveGuestState();
@@ -1098,7 +1097,6 @@ async function ensureGuestOnServer() {
       console.warn('Konnte Server-Stand nicht abrufen:', e);
     }
   }
-  // Neue ID anlegen
   try {
     const res = await fetch('/api/guest/create', { method: 'POST' });
     const data = await res.json();
@@ -1127,6 +1125,50 @@ async function syncGuestToServer() {
   } catch (e) {}
 }
 
+/* =================================================
+   AUTO-REFRESH — holt automatisch Server-Guthaben
+================================================= */
+function startAutoRefresh() {
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(async () => {
+    // Pausieren, während gespielt wird
+    if (flipping || rouletteSpinning || spinning || (crossyState && crossyState.active)) return;
+
+    if (account) {
+      try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+        if (data.logged_in && typeof data.account.balance === 'number') {
+          if (Math.abs(data.account.balance - account.balance) > 0.001) {
+            account.balance = data.account.balance;
+            account.history = data.account.history || account.history;
+            updateBalanceUI();
+            console.log('🔄 Account-Guthaben aktualisiert:', account.balance, '€');
+          }
+        }
+      } catch (e) {}
+    } else if (guestId) {
+      try {
+        const res = await fetch('/api/guest/me', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({guest_id: guestId})
+        });
+        const data = await res.json();
+        if (data.exists && typeof data.guest.balance === 'number') {
+          if (Math.abs(data.guest.balance - guestState.balance) > 0.001) {
+            guestState.balance = data.guest.balance;
+            guestState.history = data.guest.history || guestState.history;
+            saveGuestState();
+            updateBalanceUI();
+            console.log('🔄 Gast-Guthaben aktualisiert:', guestState.balance, '€');
+          }
+        }
+      } catch (e) {}
+    }
+  }, 3000);
+}
+
 async function playAsGuest() {
   isGuest = true;
   account = null;
@@ -1134,6 +1176,7 @@ async function playAsGuest() {
   await ensureGuestOnServer();
   showPage('coin');
   updateBalanceUI();
+  startAutoRefresh();
 }
 
 /* =================================================
@@ -1262,6 +1305,7 @@ async function finishRegister(fromGuest) {
     guestState = null;
     guestId = null;
   }
+  startAutoRefresh();
 }
 
 async function doLogin() {
@@ -1286,6 +1330,7 @@ async function doLogin() {
     closeModal('authModal');
     showPage('coin');
     updateBalanceUI();
+    startAutoRefresh();
   } catch (e) {
     errEl.textContent = 'Netzwerkfehler.';
   }
@@ -1400,6 +1445,7 @@ async function doLogout() {
   } catch (e) {}
   account = null;
   isGuest = false;
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   closeModal('accountModal');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -2037,6 +2083,7 @@ async function init() {
   loadGuestState();
   updateBalanceUI();
   await checkLogin();
+  startAutoRefresh();
 }
 
 init();

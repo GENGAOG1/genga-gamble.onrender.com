@@ -991,6 +991,26 @@ let crossyBet = 0;
 let crossyState = null;
 let autoRefreshInterval = null;
 
+// Zeitstempel der letzten eigenen Änderung
+let lastLocalUpdate = 0;         // Account (ISO-String → ms)
+let lastLocalUpdateGuest = 0;    // Gast (ISO-String → ms)
+
+/* =================================================
+   HELPERS
+================================================= */
+function isoToMs(iso) {
+  if (!iso) return 0;
+  try {
+    return new Date(iso + (iso.endsWith('Z') ? '' : 'Z')).getTime();
+  } catch (e) {
+    return 0;
+  }
+}
+
+function formatEuro(n) {
+  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
 /* =================================================
    PLAYER / BALANCE
 ================================================= */
@@ -1017,10 +1037,6 @@ function updateBalanceUI() {
   if (typeof updateCrossyButtons === 'function') updateCrossyButtons();
   if (typeof updateCoinButtonState === 'function') updateCoinButtonState();
   if (typeof updateRouletteButtonState === 'function') updateRouletteButtonState();
-}
-
-function formatEuro(n) {
-  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
 
 function addHistory(game, text, amount, win) {
@@ -1093,6 +1109,7 @@ async function ensureGuestOnServer() {
       if (data.exists) {
         guestState.balance = data.guest.balance;
         guestState.history = data.guest.history || [];
+        lastLocalUpdateGuest = isoToMs(data.guest.last_update || '');
         saveGuestState();
         console.log('✅ Server-Guthaben übernommen:', guestState.balance, '€');
         return;
@@ -1107,6 +1124,7 @@ async function ensureGuestOnServer() {
     if (data.ok) {
       guestId = data.guest_id;
       localStorage.setItem(GUEST_ID_KEY, guestId);
+      lastLocalUpdateGuest = isoToMs(data.last_update || '');
       await syncGuestToServer();
     }
   } catch (e) {
@@ -1117,7 +1135,7 @@ async function ensureGuestOnServer() {
 async function syncGuestToServer() {
   if (!guestId || !guestState) return;
   try {
-    await fetch('/api/guest/sync', {
+    const res = await fetch('/api/guest/sync', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -1126,11 +1144,15 @@ async function syncGuestToServer() {
         history: guestState.history || []
       })
     });
+    const data = await res.json();
+    if (data.ok && data.last_update) {
+      lastLocalUpdateGuest = isoToMs(data.last_update);
+    }
   } catch (e) {}
 }
 
 /* =================================================
-   AUTO-REFRESH
+   AUTO-REFRESH — übernimmt Server-Wert nur wenn NEUER
 ================================================= */
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
@@ -1141,12 +1163,20 @@ function startAutoRefresh() {
       try {
         const res = await fetch('/api/me');
         const data = await res.json();
-        if (data.logged_in && typeof data.account.balance === 'number') {
-          if (Math.abs(data.account.balance - account.balance) > 0.001) {
-            account.balance = data.account.balance;
-            account.history = data.account.history || account.history;
-            updateBalanceUI();
-            console.log('🔄 Account-Guthaben aktualisiert:', account.balance, '€');
+        if (data.logged_in && data.account) {
+          const serverMs = isoToMs(data.account.last_update || '');
+          // Nur übernehmen, wenn Server-Wert NEUER ist als unsere letzte Änderung
+          if (serverMs > lastLocalUpdate) {
+            if (Math.abs(data.account.balance - account.balance) > 0.001) {
+              account.balance = data.account.balance;
+              account.history = data.account.history || account.history;
+              lastLocalUpdate = serverMs;
+              updateBalanceUI();
+              console.log('🔄 Account vom Server aktualisiert:', account.balance, '€');
+            } else {
+              // Kein Wertunterschied, aber Zeitstempel übernehmen
+              lastLocalUpdate = Math.max(lastLocalUpdate, serverMs);
+            }
           }
         }
       } catch (e) {}
@@ -1158,13 +1188,19 @@ function startAutoRefresh() {
           body: JSON.stringify({guest_id: guestId})
         });
         const data = await res.json();
-        if (data.exists && typeof data.guest.balance === 'number') {
-          if (Math.abs(data.guest.balance - guestState.balance) > 0.001) {
-            guestState.balance = data.guest.balance;
-            guestState.history = data.guest.history || guestState.history;
-            saveGuestState();
-            updateBalanceUI();
-            console.log('🔄 Gast-Guthaben aktualisiert:', guestState.balance, '€');
+        if (data.exists && data.guest) {
+          const serverMs = isoToMs(data.guest.last_update || '');
+          if (serverMs > lastLocalUpdateGuest) {
+            if (Math.abs(data.guest.balance - guestState.balance) > 0.001) {
+              guestState.balance = data.guest.balance;
+              guestState.history = data.guest.history || guestState.history;
+              lastLocalUpdateGuest = serverMs;
+              saveGuestState();
+              updateBalanceUI();
+              console.log('🔄 Gast vom Server aktualisiert:', guestState.balance, '€');
+            } else {
+              lastLocalUpdateGuest = Math.max(lastLocalUpdateGuest, serverMs);
+            }
           }
         }
       } catch (e) {}
@@ -1191,6 +1227,7 @@ async function checkLogin() {
     const data = await res.json();
     if (data.logged_in) {
       account = data.account;
+      lastLocalUpdate = isoToMs(data.account.last_update || '');
       isGuest = false;
       showPage('coin');
       updateBalanceUI();
@@ -1329,6 +1366,7 @@ async function doLogin() {
       return;
     }
     account = data.account;
+    lastLocalUpdate = isoToMs(data.account.last_update || '');
     isGuest = false;
     closeModal('authModal');
     showPage('coin');
@@ -1345,6 +1383,7 @@ async function loadLoggedInAccount() {
     const data = await res.json();
     if (data.logged_in) {
       account = data.account;
+      lastLocalUpdate = isoToMs(data.account.last_update || '');
       isGuest = false;
       showPage('coin');
       updateBalanceUI();
@@ -1448,6 +1487,7 @@ async function doLogout() {
   } catch (e) {}
   account = null;
   isGuest = false;
+  lastLocalUpdate = 0;
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   closeModal('accountModal');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1553,17 +1593,25 @@ function updateRouletteButtonState() {
 }
 
 function applyBalanceChange(delta) {
-  if (account) account.balance += delta;
-  else if (guestState) {
+  if (account) {
+    account.balance += delta;
+    lastLocalUpdate = Date.now(); // Unsere Änderung ist JETZT neuer als alles vom Server
+  } else if (guestState) {
     guestState.balance += delta;
+    lastLocalUpdateGuest = Date.now();
     saveGuestState();
     syncGuestToServer();
   }
   updateBalanceUI();
 }
-function setBalanceFromServer(newBalance) {
+function setBalanceFromServer(newBalance, serverLastUpdate) {
   if (account && typeof newBalance === 'number') {
     account.balance = newBalance;
+    if (serverLastUpdate) {
+      lastLocalUpdate = isoToMs(serverLastUpdate);
+    } else {
+      lastLocalUpdate = Date.now();
+    }
     updateBalanceUI();
   }
 }
@@ -1632,8 +1680,10 @@ async function doFlip() {
     const win = data.win;
 
     if (account && typeof data.new_balance === 'number') {
-      setBalanceFromServer(data.new_balance);
+      // Server hat gespeichert → Server-Zeitstempel übernehmen
+      setBalanceFromServer(data.new_balance, data.last_update);
     } else {
+      // Kein Server-Speichern → lokal ändern
       applyBalanceChange(win ? coinBet : -coinBet);
     }
     addHistory('🪙 Coinflip', `${choiceText} → ${resultText}`, coinBet, win);
@@ -1878,7 +1928,7 @@ async function doRouletteSpin() {
       }
 
       if (account && typeof data.new_balance === 'number') {
-        setBalanceFromServer(data.new_balance);
+        setBalanceFromServer(data.new_balance, data.last_update);
       } else {
         applyBalanceChange(netChange);
       }

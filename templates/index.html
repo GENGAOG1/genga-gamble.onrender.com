@@ -912,17 +912,17 @@ Curry</textarea>
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="crossyQuickBets">
-  <button class="quick-bet" onclick="...">1 €</button>
-  <button class="quick-bet" onclick="...">2 €</button>
-  <button class="quick-bet" onclick="...">5 €</button>
-  <button class="quick-bet" onclick="...">10 €</button>
-  <button class="quick-bet" onclick="...">25 €</button>
-</div>
-<div class="custom-bet-row">
-  <input type="number" id="crossyCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
-  <button onclick="applyCrossyCustom()">OK</button>
-</div>
-</div>
+          <button class="quick-bet" onclick="setCrossyBet(1, this)">1 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(2, this)">2 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(5, this)">5 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(10, this)">10 €</button>
+          <button class="quick-bet" onclick="setCrossyBet(25, this)">25 €</button>
+        </div>
+        <div class="custom-bet-row">
+          <input type="number" id="crossyCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
+          <button onclick="applyCrossyCustom()">OK</button>
+        </div>
+      </div>
       <div class="chicken-road-wrapper">
         <div class="chicken-road-header">
           <span class="step">Schritt: <b id="crossyStep">0</b> / 8</span>
@@ -1130,12 +1130,11 @@ async function syncGuestToServer() {
 }
 
 /* =================================================
-   AUTO-REFRESH — holt automatisch Server-Guthaben
+   AUTO-REFRESH
 ================================================= */
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(async () => {
-    // Pausieren, während gespielt wird
     if (flipping || rouletteSpinning || spinning || (crossyState && crossyState.active)) return;
 
     if (account) {
@@ -1910,8 +1909,18 @@ const CROSSY_MULTS = [1.00, 1.20, 1.50, 1.95, 2.60, 3.55, 4.90, 6.80, 9.60];
 function setCrossyBet(amount, btn) {
   if (crossyState && crossyState.active) return;
   crossyBet = amount;
+  document.getElementById('crossyCustomBet').value = '';
   document.querySelectorAll('#crossyQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
   if (btn) btn.classList.add('selected');
+  updateCrossyButtons();
+}
+
+function applyCrossyCustom() {
+  if (crossyState && crossyState.active) return;
+  const v = parseFloat(document.getElementById('crossyCustomBet').value);
+  if (isNaN(v) || v <= 0) return;
+  crossyBet = v;
+  document.querySelectorAll('#crossyQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
   updateCrossyButtons();
 }
 

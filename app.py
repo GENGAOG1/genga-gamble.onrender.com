@@ -21,6 +21,19 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 DB_PATH = os.environ.get("DB_PATH", "accounts.db")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
+# ---------- Slot-Symbole & Auszahlungen ----------
+# Symbol → (Emoji, Auszahlung bei 3x)
+SLOT_SYMBOLS = [
+    {"id": "cherry",  "emoji": "🍒", "payout3": 5},
+    {"id": "lemon",   "emoji": "🍋", "payout3": 8},
+    {"id": "grape",   "emoji": "🍇", "payout3": 12},
+    {"id": "star",    "emoji": "⭐", "payout3": 20},
+    {"id": "seven",   "emoji": "7️⃣", "payout3": 50},
+    {"id": "diamond", "emoji": "💎", "payout3": 100},
+]
+# 2 gleiche (erste zwei) → Einsatz × 1,5
+# 3 beliebige gleiche (auch wenn nicht gleiche Symbole) → Einsatz × 3
+
 # ---------- Datenbank ----------
 def get_db():
     if "db" not in g:
@@ -630,7 +643,6 @@ def roulette():
 # ---------- Chicken Road ----------
 @app.route("/api/crossy", methods=["POST"])
 def crossy():
-    """Speichert das Ergebnis einer Chicken-Road-Runde."""
     data = request.get_json(silent=True) or {}
     result = data.get("result", "")
     profit = float(data.get("profit", 0) or 0)
@@ -655,6 +667,70 @@ def crossy():
 
     return jsonify({
         "ok": True,
+        "new_balance": new_balance,
+        "last_update": ts,
+        "logged_in": bool(acc_row),
+    })
+
+# ---------- Slot Machine ----------
+@app.route("/api/slots", methods=["POST"])
+def slots():
+    """Dreht 3 Walzen und berechnet die Auszahlung."""
+    data = request.get_json(silent=True) or {}
+    bet = float(data.get("bet", 0) or 0)
+
+    if bet <= 0:
+        return jsonify({"error": "Einsatz muss größer als 0 sein."}), 400
+
+    acc_row = get_current_account()
+
+    # Prüfen ob genug Guthaben (nur wenn eingeloggt)
+    if acc_row and bet > acc_row["balance"]:
+        return jsonify({"error": "Nicht genug Guthaben."}), 400
+
+    # 3 zufällige Symbole ziehen
+    symbols = [secrets.choice(SLOT_SYMBOLS) for _ in range(3)]
+    ids = [s["id"] for s in symbols]
+
+    # Auszahlung berechnen (Multiplikator auf Einsatz)
+    multiplier = 0
+    result_type = "lose"
+
+    if ids[0] == ids[1] == ids[2]:
+        # 3 gleiche
+        symbol = symbols[0]
+        multiplier = symbol["payout3"]
+        result_type = "jackpot"
+    elif ids[0] == ids[1] or ids[1] == ids[2] or ids[0] == ids[2]:
+        # 2 gleiche (an beliebiger Stelle)
+        multiplier = 1.5
+        result_type = "win"
+    # sonst: lose (multiplier = 0)
+
+    # Netto-Gewinn = (Einsatz × Multiplikator) - Einsatz
+    payout_total = bet * multiplier  # Was der Spieler insgesamt zurück bekommt
+    net_profit = payout_total - bet   # Was sich am Guthaben ändert
+
+    new_balance = None
+    ts = None
+    if acc_row:
+        # Wenn gewonnen: net_profit positiv → gutschreiben
+        # Wenn verloren: net_profit = -bet → abziehen
+        new_balance, ts = update_account_balance(net_profit, {
+            "time": now_iso(),
+            "game": "🎰 Slots",
+            "text": f"{' × '.join([s['emoji'] for s in symbols])} {'×' + str(multiplier) if multiplier > 0 else ''}".strip(),
+            "amount": bet,
+            "win": multiplier > 0,
+        })
+
+    return jsonify({
+        "symbols": [{"id": s["id"], "emoji": s["emoji"]} for s in symbols],
+        "result_type": result_type,
+        "multiplier": multiplier,
+        "net_profit": net_profit,
+        "payout_total": payout_total,
+        "bet": bet,
         "new_balance": new_balance,
         "last_update": ts,
         "logged_in": bool(acc_row),

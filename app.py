@@ -1,25 +1,281 @@
+import os
+import re
 import secrets
-from flask import Flask, render_template, request, jsonify
+import sqlite3
+import string
+import socket
+from datetime import datetime
+from functools import wraps
+
+from flask import Flask, render_template, request, jsonify, session, g
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 
+DB_PATH = os.environ.get("DB_PATH", "accounts.db")
+
+# ---------- Datenbank ----------
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(DB_PATH)
+        g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA foreign_keys = ON")
+    return g.db
+
+@app.teardown_appcontext
+def close_db(exc):
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
+
+def init_db():
+    db = sqlite3.connect(DB_PATH)
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT NOT NULL,
+            code TEXT NOT NULL,
+            balance REAL NOT NULL DEFAULT 100.0,
+            history TEXT NOT NULL DEFAULT '[]',
+            created_at TEXT NOT NULL
+        );
+    """)
+    db.commit()
+    db.close()
+
+# ---------- Helpers ----------
+def generate_code(length=6):
+    alphabet = string.ascii_uppercase + string.digits
+    # Verwechslungsgefahr reduzieren (0/O, 1/I)
+    alphabet = alphabet.replace("O", "").replace("0", "").replace("I", "").replace("1", "")
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+def check_email_syntax(email):
+    return bool(EMAIL_RE.match(email))
+
+def check_email_mx(email):
+    """Prüft, ob die Domain MX-Records hat (= kann E-Mails empfangen)."""
+    try:
+        domain = email.split("@")[1]
+        socket.getaddrinfo(domain, None)
+        return True
+    except Exception:
+        return False
+
+def check_email(email):
+    if not check_email_syntax(email):
+        return False, "E-Mail-Format ungültig."
+    if not check_email_mx(email):
+        return False, "E-Mail-Domain existiert nicht oder empfängt keine Mails."
+    return True, "OK"
+
+def account_to_dict(row):
+    import json
+    try:
+        history = json.loads(row["history"] or "[]")
+    except Exception:
+        history = []
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "email": row["email"],
+        "balance": row["balance"],
+        "history": history,
+    }
+
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("account_id"):
+            return jsonify({"error": "Nicht eingeloggt."}), 401
+        return f(*args, **kwargs)
+    return wrapper
+
+def get_current_account():
+    acc_id = session.get("account_id")
+    if not acc_id:
+        return None
+    db = get_db()
+    row = db.execute("SELECT * FROM accounts WHERE id = ?", (acc_id,)).fetchone()
+    return row
+
+# ---------- Routen ----------
 @app.route("/")
 def index():
     return render_template("index.html")
 
+# ---- Auth ----
+@app.route("/api/register", methods=["POST"])
+def register():
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    email = (data.get("email") or "").strip()
+
+    if not username or len(username) < 3:
+        return jsonify({"error": "Nutzername muss mind. 3 Zeichen haben."}), 400
+    if len(username) > 20:
+        return jsonify({"error": "Nutzername darf max. 20 Zeichen haben."}), 400
+    if not re.match(r"^[A-Za-z0-9_\-]+$", username):
+        return jsonify({"error": "Nur Buchstaben, Zahlen, _ und - erlaubt."}), 400
+
+    ok, msg = check_email(email)
+    if not ok:
+        return jsonify({"error": msg}), 400
+
+    db = get_db()
+    existing = db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone()
+    if existing:
+        return jsonify({"error": "Nutzername ist schon vergeben."}), 409
+
+    code = generate_code(6)
+    # Sicherstellen, dass Code eindeutig ist
+    while db.execute("SELECT id FROM accounts WHERE code = ?", (code,)).fetchone():
+        code = generate_code(6)
+
+    now = datetime.utcnow().isoformat()
+    cur = db.execute(
+        "INSERT INTO accounts (username, email, code, balance, history, created_at) VALUES (?, ?, ?, 100.0, '[]', ?)",
+        (username, email, code, now)
+    )
+    db.commit()
+    acc_id = cur.lastrowid
+
+    session["account_id"] = acc_id
+
+    return jsonify({
+        "ok": True,
+        "username": username,
+        "code": code,
+        "message": "Account erstellt. WICHTIG: Code jetzt notieren!"
+    })
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    code = (data.get("code") or "").strip().upper()
+
+    if not username or not code:
+        return jsonify({"error": "Nutzername und Code nötig."}), 400
+
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM accounts WHERE username = ? AND code = ?",
+        (username, code)
+    ).fetchone()
+
+    if not row:
+        return jsonify({"error": "Nutzername oder Code falsch."}), 401
+
+    session["account_id"] = row["id"]
+    return jsonify({"ok": True, "account": account_to_dict(row)})
+
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    session.pop("account_id", None)
+    return jsonify({"ok": True})
+
+@app.route("/api/me", methods=["GET"])
+def me():
+    row = get_current_account()
+    if not row:
+        return jsonify({"logged_in": False})
+    return jsonify({"logged_in": True, "account": account_to_dict(row)})
+
+@app.route("/api/update_code", methods=["POST"])
+@login_required
+def update_code():
+    row = get_current_account()
+    db = get_db()
+
+    data = request.get_json(silent=True) or {}
+    new_code = (data.get("new_code") or "").strip().upper()
+
+    if not re.match(r"^[A-Z0-9]{4,12}$", new_code):
+        return jsonify({"error": "Code muss 4–12 Zeichen (A-Z, 0-9) haben."}), 400
+
+    if db.execute("SELECT id FROM accounts WHERE code = ? AND id != ?", (new_code, row["id"])).fetchone():
+        return jsonify({"error": "Code ist schon vergeben."}), 409
+
+    db.execute("UPDATE accounts SET code = ? WHERE id = ?", (new_code, row["id"]))
+    db.commit()
+    return jsonify({"ok": True, "code": new_code})
+
+@app.route("/api/update_email", methods=["POST"])
+@login_required
+def update_email():
+    row = get_current_account()
+    db = get_db()
+
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip()
+
+    ok, msg = check_email(email)
+    if not ok:
+        return jsonify({"error": msg}), 400
+
+    db.execute("UPDATE accounts SET email = ? WHERE id = ?", (email, row["id"]))
+    db.commit()
+    return jsonify({"ok": True, "email": email})
+
+# ---- Guthaben / Verlauf (Server-seitig für eingeloggte Accounts) ----
+def update_account_balance(delta, history_entry=None):
+    """Aktualisiert das Guthaben des eingeloggten Accounts (falls vorhanden)."""
+    row = get_current_account()
+    if not row:
+        return None
+    import json
+    db = get_db()
+    new_balance = row["balance"] + delta
+    history = []
+    try:
+        history = json.loads(row["history"] or "[]")
+    except Exception:
+        history = []
+    if history_entry:
+        history.insert(0, history_entry)
+        history = history[:50]
+    db.execute(
+        "UPDATE accounts SET balance = ?, history = ? WHERE id = ?",
+        (new_balance, json.dumps(history), row["id"])
+    )
+    db.commit()
+    return new_balance
+
+# ---------- Spiele-Endpunkte ----------
 @app.route("/api/coinflip", methods=["POST"])
 def coinflip():
     data = request.get_json(silent=True) or {}
     choice = data.get("choice", "").lower()
+    bet = float(data.get("bet", 0) or 0)
 
     if choice not in ("kopf", "zahl"):
         return jsonify({"error": "Bitte 'kopf' oder 'zahl' wählen."}), 400
 
     result = secrets.choice(["kopf", "zahl"])
+    win = result == choice
+
+    # Server-Guthaben aktualisieren, falls eingeloggt
+    acc_row = get_current_account()
+    new_balance = None
+    if acc_row and bet > 0:
+        delta = bet if win else -bet
+        new_balance = update_account_balance(delta, {
+            "time": datetime.utcnow().isoformat(),
+            "game": "🪙 Coinflip",
+            "text": f"{choice} → {result}",
+            "amount": bet,
+            "win": win,
+        })
+
     return jsonify({
         "choice": choice,
         "result": result,
-        "win": result == choice
+        "win": win,
+        "new_balance": new_balance,
     })
 
 @app.route("/api/wheel", methods=["POST"])
@@ -50,6 +306,7 @@ def roulette():
     data = request.get_json(silent=True) or {}
     bet_type = data.get("bet_type", "")
     bet_value = data.get("bet_value", None)
+    bet = float(data.get("bet", 0) or 0)
 
     number = secrets.randbelow(37)
 
@@ -98,12 +355,34 @@ def roulette():
     else:
         return jsonify({"error": "Ungültige Wette."}), 400
 
+    # Server-Guthaben
+    acc_row = get_current_account()
+    new_balance = None
+    if acc_row and bet > 0:
+        if win:
+            delta = bet * payout
+            text = f"Gewinn ({payout}:1)"
+        else:
+            delta = -bet
+            text = "Verlust"
+        new_balance = update_account_balance(delta, {
+            "time": datetime.utcnow().isoformat(),
+            "game": "🎰 Roulette",
+            "text": f"{number} {color} · {text}",
+            "amount": bet,
+            "win": win,
+        })
+
     return jsonify({
         "number": number,
         "color": color,
         "win": win,
-        "payout": payout
+        "payout": payout,
+        "new_balance": new_balance,
     })
+
+# ---------- Init ----------
+init_db()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

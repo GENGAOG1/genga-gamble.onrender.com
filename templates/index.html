@@ -162,7 +162,6 @@
   .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .big-btn.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
   .big-btn.gray { background: linear-gradient(135deg, #334155, #1e293b); }
-  .big-btn.orange { background: linear-gradient(135deg, #f59e0b, #dc2626); }
 
   .form-row {
     display: flex;
@@ -200,7 +199,6 @@
     font-weight: 800;
     letter-spacing: 0.3em;
     color: #4ade80;
-    text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
   }
   .code-display .hint {
     font-size: 0.8rem;
@@ -767,7 +765,7 @@
       <h1>Willkommen! 🎲</h1>
       <div class="start-card">
         <h2>Als Gast spielen</h2>
-        <p>Sofort loslegen — Guthaben wird lokal gespeichert.</p>
+        <p>Sofort loslegen — Guthaben wird lokal + am Server gespeichert.</p>
         <div class="start-actions">
           <button class="big-btn green" onclick="playAsGuest()">🎮 Als Gast spielen</button>
         </div>
@@ -969,10 +967,12 @@ Curry</textarea>
    STATE
 ================================================= */
 const GUEST_KEY = 'coinflip_guest_v1';
+const GUEST_ID_KEY = 'coinflip_guest_id_v1';
 const OLD_KEY = 'coinflip_players_v1';
 let account = null;
 let isGuest = false;
 let guestState = null;
+let guestId = null;
 
 let chosen = null;
 let flipping = false;
@@ -987,7 +987,7 @@ let crossyBet = 0;
 let crossyState = null;
 
 /* =================================================
-   PLAYER / BALANCE / HISTORY
+   PLAYER / BALANCE
 ================================================= */
 function getCurrentPlayer() {
   if (account) {
@@ -1030,20 +1030,21 @@ function addHistory(game, text, amount, win) {
     guestState.history.unshift(entry);
     if (guestState.history.length > 50) guestState.history.length = 50;
     saveGuestState();
+    syncGuestToServer();
   }
 }
 
 /* =================================================
-   GUEST mit Migration vom alten Speicher
+   GUEST mit Migration + Server-Sync
 ================================================= */
 function loadGuestState() {
-  // 1) Neuen Gast-Speicher versuchen
+  // 1) Neuen Gast-Speicher
   try {
     const raw = localStorage.getItem(GUEST_KEY);
     if (raw) guestState = JSON.parse(raw);
   } catch (e) {}
 
-  // 2) Wenn leer: Alten Speicher (coinflip_players_v1) prüfen und migrieren
+  // 2) Migration vom alten Speicher
   if (!guestState || typeof guestState.balance !== 'number') {
     try {
       const oldRaw = localStorage.getItem(OLD_KEY);
@@ -1062,26 +1063,71 @@ function loadGuestState() {
           }
         }
       }
-    } catch (e) {
-      console.warn('Migration fehlgeschlagen:', e);
-    }
+    } catch (e) {}
   }
 
-  // 3) Wenn immer noch nichts: neuer Gast mit 100 €
+  // 3) Fallback
   if (!guestState) {
     guestState = { name: 'Gast', balance: 100, history: [] };
     saveGuestState();
   }
+
+  // 4) Gast-ID vom Server holen/erstellen
+  guestId = localStorage.getItem(GUEST_ID_KEY) || null;
 }
 
 function saveGuestState() {
   localStorage.setItem(GUEST_KEY, JSON.stringify(guestState));
 }
 
-function playAsGuest() {
+async function ensureGuestOnServer() {
+  // Wenn schon eine ID vorhanden → prüfen, ob sie am Server existiert
+  if (guestId) {
+    try {
+      const res = await fetch('/api/guest/me', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({guest_id: guestId})
+      });
+      const data = await res.json();
+      if (data.exists) return; // alles gut
+    } catch (e) {}
+  }
+  // Neue ID anlegen
+  try {
+    const res = await fetch('/api/guest/create', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      guestId = data.guest_id;
+      localStorage.setItem(GUEST_ID_KEY, guestId);
+      // Aktuellen Stand synchronisieren
+      await syncGuestToServer();
+    }
+  } catch (e) {
+    console.warn('Gast konnte nicht am Server erstellt werden:', e);
+  }
+}
+
+async function syncGuestToServer() {
+  if (!guestId || !guestState) return;
+  try {
+    await fetch('/api/guest/sync', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        guest_id: guestId,
+        balance: guestState.balance,
+        history: guestState.history || []
+      })
+    });
+  } catch (e) {}
+}
+
+async function playAsGuest() {
   isGuest = true;
   account = null;
   loadGuestState();
+  await ensureGuestOnServer();
   showPage('coin');
   updateBalanceUI();
 }
@@ -1207,8 +1253,10 @@ async function finishRegister(fromGuest) {
   await loadLoggedInAccount();
   if (fromGuest) {
     localStorage.removeItem(GUEST_KEY);
+    localStorage.removeItem(GUEST_ID_KEY);
     localStorage.removeItem(OLD_KEY);
     guestState = null;
+    guestId = null;
   }
 }
 
@@ -1382,7 +1430,7 @@ function openHistoryModal() {
 function clearHistory() {
   if (!confirm('Verlauf wirklich löschen?')) return;
   if (account) account.history = [];
-  else if (guestState) { guestState.history = []; saveGuestState(); }
+  else if (guestState) { guestState.history = []; saveGuestState(); syncGuestToServer(); }
   openHistoryModal();
 }
 
@@ -1453,7 +1501,11 @@ function updateRouletteButtonState() {
 
 function applyBalanceChange(delta) {
   if (account) account.balance += delta;
-  else if (guestState) { guestState.balance += delta; saveGuestState(); }
+  else if (guestState) {
+    guestState.balance += delta;
+    saveGuestState();
+    syncGuestToServer();
+  }
   updateBalanceUI();
 }
 function setBalanceFromServer(newBalance) {

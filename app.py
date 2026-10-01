@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import secrets
 import sqlite3
 import string
@@ -47,7 +48,6 @@ def init_db():
 # ---------- Helpers ----------
 def generate_code(length=6):
     alphabet = string.ascii_uppercase + string.digits
-    # Verwechslungsgefahr reduzieren (0/O, 1/I)
     alphabet = alphabet.replace("O", "").replace("0", "").replace("I", "").replace("1", "")
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
@@ -57,7 +57,6 @@ def check_email_syntax(email):
     return bool(EMAIL_RE.match(email))
 
 def check_email_mx(email):
-    """Prüft, ob die Domain MX-Records hat (= kann E-Mails empfangen)."""
     try:
         domain = email.split("@")[1]
         socket.getaddrinfo(domain, None)
@@ -73,7 +72,6 @@ def check_email(email):
     return True, "OK"
 
 def account_to_dict(row):
-    import json
     try:
         history = json.loads(row["history"] or "[]")
     except Exception:
@@ -99,8 +97,7 @@ def get_current_account():
     if not acc_id:
         return None
     db = get_db()
-    row = db.execute("SELECT * FROM accounts WHERE id = ?", (acc_id,)).fetchone()
-    return row
+    return db.execute("SELECT * FROM accounts WHERE id = ?", (acc_id,)).fetchone()
 
 # ---------- Routen ----------
 @app.route("/")
@@ -113,6 +110,9 @@ def register():
     data = request.get_json(silent=True) or {}
     username = (data.get("username") or "").strip()
     email = (data.get("email") or "").strip()
+    # Optional: vom Gast übernommene Werte
+    start_balance = data.get("start_balance", None)
+    start_history = data.get("start_history", None)
 
     if not username or len(username) < 3:
         return jsonify({"error": "Nutzername muss mind. 3 Zeichen haben."}), 400
@@ -126,29 +126,41 @@ def register():
         return jsonify({"error": msg}), 400
 
     db = get_db()
-    existing = db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone()
-    if existing:
+    if db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone():
         return jsonify({"error": "Nutzername ist schon vergeben."}), 409
 
     code = generate_code(6)
-    # Sicherstellen, dass Code eindeutig ist
     while db.execute("SELECT id FROM accounts WHERE code = ?", (code,)).fetchone():
         code = generate_code(6)
 
+    # Guthaben & Verlauf vom Gast übernehmen (falls mitgeschickt)
+    try:
+        balance = float(start_balance) if start_balance is not None else 100.0
+    except (TypeError, ValueError):
+        balance = 100.0
+    if balance < 0:
+        balance = 100.0
+
+    history = []
+    if isinstance(start_history, list):
+        for h in start_history[:50]:
+            if isinstance(h, dict):
+                history.append(h)
+
     now = datetime.utcnow().isoformat()
     cur = db.execute(
-        "INSERT INTO accounts (username, email, code, balance, history, created_at) VALUES (?, ?, ?, 100.0, '[]', ?)",
-        (username, email, code, now)
+        "INSERT INTO accounts (username, email, code, balance, history, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (username, email, code, balance, json.dumps(history), now)
     )
     db.commit()
     acc_id = cur.lastrowid
-
     session["account_id"] = acc_id
 
     return jsonify({
         "ok": True,
         "username": username,
         "code": code,
+        "balance": balance,
         "message": "Account erstellt. WICHTIG: Code jetzt notieren!"
     })
 
@@ -190,13 +202,11 @@ def me():
 def update_code():
     row = get_current_account()
     db = get_db()
-
     data = request.get_json(silent=True) or {}
     new_code = (data.get("new_code") or "").strip().upper()
 
     if not re.match(r"^[A-Z0-9]{4,12}$", new_code):
         return jsonify({"error": "Code muss 4–12 Zeichen (A-Z, 0-9) haben."}), 400
-
     if db.execute("SELECT id FROM accounts WHERE code = ? AND id != ?", (new_code, row["id"])).fetchone():
         return jsonify({"error": "Code ist schon vergeben."}), 409
 
@@ -209,7 +219,6 @@ def update_code():
 def update_email():
     row = get_current_account()
     db = get_db()
-
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip()
 
@@ -221,16 +230,13 @@ def update_email():
     db.commit()
     return jsonify({"ok": True, "email": email})
 
-# ---- Guthaben / Verlauf (Server-seitig für eingeloggte Accounts) ----
+# ---- Guthaben-Sync ----
 def update_account_balance(delta, history_entry=None):
-    """Aktualisiert das Guthaben des eingeloggten Accounts (falls vorhanden)."""
     row = get_current_account()
     if not row:
         return None
-    import json
     db = get_db()
     new_balance = row["balance"] + delta
-    history = []
     try:
         history = json.loads(row["history"] or "[]")
     except Exception:
@@ -245,7 +251,7 @@ def update_account_balance(delta, history_entry=None):
     db.commit()
     return new_balance
 
-# ---------- Spiele-Endpunkte ----------
+# ---------- Spiele ----------
 @app.route("/api/coinflip", methods=["POST"])
 def coinflip():
     data = request.get_json(silent=True) or {}
@@ -258,7 +264,6 @@ def coinflip():
     result = secrets.choice(["kopf", "zahl"])
     win = result == choice
 
-    # Server-Guthaben aktualisieren, falls eingeloggt
     acc_row = get_current_account()
     new_balance = None
     if acc_row and bet > 0:
@@ -309,7 +314,6 @@ def roulette():
     bet = float(data.get("bet", 0) or 0)
 
     number = secrets.randbelow(37)
-
     if number == 0:
         color = "green"
     elif number in ROULETTE_RED:
@@ -355,7 +359,6 @@ def roulette():
     else:
         return jsonify({"error": "Ungültige Wette."}), 400
 
-    # Server-Guthaben
     acc_row = get_current_account()
     new_balance = None
     if acc_row and bet > 0:

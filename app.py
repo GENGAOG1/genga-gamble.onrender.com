@@ -65,7 +65,6 @@ def init_db():
             last_update TEXT NOT NULL DEFAULT ''
         );
     """)
-    # Migration falls Spalten fehlen
     for table in ("accounts", "guests"):
         try:
             cols = [r[1] for r in db.execute(f"PRAGMA table_info({table})").fetchall()]
@@ -423,7 +422,6 @@ def guest_sync():
     guest_id = (data.get("guest_id") or "").strip()
     balance = data.get("balance", None)
     history = data.get("history", None)
-    client_update = data.get("last_update", None)  # optional
 
     if not guest_id:
         return jsonify({"error": "guest_id fehlt."}), 400
@@ -624,6 +622,39 @@ def roulette():
         "color": color,
         "win": win,
         "payout": payout,
+        "new_balance": new_balance,
+        "last_update": ts,
+        "logged_in": bool(acc_row),
+    })
+
+# ---------- Chicken Road ----------
+@app.route("/api/crossy", methods=["POST"])
+def crossy():
+    """Speichert das Ergebnis einer Chicken-Road-Runde."""
+    data = request.get_json(silent=True) or {}
+    result = data.get("result", "")
+    profit = float(data.get("profit", 0) or 0)
+    steps = int(data.get("steps", 0) or 0)
+
+    if result not in ("win", "lose"):
+        return jsonify({"error": "Ungültiges Ergebnis."}), 400
+
+    acc_row = get_current_account()
+    new_balance = None
+    ts = None
+
+    if acc_row and profit != 0:
+        text = f"{steps} Schritte" if result == "win" else f"Crash bei Schritt {steps}"
+        new_balance, ts = update_account_balance(profit, {
+            "time": now_iso(),
+            "game": "🐔 Chicken Road",
+            "text": text,
+            "amount": abs(profit),
+            "win": result == "win",
+        })
+
+    return jsonify({
+        "ok": True,
         "new_balance": new_balance,
         "last_update": ts,
         "logged_in": bool(acc_row),

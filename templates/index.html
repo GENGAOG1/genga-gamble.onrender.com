@@ -123,7 +123,6 @@
   h1 { text-align: center; margin: 0.5rem 0 1.5rem; font-size: 1.6rem; }
   h2 { text-align: center; margin: 0.5rem 0 1rem; font-size: 1.3rem; }
 
-  /* ---- Start-Screen ---- */
   .start-wrapper {
     display: flex;
     flex-direction: column;
@@ -163,8 +162,8 @@
   .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .big-btn.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
   .big-btn.gray { background: linear-gradient(135deg, #334155, #1e293b); }
+  .big-btn.orange { background: linear-gradient(135deg, #f59e0b, #dc2626); }
 
-  /* ---- Auth Form ---- */
   .form-row {
     display: flex;
     flex-direction: column;
@@ -223,6 +222,521 @@
     min-height: 1.2rem;
     text-align: center;
   }
+
+  .bet-amount-section {
+    width: 100%;
+    max-width: 480px;
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .bet-amount-section .bet-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .quick-bet-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .quick-bet {
+    flex: 1;
+    min-width: 60px;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .quick-bet:hover:not(:disabled) { border-color: #64748b; }
+  .quick-bet.selected {
+    border-color: #4ade80;
+    background: #14532d;
+    color: white;
+  }
+  .quick-bet:disabled { opacity: 0.4; cursor: not-allowed; }
+  .custom-bet-row { display: flex; gap: 0.5rem; align-items: center; }
+  .custom-bet-row input {
+    flex: 1;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 0.55rem 0.9rem;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .custom-bet-row input:focus { outline: none; border-color: #4ade80; }
+  .custom-bet-row button {
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .custom-bet-row button:hover { border-color: #4ade80; }
+
+  .coin-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .coin-wrapper {
+    perspective: 1200px;
+    height: 220px;
+    width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .coin {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 2.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+    will-change: transform;
+  }
+  .coin-inner { position: absolute; inset: 0; transform-style: preserve-3d; }
+  .coin .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    font-weight: 800;
+    backface-visibility: hidden;
+    box-shadow:
+      inset 0 0 0 6px rgba(255,255,255,0.25),
+      inset 0 0 30px rgba(0,0,0,0.25),
+      0 12px 30px rgba(0,0,0,0.55);
+    overflow: hidden;
+  }
+  .coin .kopf {
+    background: radial-gradient(circle at 30% 25%, #fef3c7, #f59e0b 55%, #b45309 100%);
+    color: #78350f;
+  }
+  .coin .zahl {
+    background: radial-gradient(circle at 30% 25%, #f8fafc, #cbd5e1 55%, #64748b 100%);
+    color: #1e293b;
+    transform: rotateY(180deg);
+  }
+  .coin .edge {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #92400e, #fbbf24, #b45309, #fcd34d, #92400e, #fbbf24);
+    transform: translateZ(-10px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+  }
+  .coin.flipping .face::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.7) 50%, transparent 70%);
+    animation: shine 0.4s linear infinite;
+  }
+  @keyframes shine {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+  }
+  .coin.settle { animation: settle 0.4s ease-out; }
+  @keyframes settle {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  .choice-row { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .choice-btn {
+    background: #1e293b;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.7rem 1.6rem;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 110px;
+  }
+  .choice-btn:hover:not(:disabled) { border-color: #64748b; }
+  .choice-btn.selected {
+    border-color: #3b82f6;
+    background: #1d4ed8;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+  }
+  .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .flip-btn {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 0.85rem 2.2rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    transition: transform 0.1s;
+  }
+  .flip-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .flip-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .choice-display {
+    font-size: 1.05rem;
+    color: #94a3b8;
+    min-height: 1.5rem;
+  }
+  .choice-display b { color: #60a5fa; }
+  .result-box {
+    text-align: center;
+    min-height: 2rem;
+    font-size: 1.05rem;
+  }
+  .win { color: #4ade80; font-weight: 700; }
+  .lose { color: #f87171; font-weight: 700; }
+
+  .wheel-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .wheel-container { position: relative; width: 320px; height: 320px; }
+  .wheel-pointer {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 26px solid #f87171;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+    z-index: 2;
+  }
+  .wheel-svg {
+    width: 100%; height: 100%;
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.16, 1);
+    filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));
+  }
+  .wheel-hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #f8fafc, #64748b);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 1;
+  }
+  .spin-btn {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    border: none;
+    padding: 0.85rem 2.2rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    transition: transform 0.1s;
+  }
+  .spin-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 0.7rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+  }
+  .hint { font-size: 0.85rem; color: #94a3b8; margin: 0.4rem 0; }
+
+  .roulette-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .roulette-display {
+    width: 100%;
+    max-width: 460px;
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .roulette-number {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0.3rem 0 0.5rem;
+    color: #94a3b8;
+    display: inline-block;
+    min-width: 1.6em;
+  }
+  .roulette-number.rolling { animation: pulse 0.15s linear infinite alternate; }
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.08); }
+  }
+  .roulette-number.red { color: #ef4444; text-shadow: 0 0 20px rgba(239,68,68,0.5); }
+  .roulette-number.black { color: #e2e8f0; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+  .roulette-number.green { color: #22c55e; text-shadow: 0 0 20px rgba(34,197,94,0.6); }
+  .roulette-color-badge {
+    display: inline-block;
+    padding: 0.25rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: #334155;
+    color: #94a3b8;
+  }
+  .roulette-color-badge.red { background: #7f1d1d; color: #fecaca; }
+  .roulette-color-badge.black { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; }
+  .roulette-color-badge.green { background: #14532d; color: #bbf7d0; }
+  .roulette-bet-section {
+    width: 100%;
+    max-width: 460px;
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .bet-label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .bet-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .bet-btn {
+    flex: 1;
+    min-width: 80px;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bet-btn:hover:not(:disabled) { border-color: #64748b; }
+  .bet-btn.selected {
+    border-color: #3b82f6;
+    background: #1d4ed8;
+    color: white;
+  }
+  .bet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .bet-btn.red-btn.selected { background: #dc2626; border-color: #dc2626; }
+  .bet-btn.black-btn.selected { background: #0f172a; border-color: #e2e8f0; color: white; }
+  .number-input-row { display: flex; gap: 0.5rem; align-items: center; }
+  .number-input-row input {
+    flex: 1;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .number-input-row input:focus { outline: none; border-color: #3b82f6; }
+
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    border: 1px solid #334155;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 { margin: 0 0 1rem; }
+  .modal .form-row label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+  .modal-actions button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .btn-primary { background: #3b82f6; color: white; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-secondary { background: #334155; color: #e2e8f0; }
+  .btn-secondary:hover { background: #475569; }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-top: 0.6rem;
+  }
+  .history-item {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .history-item .amount.win { color: #4ade80; }
+  .history-item .amount.lose { color: #f87171; }
+
+  .chicken-road-wrapper {
+    width: 100%;
+    max-width: 500px;
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    border-radius: 14px;
+    border: 2px solid #334155;
+    padding: 0.8rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .chicken-road-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+    padding: 0 0.3rem;
+  }
+  .chicken-road-header .mult { font-weight: 800; color: #facc15; }
+  .chicken-road-header .step { color: #94a3b8; }
+  .crossy-track {
+    position: relative;
+    height: 260px;
+    background: #0b1220;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+  }
+  .crossy-cell {
+    flex: 1;
+    border-right: 1px dashed #334155;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 0.6rem;
+    transition: background 0.2s;
+  }
+  .crossy-cell:last-child { border-right: none; }
+  .crossy-cell.passed { background: rgba(74, 222, 128, 0.12); }
+  .crossy-cell.crashed { background: rgba(248, 113, 113, 0.25); }
+  .crossy-cell .mult-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #facc15;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .crossy-cell.passed .mult-label { color: #4ade80; }
+  .crossy-cell .car-icon {
+    position: absolute;
+    bottom: 8px;
+    font-size: 1.6rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .crossy-cell.crashed .car-icon { opacity: 1; }
+  .crossy-road {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: repeating-linear-gradient(90deg, #1e293b 0px, #1e293b 20px, #111827 20px, #111827 40px);
+    border-top: 2px solid #334155;
+    pointer-events: none;
+  }
+  #crossyChicken {
+    position: absolute;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+    z-index: 5;
+    pointer-events: none;
+  }
+  #crossyChicken svg { width: 100%; height: 100%; display: block; }
+  .crossy-controls {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+  }
+  .cashout-btn {
+    background: linear-gradient(135deg, #f59e0b, #dc2626);
+    color: white;
+    border: none;
+    padding: 0.85rem 1.4rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    transition: transform 0.1s;
+    flex: 1;
+    min-width: 160px;
+  }
+  .cashout-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .cashout-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .go-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    padding: 0.85rem 1.4rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+    transition: transform 0.1s;
+    flex: 1;
+    min-width: 120px;
+  }
+  .go-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -248,11 +762,9 @@
 
 <main>
 
-  <!-- ===== START / LOGIN ===== -->
   <section id="page-start" class="page active">
     <div class="start-wrapper">
       <h1>Willkommen! 🎲</h1>
-
       <div class="start-card">
         <h2>Als Gast spielen</h2>
         <p>Sofort loslegen — Guthaben wird lokal gespeichert.</p>
@@ -260,7 +772,6 @@
           <button class="big-btn green" onclick="playAsGuest()">🎮 Als Gast spielen</button>
         </div>
       </div>
-
       <div class="start-card">
         <h2>Account</h2>
         <p>Geräteübergreifend spielen mit Nutzername + Code.</p>
@@ -272,7 +783,6 @@
     </div>
   </section>
 
-  <!-- ===== COIN ===== -->
   <section id="page-coin" class="page">
     <h1>Coinflip</h1>
     <div class="coin-stage">
@@ -311,7 +821,6 @@
     </div>
   </section>
 
-  <!-- ===== WHEEL ===== -->
   <section id="page-wheel" class="page">
     <h1>Glücksrad</h1>
     <div class="wheel-stage">
@@ -334,7 +843,6 @@ Curry</textarea>
     </div>
   </section>
 
-  <!-- ===== ROULETTE ===== -->
   <section id="page-roulette" class="page">
     <h1>Roulette</h1>
     <div class="roulette-stage">
@@ -400,7 +908,6 @@ Curry</textarea>
     </div>
   </section>
 
-  <!-- ===== CROSSY ===== -->
   <section id="page-crossy" class="page">
     <h1>🐔 Chicken Road</h1>
     <div class="coin-stage" style="gap:1rem;">
@@ -434,21 +941,18 @@ Curry</textarea>
 
 </main>
 
-<!-- ===== ACCOUNT MODAL ===== -->
 <div class="modal-backdrop" id="accountModal">
   <div class="modal">
     <div id="accountModalContent"></div>
   </div>
 </div>
 
-<!-- ===== AUTH MODAL (Register / Login) ===== -->
 <div class="modal-backdrop" id="authModal">
   <div class="modal">
     <div id="authModalContent"></div>
   </div>
 </div>
 
-<!-- ===== HISTORY MODAL ===== -->
 <div class="modal-backdrop" id="historyModal">
   <div class="modal">
     <h3>📜 Verlauf</h3>
@@ -465,9 +969,9 @@ Curry</textarea>
    STATE
 ================================================= */
 const GUEST_KEY = 'coinflip_guest_v1';
-let account = null;         // {username, email, balance, history} wenn eingeloggt
+let account = null;
 let isGuest = false;
-let guestState = null;      // {name, balance, history} wenn Gast
+let guestState = null;
 
 let chosen = null;
 let flipping = false;
@@ -521,7 +1025,6 @@ function addHistory(game, text, amount, win) {
   if (account) {
     account.history.unshift(entry);
     if (account.history.length > 50) account.history.length = 50;
-    // Kein extra Speichern nötig — Server speichert bereits bei jeder Wette
   } else if (guestState) {
     guestState.history.unshift(entry);
     if (guestState.history.length > 50) guestState.history.length = 50;
@@ -535,9 +1038,7 @@ function addHistory(game, text, amount, win) {
 function loadGuestState() {
   try {
     const raw = localStorage.getItem(GUEST_KEY);
-    if (raw) {
-      guestState = JSON.parse(raw);
-    }
+    if (raw) guestState = JSON.parse(raw);
   } catch (e) {}
   if (!guestState) {
     guestState = { name: 'Gast', balance: 100, history: [] };
@@ -575,13 +1076,20 @@ async function checkLogin() {
   return false;
 }
 
-function showAuthForm(mode) {
+function showAuthForm(mode, fromGuest = false) {
   const modal = document.getElementById('authModal');
   const content = document.getElementById('authModalContent');
 
   if (mode === 'register') {
+    let extraInfo = '';
+    if (fromGuest && guestState) {
+      extraInfo = `<p style="color:#4ade80; font-size:0.9rem; margin:0 0 0.8rem;">
+        💰 Guthaben (${formatEuro(guestState.balance)}) und Verlauf werden übernommen.
+      </p>`;
+    }
     content.innerHTML = `
       <h3>✨ Account erstellen</h3>
+      ${extraInfo}
       <div class="form-row">
         <label>Nutzername (3–20 Zeichen)</label>
         <input type="text" id="regUsername" maxlength="20" placeholder="z.B. Jaden">
@@ -593,7 +1101,7 @@ function showAuthForm(mode) {
       <div class="error-msg" id="authError"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
-        <button class="btn-primary" onclick="doRegister()">Erstellen</button>
+        <button class="btn-primary" onclick="doRegister(${fromGuest})">Erstellen</button>
       </div>
     `;
   } else {
@@ -605,7 +1113,8 @@ function showAuthForm(mode) {
       </div>
       <div class="form-row">
         <label>6-stelliger Code</label>
-        <input type="text" id="loginCode" maxlength="12" placeholder="ABC123" style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace; font-weight:700;">
+        <input type="text" id="loginCode" maxlength="12" placeholder="ABC123"
+               style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace; font-weight:700;">
       </div>
       <div class="error-msg" id="authError"></div>
       <div class="modal-actions">
@@ -617,24 +1126,30 @@ function showAuthForm(mode) {
   modal.classList.add('open');
 }
 
-async function doRegister() {
+async function doRegister(fromGuest) {
   const username = document.getElementById('regUsername').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
 
+  const body = { username, email };
+  if (fromGuest && guestState) {
+    body.start_balance = guestState.balance;
+    body.start_history = guestState.history;
+  }
+
   try {
     const res = await fetch('/api/register', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, email})
+      body: JSON.stringify(body)
     });
     const data = await res.json();
     if (!res.ok) {
       errEl.textContent = data.error || 'Fehler beim Erstellen.';
       return;
     }
-    // Erfolg — Code anzeigen!
+
     document.getElementById('authModalContent').innerHTML = `
       <h3>🎉 Account erstellt!</h3>
       <p style="color:#94a3b8; font-size:0.9rem;">Speichere diesen Code <b>sofort</b>! Er ist dein Login für andere Geräte.</p>
@@ -646,12 +1161,26 @@ async function doRegister() {
         <label>Nutzername</label>
         <input type="text" value="${data.username}" disabled>
       </div>
+      <div class="form-row">
+        <label>Guthaben</label>
+        <input type="text" value="${formatEuro(data.balance)}" disabled>
+      </div>
       <div class="modal-actions">
-        <button class="btn-primary" onclick="closeModal('authModal'); loadLoggedInAccount();">Verstanden, weiter!</button>
+        <button class="btn-primary" onclick="finishRegister(${fromGuest})">Verstanden, weiter!</button>
       </div>
     `;
   } catch (e) {
     errEl.textContent = 'Netzwerkfehler.';
+  }
+}
+
+async function finishRegister(fromGuest) {
+  closeModal('authModal');
+  await loadLoggedInAccount();
+  if (fromGuest) {
+    // Gast-Daten löschen, da sie jetzt im Account sind
+    localStorage.removeItem(GUEST_KEY);
+    guestState = null;
   }
 }
 
@@ -696,7 +1225,7 @@ async function loadLoggedInAccount() {
 }
 
 /* =================================================
-   ACCOUNT MODAL (Verwaltung)
+   ACCOUNT MODAL
 ================================================= */
 function openAccountModal() {
   const modal = document.getElementById('accountModal');
@@ -725,13 +1254,23 @@ function openAccountModal() {
       </div>
     `;
   } else {
+    const guestBalance = guestState ? guestState.balance : 0;
     content.innerHTML = `
       <h3>👤 Gast-Modus</h3>
-      <p style="color:#94a3b8; font-size:0.9rem;">Du spielst aktuell als Gast. Dein Guthaben wird nur lokal gespeichert.</p>
-      <p style="color:#94a3b8; font-size:0.9rem;">Erstelle einen Account, um geräteübergreifend zu spielen.</p>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeModal('accountModal')">Schließen</button>
-        <button class="btn-primary" onclick="closeModal('accountModal'); showAuthForm('register');">Account erstellen</button>
+      <p style="color:#94a3b8; font-size:0.9rem;">
+        Du spielst als Gast. Guthaben: <b style="color:#4ade80;">${formatEuro(guestBalance)}</b>
+      </p>
+      <p style="color:#94a3b8; font-size:0.9rem;">
+        Erstelle einen echten Account, um geräteübergreifend zu spielen. <b>Dein Guthaben und Verlauf werden übernommen!</b>
+      </p>
+      <div class="modal-actions" style="flex-direction:column; gap:0.5rem;">
+        <button class="btn-primary" style="width:100%;" onclick="closeModal('accountModal'); showAuthForm('register', true);">
+          💾 Account aus diesem Gast erstellen
+        </button>
+        <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal'); showAuthForm('login');">
+          🔑 In bestehenden Account einloggen
+        </button>
+        <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal')">Schließen</button>
       </div>
     `;
   }
@@ -782,16 +1321,14 @@ async function doLogout() {
   account = null;
   isGuest = false;
   closeModal('accountModal');
-  document.getElementById('page-start').classList.add('active');
-  document.querySelectorAll('.page').forEach(p => {
-    if (p.id !== 'page-start') p.classList.remove('active');
-  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-start').classList.add('active');
   updateBalanceUI();
 }
 
 /* =================================================
-   HISTORY MODAL
+   HISTORY
 ================================================= */
 function openHistoryModal() {
   const p = getCurrentPlayer();
@@ -816,12 +1353,8 @@ function openHistoryModal() {
 
 function clearHistory() {
   if (!confirm('Verlauf wirklich löschen?')) return;
-  if (account) {
-    account.history = [];
-  } else if (guestState) {
-    guestState.history = [];
-    saveGuestState();
-  }
+  if (account) account.history = [];
+  else if (guestState) { guestState.history = []; saveGuestState(); }
   openHistoryModal();
 }
 
@@ -846,7 +1379,7 @@ function showPage(name) {
 }
 
 /* =================================================
-   EINSATZ (Bet)
+   BET
 ================================================= */
 function setCoinBet(amount, btn) {
   coinBet = amount;
@@ -890,19 +1423,11 @@ function updateRouletteButtonState() {
   if (btn) btn.disabled = !canPlay;
 }
 
-/* =================================================
-   BALANCE UPDATE (Account = Server, Gast = lokal)
-================================================= */
 function applyBalanceChange(delta) {
-  if (account) {
-    account.balance += delta;
-  } else if (guestState) {
-    guestState.balance += delta;
-    saveGuestState();
-  }
+  if (account) account.balance += delta;
+  else if (guestState) { guestState.balance += delta; saveGuestState(); }
   updateBalanceUI();
 }
-
 function setBalanceFromServer(newBalance) {
   if (account && typeof newBalance === 'number') {
     account.balance = newBalance;
@@ -1109,9 +1634,7 @@ async function doSpin() {
 }
 
 document.getElementById('wheelOptions').addEventListener('input', () => {
-  if (document.getElementById('page-wheel').classList.contains('active')) {
-    renderWheel();
-  }
+  if (document.getElementById('page-wheel').classList.contains('active')) renderWheel();
 });
 
 /* =================================================
@@ -1245,7 +1768,7 @@ async function doRouletteSpin() {
 }
 
 /* =================================================
-   CROSSY (Chicken Road)
+   CROSSY
 ================================================= */
 const CROSSY_STEPS = 8;
 const CROSSY_MULTS = [1.00, 1.20, 1.50, 1.95, 2.60, 3.55, 4.90, 6.80, 9.60];
@@ -1306,9 +1829,7 @@ function renderCrossyTrack() {
 }
 
 function crossyReset() {
-  crossyState = {
-    active: false, step: 0, crashed: false, cashedOut: false, pattern: []
-  };
+  crossyState = { active: false, step: 0, crashed: false, cashedOut: false, pattern: [] };
   for (let i = 0; i < CROSSY_STEPS; i++) {
     const crashChance = 0.08 + i * 0.06;
     crossyState.pattern.push(Math.random() < crashChance ? 'crash' : 'safe');
@@ -1331,11 +1852,8 @@ function crossyReset() {
 }
 
 function crossyGoClick() {
-  if (!crossyState || !crossyState.active) {
-    crossyStart();
-  } else {
-    crossyGo();
-  }
+  if (!crossyState || !crossyState.active) crossyStart();
+  else crossyGo();
 }
 
 function crossyStart() {
@@ -1432,9 +1950,8 @@ async function init() {
   setupRouletteButtons();
   renderCrossyTrack();
   crossyReset();
+  loadGuestState();
   updateBalanceUI();
-
-  // Login-Check
   await checkLogin();
 }
 

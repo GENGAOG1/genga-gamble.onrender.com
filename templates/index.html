@@ -969,6 +969,7 @@ Curry</textarea>
    STATE
 ================================================= */
 const GUEST_KEY = 'coinflip_guest_v1';
+const OLD_KEY = 'coinflip_players_v1';
 let account = null;
 let isGuest = false;
 let guestState = null;
@@ -1033,13 +1034,40 @@ function addHistory(game, text, amount, win) {
 }
 
 /* =================================================
-   GUEST
+   GUEST mit Migration vom alten Speicher
 ================================================= */
 function loadGuestState() {
+  // 1) Neuen Gast-Speicher versuchen
   try {
     const raw = localStorage.getItem(GUEST_KEY);
     if (raw) guestState = JSON.parse(raw);
   } catch (e) {}
+
+  // 2) Wenn leer: Alten Speicher (coinflip_players_v1) prüfen und migrieren
+  if (!guestState || typeof guestState.balance !== 'number') {
+    try {
+      const oldRaw = localStorage.getItem(OLD_KEY);
+      if (oldRaw) {
+        const old = JSON.parse(oldRaw);
+        if (old && Array.isArray(old.players) && old.players.length) {
+          const oldPlayer = old.players.find(p => p.id === old.currentPlayerId) || old.players[0];
+          if (oldPlayer) {
+            guestState = {
+              name: oldPlayer.name || 'Gast',
+              balance: typeof oldPlayer.balance === 'number' ? oldPlayer.balance : 100,
+              history: Array.isArray(oldPlayer.history) ? oldPlayer.history : []
+            };
+            saveGuestState();
+            console.log('✅ Altes Guthaben migriert:', guestState.balance, '€');
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Migration fehlgeschlagen:', e);
+    }
+  }
+
+  // 3) Wenn immer noch nichts: neuer Gast mit 100 €
   if (!guestState) {
     guestState = { name: 'Gast', balance: 100, history: [] };
     saveGuestState();
@@ -1178,8 +1206,8 @@ async function finishRegister(fromGuest) {
   closeModal('authModal');
   await loadLoggedInAccount();
   if (fromGuest) {
-    // Gast-Daten löschen, da sie jetzt im Account sind
     localStorage.removeItem(GUEST_KEY);
+    localStorage.removeItem(OLD_KEY);
     guestState = null;
   }
 }

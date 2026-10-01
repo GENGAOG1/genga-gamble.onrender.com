@@ -1035,16 +1035,14 @@ function addHistory(game, text, amount, win) {
 }
 
 /* =================================================
-   GUEST mit Migration + Server-Sync
+   GUEST
 ================================================= */
 function loadGuestState() {
-  // 1) Neuen Gast-Speicher
   try {
     const raw = localStorage.getItem(GUEST_KEY);
     if (raw) guestState = JSON.parse(raw);
   } catch (e) {}
 
-  // 2) Migration vom alten Speicher
   if (!guestState || typeof guestState.balance !== 'number') {
     try {
       const oldRaw = localStorage.getItem(OLD_KEY);
@@ -1066,13 +1064,11 @@ function loadGuestState() {
     } catch (e) {}
   }
 
-  // 3) Fallback
   if (!guestState) {
     guestState = { name: 'Gast', balance: 100, history: [] };
     saveGuestState();
   }
 
-  // 4) Gast-ID vom Server holen/erstellen
   guestId = localStorage.getItem(GUEST_ID_KEY) || null;
 }
 
@@ -1081,7 +1077,7 @@ function saveGuestState() {
 }
 
 async function ensureGuestOnServer() {
-  // Wenn schon eine ID vorhanden → prüfen, ob sie am Server existiert
+  // Wenn schon eine ID vorhanden → beim Server nach aktuellem Stand fragen
   if (guestId) {
     try {
       const res = await fetch('/api/guest/me', {
@@ -1090,8 +1086,17 @@ async function ensureGuestOnServer() {
         body: JSON.stringify({guest_id: guestId})
       });
       const data = await res.json();
-      if (data.exists) return; // alles gut
-    } catch (e) {}
+      if (data.exists) {
+        // ✅ Server-Guthaben übernehmen (Admin kann es geändert haben)
+        guestState.balance = data.guest.balance;
+        guestState.history = data.guest.history || [];
+        saveGuestState();
+        console.log('✅ Server-Guthaben übernommen:', guestState.balance, '€');
+        return;
+      }
+    } catch (e) {
+      console.warn('Konnte Server-Stand nicht abrufen:', e);
+    }
   }
   // Neue ID anlegen
   try {
@@ -1100,7 +1105,6 @@ async function ensureGuestOnServer() {
     if (data.ok) {
       guestId = data.guest_id;
       localStorage.setItem(GUEST_ID_KEY, guestId);
-      // Aktuellen Stand synchronisieren
       await syncGuestToServer();
     }
   } catch (e) {

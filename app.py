@@ -5,13 +5,19 @@ import secrets
 import sqlite3
 import string
 import socket
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Flask, render_template, request, jsonify, session, g
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+
+# ---------- Session-Konfiguration ----------
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = False  # Für HTTP (falls kein HTTPS)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
 DB_PATH = os.environ.get("DB_PATH", "accounts.db")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
@@ -223,8 +229,10 @@ def admin_set_balance():
     db = get_db()
     if kind == "account":
         db.execute("UPDATE accounts SET balance = ? WHERE id = ?", (new_balance, target_id))
+        print(f"🛠️ Admin: Account {target_id} → {new_balance:.2f} €")
     elif kind == "guest":
         db.execute("UPDATE guests SET balance = ? WHERE id = ?", (new_balance, target_id))
+        print(f"🛠️ Admin: Gast {target_id[:10]}… → {new_balance:.2f} €")
     else:
         return jsonify({"error": "Ungültiger Typ."}), 400
     db.commit()
@@ -295,7 +303,11 @@ def register():
     )
     db.commit()
     acc_id = cur.lastrowid
+    session.clear()
     session["account_id"] = acc_id
+    session.permanent = True
+
+    print(f"✅ Registrierung: {username} (ID {acc_id}) → Session gesetzt")
 
     return jsonify({
         "ok": True,
@@ -323,7 +335,10 @@ def login():
     if not row:
         return jsonify({"error": "Nutzername oder Code falsch."}), 401
 
+    session.clear()
     session["account_id"] = row["id"]
+    session.permanent = True
+    print(f"✅ Login: {row['username']} (ID {row['id']}) → Session gesetzt")
     return jsonify({"ok": True, "account": account_to_dict(row)})
 
 @app.route("/api/logout", methods=["POST"])
@@ -374,7 +389,6 @@ def update_email():
 # ---------- Gäste-Sync ----------
 @app.route("/api/guest/create", methods=["POST"])
 def guest_create():
-    """Erstellt einen neuen Gast am Server und gibt die ID zurück."""
     db = get_db()
     guest_id = secrets.token_urlsafe(16)
     now = datetime.utcnow().isoformat()
@@ -387,7 +401,6 @@ def guest_create():
 
 @app.route("/api/guest/sync", methods=["POST"])
 def guest_sync():
-    """Synchronisiert Gast-Guthaben und Verlauf zum Server."""
     data = request.get_json(silent=True) or {}
     guest_id = (data.get("guest_id") or "").strip()
     balance = data.get("balance", None)
@@ -425,7 +438,6 @@ def guest_sync():
 
 @app.route("/api/guest/me", methods=["POST"])
 def guest_me():
-    """Fragt den aktuellen Server-Stand eines Gastes ab (für Cross-Device)."""
     data = request.get_json(silent=True) or {}
     guest_id = (data.get("guest_id") or "").strip()
     if not guest_id:
@@ -439,6 +451,7 @@ def guest_me():
 def update_account_balance(delta, history_entry=None):
     row = get_current_account()
     if not row:
+        print("⚠️ WARNUNG: Kein Account in Session — Guthaben kann nicht gespeichert werden!")
         return None
     db = get_db()
     new_balance = row["balance"] + delta
@@ -454,6 +467,7 @@ def update_account_balance(delta, history_entry=None):
         (new_balance, json.dumps(history), row["id"])
     )
     db.commit()
+    print(f"✅ Account {row['id']} ({row['username']}): {row['balance']:.2f} → {new_balance:.2f} €")
     return new_balance
 
 # ---------- Spiele ----------
@@ -486,6 +500,7 @@ def coinflip():
         "result": result,
         "win": win,
         "new_balance": new_balance,
+        "logged_in": bool(acc_row),
     })
 
 @app.route("/api/wheel", methods=["POST"])
@@ -587,6 +602,7 @@ def roulette():
         "win": win,
         "payout": payout,
         "new_balance": new_balance,
+        "logged_in": bool(acc_row),
     })
 
 # ---------- Init ----------

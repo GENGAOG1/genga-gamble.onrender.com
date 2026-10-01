@@ -14,6 +14,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 
 DB_PATH = os.environ.get("DB_PATH", "accounts.db")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
 # ---------- Datenbank ----------
 def get_db():
@@ -30,7 +31,6 @@ def close_db(exc):
         db.close()
 
 def init_db():
-    # Ordner anlegen, falls er nicht existiert (z.B. /data auf Render)
     db_dir = os.path.dirname(DB_PATH)
     if db_dir and not os.path.exists(db_dir):
         try:
@@ -48,6 +48,14 @@ def init_db():
             balance REAL NOT NULL DEFAULT 100.0,
             history TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS guests (
+            id TEXT PRIMARY KEY,
+            balance REAL NOT NULL DEFAULT 100.0,
+            history TEXT NOT NULL DEFAULT '[]',
+            created_at TEXT NOT NULL,
+            last_seen TEXT NOT NULL
         );
     """)
     db.commit()
@@ -92,11 +100,32 @@ def account_to_dict(row):
         "history": history,
     }
 
+def guest_to_dict(row):
+    try:
+        history = json.loads(row["history"] or "[]")
+    except Exception:
+        history = []
+    return {
+        "id": row["id"],
+        "balance": row["balance"],
+        "history": history,
+        "created_at": row["created_at"],
+        "last_seen": row["last_seen"],
+    }
+
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get("account_id"):
             return jsonify({"error": "Nicht eingeloggt."}), 401
+        return f(*args, **kwargs)
+    return wrapper
+
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("is_admin"):
+            return jsonify({"error": "Admin-Login nötig."}), 401
         return f(*args, **kwargs)
     return wrapper
 
@@ -107,12 +136,118 @@ def get_current_account():
     db = get_db()
     return db.execute("SELECT * FROM accounts WHERE id = ?", (acc_id,)).fetchone()
 
-# ---------- Routen ----------
+def get_guest_by_id(guest_id):
+    if not guest_id:
+        return None
+    db = get_db()
+    return db.execute("SELECT * FROM guests WHERE id = ?", (guest_id,)).fetchone()
+
+# ---------- Hauptseiten ----------
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# ---- Auth ----
+@app.route("/admin")
+def admin_page():
+    return render_template("admin.html")
+
+# ---------- Admin ----------
+@app.route("/api/admin/login", methods=["POST"])
+def admin_login():
+    data = request.get_json(silent=True) or {}
+    pw = data.get("password", "")
+    if pw != ADMIN_PASSWORD:
+        return jsonify({"error": "Falsches Passwort."}), 401
+    session["is_admin"] = True
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/logout", methods=["POST"])
+def admin_logout():
+    session.pop("is_admin", None)
+    return jsonify({"ok": True})
+
+@app.route("/api/admin/check", methods=["GET"])
+def admin_check():
+    return jsonify({"is_admin": bool(session.get("is_admin"))})
+
+@app.route("/api/admin/data", methods=["GET"])
+@admin_required
+def admin_data():
+    db = get_db()
+    accounts_rows = db.execute("SELECT * FROM accounts ORDER BY created_at DESC").fetchall()
+    guests_rows = db.execute("SELECT * FROM guests ORDER BY last_seen DESC").fetchall()
+
+    accounts = [{
+        "type": "account",
+        "id": r["id"],
+        "name": r["username"],
+        "email": r["email"],
+        "balance": r["balance"],
+        "created_at": r["created_at"],
+    } for r in accounts_rows]
+
+    guests = [{
+        "type": "guest",
+        "id": r["id"],
+        "name": "Gast",
+        "email": "-",
+        "balance": r["balance"],
+        "created_at": r["created_at"],
+        "last_seen": r["last_seen"],
+    } for r in guests_rows]
+
+    return jsonify({
+        "accounts": accounts,
+        "guests": guests,
+        "totals": {
+            "account_count": len(accounts),
+            "guest_count": len(guests),
+            "account_balance": sum(a["balance"] for a in accounts),
+            "guest_balance": sum(g["balance"] for g in guests),
+        }
+    })
+
+@app.route("/api/admin/set_balance", methods=["POST"])
+@admin_required
+def admin_set_balance():
+    data = request.get_json(silent=True) or {}
+    kind = data.get("type")  # 'account' oder 'guest'
+    target_id = data.get("id")
+    new_balance = data.get("balance")
+
+    try:
+        new_balance = float(new_balance)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Ungültiges Guthaben."}), 400
+
+    db = get_db()
+    if kind == "account":
+        db.execute("UPDATE accounts SET balance = ? WHERE id = ?", (new_balance, target_id))
+    elif kind == "guest":
+        db.execute("UPDATE guests SET balance = ? WHERE id = ?", (new_balance, target_id))
+    else:
+        return jsonify({"error": "Ungültiger Typ."}), 400
+    db.commit()
+    return jsonify({"ok": True, "balance": new_balance})
+
+@app.route("/api/admin/delete", methods=["POST"])
+@admin_required
+def admin_delete():
+    data = request.get_json(silent=True) or {}
+    kind = data.get("type")
+    target_id = data.get("id")
+
+    db = get_db()
+    if kind == "account":
+        db.execute("DELETE FROM accounts WHERE id = ?", (target_id,))
+    elif kind == "guest":
+        db.execute("DELETE FROM guests WHERE id = ?", (target_id,))
+    else:
+        return jsonify({"error": "Ungültiger Typ."}), 400
+    db.commit()
+    return jsonify({"ok": True})
+
+# ---------- Auth (Accounts) ----------
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json(silent=True) or {}
@@ -236,7 +371,71 @@ def update_email():
     db.commit()
     return jsonify({"ok": True, "email": email})
 
-# ---- Guthaben-Sync ----
+# ---------- Gäste-Sync ----------
+@app.route("/api/guest/create", methods=["POST"])
+def guest_create():
+    """Erstellt einen neuen Gast am Server und gibt die ID zurück."""
+    db = get_db()
+    guest_id = secrets.token_urlsafe(16)
+    now = datetime.utcnow().isoformat()
+    db.execute(
+        "INSERT INTO guests (id, balance, history, created_at, last_seen) VALUES (?, 100.0, '[]', ?, ?)",
+        (guest_id, now, now)
+    )
+    db.commit()
+    return jsonify({"ok": True, "guest_id": guest_id, "balance": 100.0})
+
+@app.route("/api/guest/sync", methods=["POST"])
+def guest_sync():
+    """Synchronisiert Gast-Guthaben und Verlauf zum Server."""
+    data = request.get_json(silent=True) or {}
+    guest_id = (data.get("guest_id") or "").strip()
+    balance = data.get("balance", None)
+    history = data.get("history", None)
+
+    if not guest_id:
+        return jsonify({"error": "guest_id fehlt."}), 400
+
+    try:
+        balance = float(balance)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Ungültiges Guthaben."}), 400
+
+    hist = []
+    if isinstance(history, list):
+        for h in history[:50]:
+            if isinstance(h, dict):
+                hist.append(h)
+
+    db = get_db()
+    row = db.execute("SELECT id FROM guests WHERE id = ?", (guest_id,)).fetchone()
+    now = datetime.utcnow().isoformat()
+    if row:
+        db.execute(
+            "UPDATE guests SET balance = ?, history = ?, last_seen = ? WHERE id = ?",
+            (balance, json.dumps(hist), now, guest_id)
+        )
+    else:
+        db.execute(
+            "INSERT INTO guests (id, balance, history, created_at, last_seen) VALUES (?, ?, ?, ?, ?)",
+            (guest_id, balance, json.dumps(hist), now, now)
+        )
+    db.commit()
+    return jsonify({"ok": True})
+
+@app.route("/api/guest/me", methods=["POST"])
+def guest_me():
+    """Fragt den aktuellen Server-Stand eines Gastes ab (für Cross-Device)."""
+    data = request.get_json(silent=True) or {}
+    guest_id = (data.get("guest_id") or "").strip()
+    if not guest_id:
+        return jsonify({"error": "guest_id fehlt."}), 400
+    row = get_guest_by_id(guest_id)
+    if not row:
+        return jsonify({"exists": False})
+    return jsonify({"exists": True, "guest": guest_to_dict(row)})
+
+# ---------- Guthaben-Sync (Account) ----------
 def update_account_balance(delta, history_entry=None):
     row = get_current_account()
     if not row:

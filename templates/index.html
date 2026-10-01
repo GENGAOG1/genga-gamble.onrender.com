@@ -991,9 +991,8 @@ let crossyBet = 0;
 let crossyState = null;
 let autoRefreshInterval = null;
 
-// Zeitstempel der letzten eigenen Änderung
-let lastLocalUpdate = 0;         // Account (ISO-String → ms)
-let lastLocalUpdateGuest = 0;    // Gast (ISO-String → ms)
+let lastLocalUpdate = 0;
+let lastLocalUpdateGuest = 0;
 
 /* =================================================
    HELPERS
@@ -1152,7 +1151,7 @@ async function syncGuestToServer() {
 }
 
 /* =================================================
-   AUTO-REFRESH — übernimmt Server-Wert nur wenn NEUER
+   AUTO-REFRESH
 ================================================= */
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
@@ -1165,7 +1164,6 @@ function startAutoRefresh() {
         const data = await res.json();
         if (data.logged_in && data.account) {
           const serverMs = isoToMs(data.account.last_update || '');
-          // Nur übernehmen, wenn Server-Wert NEUER ist als unsere letzte Änderung
           if (serverMs > lastLocalUpdate) {
             if (Math.abs(data.account.balance - account.balance) > 0.001) {
               account.balance = data.account.balance;
@@ -1174,7 +1172,6 @@ function startAutoRefresh() {
               updateBalanceUI();
               console.log('🔄 Account vom Server aktualisiert:', account.balance, '€');
             } else {
-              // Kein Wertunterschied, aber Zeitstempel übernehmen
               lastLocalUpdate = Math.max(lastLocalUpdate, serverMs);
             }
           }
@@ -1595,7 +1592,7 @@ function updateRouletteButtonState() {
 function applyBalanceChange(delta) {
   if (account) {
     account.balance += delta;
-    lastLocalUpdate = Date.now(); // Unsere Änderung ist JETZT neuer als alles vom Server
+    lastLocalUpdate = Date.now();
   } else if (guestState) {
     guestState.balance += delta;
     lastLocalUpdateGuest = Date.now();
@@ -1680,10 +1677,8 @@ async function doFlip() {
     const win = data.win;
 
     if (account && typeof data.new_balance === 'number') {
-      // Server hat gespeichert → Server-Zeitstempel übernehmen
       setBalanceFromServer(data.new_balance, data.last_update);
     } else {
-      // Kein Server-Speichern → lokal ändern
       applyBalanceChange(win ? coinBet : -coinBet);
     }
     addHistory('🪙 Coinflip', `${choiceText} → ${resultText}`, coinBet, win);
@@ -2074,16 +2069,36 @@ function crossyGo() {
   chicken.style.left = newLeft + '%';
 
   if (crossyState.pattern[currentStep] === 'crash') {
-    cell.classList.add('crashed');
     crossyState.crashed = true;
     crossyState.active = false;
+    cell.classList.add('crashed');
     document.getElementById('crossyGoBtn').disabled = true;
     document.getElementById('crossyCashoutBtn').disabled = true;
     document.getElementById('crossyHint').textContent = '💥 Vom Auto erwischt!';
     document.getElementById('crossyResult').innerHTML =
       `<span class="lose">💥 Verloren! −${formatEuro(crossyBet)}</span>`;
-    applyBalanceChange(-crossyBet);
-    addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
+
+    // Server informieren
+    if (account) {
+      fetch('/api/crossy', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ result: 'lose', profit: -crossyBet, steps: currentStep + 1 })
+      }).then(r => r.json()).then(data => {
+        if (typeof data.new_balance === 'number') {
+          setBalanceFromServer(data.new_balance, data.last_update);
+        } else {
+          applyBalanceChange(-crossyBet);
+        }
+        addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
+      }).catch(() => {
+        applyBalanceChange(-crossyBet);
+        addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
+      });
+    } else {
+      applyBalanceChange(-crossyBet);
+      addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
+    }
     updateCrossyButtons();
     return;
   }
@@ -2106,15 +2121,14 @@ function updateCrossyCashoutValue() {
   document.getElementById('crossyCashoutValue').textContent = formatEuro(crossyBet * mult);
 }
 
-function crossyCashOut() {
+async function crossyCashOut() {
   if (!crossyState) return;
   if (crossyState.step === 0) return;
   if (crossyState.cashedOut || crossyState.crashed) return;
   const mult = CROSSY_MULTS[crossyState.step];
   const total = crossyBet * mult;
   const profit = total - crossyBet;
-  applyBalanceChange(profit);
-  addHistory('🐔 Chicken Road', `${crossyState.step} Schritte · ${mult.toFixed(2)}x`, profit, true);
+
   crossyState.active = false;
   crossyState.cashedOut = true;
   document.getElementById('crossyGoBtn').disabled = true;
@@ -2122,6 +2136,29 @@ function crossyCashOut() {
   document.getElementById('crossyHint').textContent = '✅ Ausgezahlt!';
   document.getElementById('crossyResult').innerHTML =
     `<span class="win">🎉 Ausgezahlt! +${formatEuro(profit)} (${mult.toFixed(2)}x)</span>`;
+
+  // Server informieren
+  if (account) {
+    try {
+      const res = await fetch('/api/crossy', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ result: 'win', profit: profit, steps: crossyState.step })
+      });
+      const data = await res.json();
+      if (typeof data.new_balance === 'number') {
+        setBalanceFromServer(data.new_balance, data.last_update);
+      } else {
+        applyBalanceChange(profit);
+      }
+    } catch (e) {
+      applyBalanceChange(profit);
+    }
+  } else {
+    applyBalanceChange(profit);
+  }
+
+  addHistory('🐔 Chicken Road', `${crossyState.step} Schritte · ${mult.toFixed(2)}x`, profit, true);
   updateCrossyButtons();
 }
 

@@ -629,14 +629,11 @@
   .crossy-cell.passed {
     background: rgba(74, 222, 128, 0.12);
   }
-  .crossy-cell.current {
-    background: rgba(250, 204, 21, 0.14);
-  }
   .crossy-cell.crashed {
     background: rgba(248, 113, 113, 0.25);
   }
   .crossy-cell .mult-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
     color: #facc15;
     font-variant-numeric: tabular-nums;
@@ -644,28 +641,14 @@
     line-height: 1.1;
   }
   .crossy-cell.passed .mult-label { color: #4ade80; }
-  .crossy-cell .chicken-icon {
-    position: absolute;
-    bottom: 12px;
-    font-size: 2.2rem;
-    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-  }
   .crossy-cell .car-icon {
     position: absolute;
-    bottom: 10px;
+    bottom: 8px;
     font-size: 1.6rem;
     opacity: 0;
     transition: opacity 0.2s;
   }
   .crossy-cell.crashed .car-icon { opacity: 1; }
-  .crossy-lane-tag {
-    position: absolute;
-    top: 6px;
-    font-size: 0.65rem;
-    color: #94a3b8;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
   .crossy-road {
     position: absolute;
     bottom: 0;
@@ -679,6 +662,21 @@
     );
     border-top: 2px solid #334155;
     pointer-events: none;
+  }
+  #crossyChicken {
+    position: absolute;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+    z-index: 5;
+    pointer-events: none;
+  }
+  #crossyChicken svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
   .crossy-controls {
     display: flex;
@@ -898,16 +896,14 @@ Curry</textarea>
           <span class="step">Schritt: <b id="crossyStep">0</b> / 8</span>
           <span class="mult">Multiplikator: <b id="crossyMult">1.00x</b></span>
         </div>
-        <div class="crossy-track" id="crossyTrack">
-          <!-- Zellen werden per JS gebaut -->
-        </div>
+        <div class="crossy-track" id="crossyTrack"></div>
       </div>
 
       <div class="crossy-controls">
         <button class="cashout-btn" id="crossyCashoutBtn" onclick="crossyCashOut()" disabled>
           CASH OUT (<span id="crossyCashoutValue">0,00 €</span>)
         </button>
-        <button class="go-btn" id="crossyGoBtn" onclick="crossyGo()" disabled>
+        <button class="go-btn" id="crossyGoBtn" onclick="crossyGoClick()" disabled>
           GO! 🐔
         </button>
       </div>
@@ -954,7 +950,7 @@ const STORAGE_KEY = 'coinflip_players_v1';
 let players = [];
 let currentPlayerId = null;
 
-/* ============ ZUSTANDSVARIABLEN ============ */
+/* Zustandsvariablen */
 let chosen = null;
 let flipping = false;
 let currentRotation = 0;
@@ -967,7 +963,7 @@ let spinning = false;
 let crossyBet = 0;
 let crossyState = null;
 
-/* ============ STATE ============ */
+/* STATE */
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -977,7 +973,6 @@ function loadState() {
       currentPlayerId = parsed.currentPlayerId || null;
     }
   } catch (e) { console.warn('Fehler beim Laden', e); }
-
   if (players.length === 0) {
     players = [{ id: uid(), name: 'Gast', balance: 100, history: [] }];
     currentPlayerId = players[0].id;
@@ -1010,9 +1005,10 @@ function updateBalanceUI() {
   const balEl = document.getElementById('balanceDisplay');
   balEl.textContent = formatEuro(p.balance);
   balEl.classList.toggle('negative', p.balance < 0);
+  if (typeof updateCrossyButtons === 'function') updateCrossyButtons();
 }
 
-/* ============ PLAYER MODAL ============ */
+/* PLAYER MODAL */
 function openPlayersModal() {
   renderPlayerList();
   document.getElementById('playersModal').classList.add('open');
@@ -1077,7 +1073,7 @@ function createPlayer() {
   closeModal('playersModal');
 }
 
-/* ============ HISTORY ============ */
+/* HISTORY */
 function addHistory(game, text, amount, win) {
   const p = getCurrentPlayer();
   p.history.unshift({
@@ -1122,7 +1118,7 @@ function escapeHtml(s) {
   }[c]));
 }
 
-/* ============ NAV ============ */
+/* NAV */
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -1132,7 +1128,7 @@ function showPage(name) {
   if (name === 'crossy') renderCrossyTrack();
 }
 
-/* ============ EINSATZ ============ */
+/* EINSATZ */
 function setCoinBet(amount, btn) {
   coinBet = amount;
   document.getElementById('coinCustomBet').value = '';
@@ -1173,7 +1169,7 @@ function updateRouletteButtonState() {
   document.getElementById('rouletteSpinBtn').disabled = !canPlay;
 }
 
-/* ============ COINFLIP ============ */
+/* COINFLIP */
 function pickChoice(c) {
   if (flipping) return;
   chosen = c;
@@ -1193,7 +1189,6 @@ async function doFlip() {
     return;
   }
   flipping = true;
-
   const coin = document.getElementById('coin');
   const flipBtn = document.getElementById('flipBtn');
   const btnKopf = document.getElementById('btn-kopf');
@@ -1231,24 +1226,19 @@ async function doFlip() {
   setTimeout(() => {
     coin.classList.remove('flipping');
     coin.classList.add('settle');
-
     const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
     const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
-
     const win = data.win;
     const netChange = win ? coinBet : -coinBet;
     p.balance += netChange;
     saveState();
     updateBalanceUI();
-
     addHistory('🪙 Coinflip', `${choiceText} → ${resultText}`, coinBet, win);
-
     resultEl.innerHTML =
       `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
       (win
         ? `<span class="win">🎉 Gewonnen! +${formatEuro(coinBet)}</span>`
         : `<span class="lose">😢 Verloren! −${formatEuro(coinBet)}</span>`);
-
     resetCoinControls();
   }, 2700);
 }
@@ -1260,7 +1250,7 @@ function resetCoinControls() {
   updateCoinButtonState();
 }
 
-/* ============ GLÜCKSRAD ============ */
+/* GLÜCKSRAD */
 const WHEEL_COLORS = [
   '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
@@ -1296,7 +1286,6 @@ function renderWheel() {
     const [x1, y1] = polar(start, r);
     const [x2, y2] = polar(end, r);
     const largeArc = angle > 180 ? 1 : 0;
-
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`);
     path.setAttribute('fill', WHEEL_COLORS[i % WHEEL_COLORS.length]);
@@ -1379,7 +1368,7 @@ document.getElementById('wheelOptions').addEventListener('input', () => {
   }
 });
 
-/* ============ ROULETTE ============ */
+/* ROULETTE */
 function setupRouletteButtons() {
   document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1484,7 +1473,6 @@ async function doRouletteSpin() {
       p.balance += netChange;
       saveState();
       updateBalanceUI();
-
       addHistory('🎰 Roulette',
         `${data.number} ${data.color === 'red' ? '🔴' : data.color === 'black' ? '⚫' : '🟢'} · ${text}`,
         rouletteBetAmount, win);
@@ -1494,7 +1482,6 @@ async function doRouletteSpin() {
         : `<span class="lose">😢 Verloren −${formatEuro(rouletteBetAmount)}</span>`;
 
       hint.textContent = 'Wähle eine neue Wette';
-
       rouletteSpinning = false;
       allBtns.forEach(b => b.disabled = false);
       allBtns.forEach(b => b.classList.remove('selected'));
@@ -1504,9 +1491,8 @@ async function doRouletteSpin() {
   }, 80);
 }
 
-/* ============ CHICKEN ROAD ============ */
+/* CHICKEN ROAD */
 const CROSSY_STEPS = 8;
-// Multiplikatoren pro Schritt (angelehnt an Chicken Road)
 const CROSSY_MULTS = [1.00, 1.20, 1.50, 1.95, 2.60, 3.55, 4.90, 6.80, 9.60];
 
 function setCrossyBet(amount, btn) {
@@ -1521,6 +1507,7 @@ function updateCrossyButtons() {
   const p = getCurrentPlayer();
   const goBtn = document.getElementById('crossyGoBtn');
   const cashBtn = document.getElementById('crossyCashoutBtn');
+  if (!goBtn || !cashBtn) return;
   if (!crossyState || !crossyState.active) {
     goBtn.disabled = !(crossyBet > 0 && crossyBet <= p.balance);
     cashBtn.disabled = true;
@@ -1541,21 +1528,25 @@ function renderCrossyTrack() {
     `;
     track.appendChild(cell);
   }
-  // Huhn-Container
   const road = document.createElement('div');
   road.className = 'crossy-road';
   track.appendChild(road);
 
-  // Huhn
   const chicken = document.createElement('div');
-  chicken.className = 'chicken-icon';
   chicken.id = 'crossyChicken';
-  chicken.textContent = '🐔';
   chicken.style.left = '2%';
-  chicken.style.position = 'absolute';
-  chicken.style.bottom = '14px';
-  chicken.style.fontSize = '2.2rem';
-  chicken.style.transition = 'left 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+  chicken.innerHTML = `
+    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="42" rx="18" ry="14" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+      <path d="M 16 40 Q 8 46 18 50 Z" fill="#e2e8f0" stroke="#1e293b" stroke-width="1.5"/>
+      <circle cx="42" cy="22" r="11" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+      <path d="M 36 13 Q 37 7 41 11 Q 43 5 47 11 Q 49 9 49 15 Z" fill="#ef4444" stroke="#1e293b" stroke-width="1.5"/>
+      <circle cx="46" cy="21" r="2" fill="#1e293b"/>
+      <path d="M 52 24 L 61 26 L 52 29 Z" fill="#f59e0b" stroke="#1e293b" stroke-width="1.5"/>
+      <path d="M 26 55 L 24 61 M 34 55 L 36 61" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M 20 61 L 28 61 M 32 61 L 40 61" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `;
   track.appendChild(chicken);
 }
 
@@ -1565,30 +1556,37 @@ function crossyReset() {
     step: 0,
     crashed: false,
     cashedOut: false,
-    // Kollisions-Muster: pro Schritt "safe" oder "crash"
     pattern: []
   };
   for (let i = 0; i < CROSSY_STEPS; i++) {
-    // Dynamische Crash-Wahrscheinlichkeit: steigt mit jedem Schritt
-    const crashChance = 0.08 + i * 0.06; // 8% → 50%
+    const crashChance = 0.08 + i * 0.06;
     crossyState.pattern.push(Math.random() < crashChance ? 'crash' : 'safe');
   }
-  // Zellen zurücksetzen
   for (let i = 0; i < CROSSY_STEPS; i++) {
     const cell = document.getElementById('crossyCell-' + i);
     if (!cell) continue;
-    cell.classList.remove('passed', 'current', 'crashed');
+    cell.classList.remove('passed', 'crashed');
   }
   const chicken = document.getElementById('crossyChicken');
-  if (chicken) {
-    chicken.style.left = '2%';
-    chicken.style.transform = 'none';
-  }
+  if (chicken) chicken.style.left = '2%';
   document.getElementById('crossyStep').textContent = '0';
   document.getElementById('crossyMult').textContent = '1.00x';
   document.getElementById('crossyCashoutValue').textContent = formatEuro(0);
   document.getElementById('crossyResult').innerHTML = '';
-  document.getElementById('crossyHint').textContent = '„GO! 🐔" drücken, um zu starten.';
+  document.getElementById('crossyHint').textContent = 'Einsatz wählen und „GO! 🐔" drücken.';
+  const goBtn = document.getElementById('crossyGoBtn');
+  const cashBtn = document.getElementById('crossyCashoutBtn');
+  if (goBtn) goBtn.textContent = 'GO! 🐔';
+  if (cashBtn) cashBtn.disabled = true;
+  updateCrossyButtons();
+}
+
+function crossyGoClick() {
+  if (!crossyState || !crossyState.active) {
+    crossyStart();
+  } else {
+    crossyGo();
+  }
 }
 
 function crossyStart() {
@@ -1599,31 +1597,25 @@ function crossyStart() {
   }
   crossyReset();
   crossyState.active = true;
-  document.getElementById('crossyGoBtn').disabled = true;
-  document.getElementById('crossyCashoutBtn').disabled = false;
-  document.getElementById('crossyHint').textContent = 'Bereit! Klick auf „GO! 🐔" für den nächsten Schritt.';
+  const goBtn = document.getElementById('crossyGoBtn');
+  goBtn.disabled = false;
+  goBtn.textContent = 'GO! 🐔';
+  document.getElementById('crossyCashoutBtn').disabled = true;
+  document.getElementById('crossyHint').textContent = 'Klick „GO! 🐔" für den ersten Schritt.';
   updateCrossyCashoutValue();
-  crossyGo();
 }
 
 function crossyGo() {
   if (!crossyState || !crossyState.active || crossyState.crashed || crossyState.cashedOut) return;
-  if (crossyState.step >= CROSSY_STEPS) {
-    crossyCashOut();
-    return;
-  }
+  if (crossyState.step >= CROSSY_STEPS) { crossyCashOut(); return; }
 
   const currentStep = crossyState.step;
   const cell = document.getElementById('crossyCell-' + currentStep);
   const chicken = document.getElementById('crossyChicken');
-
-  // Huhn animieren
   const newLeft = ((currentStep + 0.5) / CROSSY_STEPS) * 100;
   chicken.style.left = newLeft + '%';
 
-  // Prüfen
   if (crossyState.pattern[currentStep] === 'crash') {
-    // Crash!
     cell.classList.add('crashed');
     crossyState.crashed = true;
     crossyState.active = false;
@@ -1632,7 +1624,6 @@ function crossyGo() {
     document.getElementById('crossyHint').textContent = '💥 Vom Auto erwischt!';
     document.getElementById('crossyResult').innerHTML =
       `<span class="lose">💥 Verloren! −${formatEuro(crossyBet)}</span>`;
-
     const p = getCurrentPlayer();
     p.balance -= crossyBet;
     saveState();
@@ -1642,22 +1633,19 @@ function crossyGo() {
     return;
   }
 
-  // Safe!
   cell.classList.add('passed');
   crossyState.step++;
   const mult = CROSSY_MULTS[crossyState.step];
   document.getElementById('crossyStep').textContent = crossyState.step;
   document.getElementById('crossyMult').textContent = mult.toFixed(2) + 'x';
   updateCrossyCashoutValue();
-
-  if (crossyState.step >= CROSSY_STEPS) {
-    // Durchgeschafft
-    crossyCashOut();
-    return;
-  }
-
+  document.getElementById('crossyCashoutBtn').disabled = false;
   document.getElementById('crossyHint').textContent =
     `Sicher! Weiter oder Cash Out (${formatEuro(crossyBet * mult)}).`;
+
+  if (crossyState.step >= CROSSY_STEPS) {
+    crossyCashOut();
+  }
 }
 
 function updateCrossyCashoutValue() {
@@ -1667,15 +1655,11 @@ function updateCrossyCashoutValue() {
 }
 
 function crossyCashOut() {
-  if (!crossyState || !crossyState.active) return;
-  if (crossyState.step === 0) {
-    // Nichts passiert, nichts zu gewinnen
-    crossyState.active = false;
-    updateCrossyButtons();
-    document.getElementById('crossyGoBtn').disabled = !(crossyBet > 0 && crossyBet <= getCurrentPlayer().balance);
-    document.getElementById('crossyCashoutBtn').disabled = true;
-    return;
-  }
+  if (!crossyState) return;
+  if (crossyState.step === 0) return;
+  if (!crossyState.active && !crossyState.crashed) return;
+  if (crossyState.cashedOut || crossyState.crashed) return;
+
   const mult = CROSSY_MULTS[crossyState.step];
   const total = crossyBet * mult;
   const profit = total - crossyBet;
@@ -1695,13 +1679,13 @@ function crossyCashOut() {
   updateCrossyButtons();
 }
 
-/* ============ INIT ============ */
+/* INIT */
 loadState();
 updateBalanceUI();
 renderWheel();
 setupRouletteButtons();
+renderCrossyTrack();
 crossyReset();
-updateCrossyButtons();
 
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   backdrop.addEventListener('click', (e) => {

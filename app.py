@@ -13,10 +13,9 @@ from flask import Flask, render_template, request, jsonify, session, g
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 
-# ---------- Session-Konfiguration ----------
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = False  # Für HTTP (falls kein HTTPS)
+app.config["SESSION_COOKIE_SECURE"] = False
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 
 DB_PATH = os.environ.get("DB_PATH", "accounts.db")
@@ -53,7 +52,8 @@ def init_db():
             code TEXT NOT NULL,
             balance REAL NOT NULL DEFAULT 100.0,
             history TEXT NOT NULL DEFAULT '[]',
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            last_update TEXT NOT NULL DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS guests (
@@ -61,9 +61,18 @@ def init_db():
             balance REAL NOT NULL DEFAULT 100.0,
             history TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
-            last_seen TEXT NOT NULL
+            last_seen TEXT NOT NULL,
+            last_update TEXT NOT NULL DEFAULT ''
         );
     """)
+    # Migration falls Spalten fehlen
+    for table in ("accounts", "guests"):
+        try:
+            cols = [r[1] for r in db.execute(f"PRAGMA table_info({table})").fetchall()]
+            if "last_update" not in cols:
+                db.execute(f"ALTER TABLE {table} ADD COLUMN last_update TEXT NOT NULL DEFAULT ''")
+        except Exception as e:
+            print(f"Migration {table}: {e}")
     db.commit()
     db.close()
 
@@ -93,6 +102,9 @@ def check_email(email):
         return False, "E-Mail-Domain existiert nicht oder empfängt keine Mails."
     return True, "OK"
 
+def now_iso():
+    return datetime.utcnow().isoformat()
+
 def account_to_dict(row):
     try:
         history = json.loads(row["history"] or "[]")
@@ -104,6 +116,7 @@ def account_to_dict(row):
         "email": row["email"],
         "balance": row["balance"],
         "history": history,
+        "last_update": row["last_update"] if "last_update" in row.keys() else "",
     }
 
 def guest_to_dict(row):
@@ -117,6 +130,7 @@ def guest_to_dict(row):
         "history": history,
         "created_at": row["created_at"],
         "last_seen": row["last_seen"],
+        "last_update": row["last_update"] if "last_update" in row.keys() else "",
     }
 
 def login_required(f):
@@ -165,6 +179,7 @@ def admin_login():
     if pw != ADMIN_PASSWORD:
         return jsonify({"error": "Falsches Passwort."}), 401
     session["is_admin"] = True
+    session.permanent = True
     return jsonify({"ok": True})
 
 @app.route("/api/admin/logout", methods=["POST"])
@@ -217,7 +232,7 @@ def admin_data():
 @admin_required
 def admin_set_balance():
     data = request.get_json(silent=True) or {}
-    kind = data.get("type")  # 'account' oder 'guest'
+    kind = data.get("type")
     target_id = data.get("id")
     new_balance = data.get("balance")
 
@@ -227,16 +242,19 @@ def admin_set_balance():
         return jsonify({"error": "Ungültiges Guthaben."}), 400
 
     db = get_db()
+    ts = now_iso()
     if kind == "account":
-        db.execute("UPDATE accounts SET balance = ? WHERE id = ?", (new_balance, target_id))
+        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                   (new_balance, ts, target_id))
         print(f"🛠️ Admin: Account {target_id} → {new_balance:.2f} €")
     elif kind == "guest":
-        db.execute("UPDATE guests SET balance = ? WHERE id = ?", (new_balance, target_id))
+        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                   (new_balance, ts, target_id))
         print(f"🛠️ Admin: Gast {target_id[:10]}… → {new_balance:.2f} €")
     else:
         return jsonify({"error": "Ungültiger Typ."}), 400
     db.commit()
-    return jsonify({"ok": True, "balance": new_balance})
+    return jsonify({"ok": True, "balance": new_balance, "last_update": ts})
 
 @app.route("/api/admin/delete", methods=["POST"])
 @admin_required
@@ -296,10 +314,10 @@ def register():
             if isinstance(h, dict):
                 history.append(h)
 
-    now = datetime.utcnow().isoformat()
+    ts = now_iso()
     cur = db.execute(
-        "INSERT INTO accounts (username, email, code, balance, history, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (username, email, code, balance, json.dumps(history), now)
+        "INSERT INTO accounts (username, email, code, balance, history, created_at, last_update) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (username, email, code, balance, json.dumps(history), ts, ts)
     )
     db.commit()
     acc_id = cur.lastrowid
@@ -307,14 +325,14 @@ def register():
     session["account_id"] = acc_id
     session.permanent = True
 
-    print(f"✅ Registrierung: {username} (ID {acc_id}) → Session gesetzt")
+    print(f"✅ Registrierung: {username} (ID {acc_id})")
 
     return jsonify({
         "ok": True,
         "username": username,
         "code": code,
         "balance": balance,
-        "message": "Account erstellt. WICHTIG: Code jetzt notieren!"
+        "last_update": ts,
     })
 
 @app.route("/api/login", methods=["POST"])
@@ -338,7 +356,7 @@ def login():
     session.clear()
     session["account_id"] = row["id"]
     session.permanent = True
-    print(f"✅ Login: {row['username']} (ID {row['id']}) → Session gesetzt")
+    print(f"✅ Login: {row['username']} (ID {row['id']})")
     return jsonify({"ok": True, "account": account_to_dict(row)})
 
 @app.route("/api/logout", methods=["POST"])
@@ -391,13 +409,13 @@ def update_email():
 def guest_create():
     db = get_db()
     guest_id = secrets.token_urlsafe(16)
-    now = datetime.utcnow().isoformat()
+    ts = now_iso()
     db.execute(
-        "INSERT INTO guests (id, balance, history, created_at, last_seen) VALUES (?, 100.0, '[]', ?, ?)",
-        (guest_id, now, now)
+        "INSERT INTO guests (id, balance, history, created_at, last_seen, last_update) VALUES (?, 100.0, '[]', ?, ?, ?)",
+        (guest_id, ts, ts, ts)
     )
     db.commit()
-    return jsonify({"ok": True, "guest_id": guest_id, "balance": 100.0})
+    return jsonify({"ok": True, "guest_id": guest_id, "balance": 100.0, "last_update": ts})
 
 @app.route("/api/guest/sync", methods=["POST"])
 def guest_sync():
@@ -405,6 +423,7 @@ def guest_sync():
     guest_id = (data.get("guest_id") or "").strip()
     balance = data.get("balance", None)
     history = data.get("history", None)
+    client_update = data.get("last_update", None)  # optional
 
     if not guest_id:
         return jsonify({"error": "guest_id fehlt."}), 400
@@ -422,19 +441,19 @@ def guest_sync():
 
     db = get_db()
     row = db.execute("SELECT id FROM guests WHERE id = ?", (guest_id,)).fetchone()
-    now = datetime.utcnow().isoformat()
+    ts = now_iso()
     if row:
         db.execute(
-            "UPDATE guests SET balance = ?, history = ?, last_seen = ? WHERE id = ?",
-            (balance, json.dumps(hist), now, guest_id)
+            "UPDATE guests SET balance = ?, history = ?, last_seen = ?, last_update = ? WHERE id = ?",
+            (balance, json.dumps(hist), ts, ts, guest_id)
         )
     else:
         db.execute(
-            "INSERT INTO guests (id, balance, history, created_at, last_seen) VALUES (?, ?, ?, ?, ?)",
-            (guest_id, balance, json.dumps(hist), now, now)
+            "INSERT INTO guests (id, balance, history, created_at, last_seen, last_update) VALUES (?, ?, ?, ?, ?, ?)",
+            (guest_id, balance, json.dumps(hist), ts, ts, ts)
         )
     db.commit()
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "last_update": ts})
 
 @app.route("/api/guest/me", methods=["POST"])
 def guest_me():
@@ -451,8 +470,8 @@ def guest_me():
 def update_account_balance(delta, history_entry=None):
     row = get_current_account()
     if not row:
-        print("⚠️ WARNUNG: Kein Account in Session — Guthaben kann nicht gespeichert werden!")
-        return None
+        print("⚠️ Kein Account in Session — Guthaben kann nicht gespeichert werden!")
+        return None, None
     db = get_db()
     new_balance = row["balance"] + delta
     try:
@@ -462,13 +481,14 @@ def update_account_balance(delta, history_entry=None):
     if history_entry:
         history.insert(0, history_entry)
         history = history[:50]
+    ts = now_iso()
     db.execute(
-        "UPDATE accounts SET balance = ?, history = ? WHERE id = ?",
-        (new_balance, json.dumps(history), row["id"])
+        "UPDATE accounts SET balance = ?, history = ?, last_update = ? WHERE id = ?",
+        (new_balance, json.dumps(history), ts, row["id"])
     )
     db.commit()
     print(f"✅ Account {row['id']} ({row['username']}): {row['balance']:.2f} → {new_balance:.2f} €")
-    return new_balance
+    return new_balance, ts
 
 # ---------- Spiele ----------
 @app.route("/api/coinflip", methods=["POST"])
@@ -485,10 +505,11 @@ def coinflip():
 
     acc_row = get_current_account()
     new_balance = None
+    ts = None
     if acc_row and bet > 0:
         delta = bet if win else -bet
-        new_balance = update_account_balance(delta, {
-            "time": datetime.utcnow().isoformat(),
+        new_balance, ts = update_account_balance(delta, {
+            "time": now_iso(),
             "game": "🪙 Coinflip",
             "text": f"{choice} → {result}",
             "amount": bet,
@@ -500,6 +521,7 @@ def coinflip():
         "result": result,
         "win": win,
         "new_balance": new_balance,
+        "last_update": ts,
         "logged_in": bool(acc_row),
     })
 
@@ -581,6 +603,7 @@ def roulette():
 
     acc_row = get_current_account()
     new_balance = None
+    ts = None
     if acc_row and bet > 0:
         if win:
             delta = bet * payout
@@ -588,8 +611,8 @@ def roulette():
         else:
             delta = -bet
             text = "Verlust"
-        new_balance = update_account_balance(delta, {
-            "time": datetime.utcnow().isoformat(),
+        new_balance, ts = update_account_balance(delta, {
+            "time": now_iso(),
             "game": "🎰 Roulette",
             "text": f"{number} {color} · {text}",
             "amount": bet,
@@ -602,6 +625,7 @@ def roulette():
         "win": win,
         "payout": payout,
         "new_balance": new_balance,
+        "last_update": ts,
         "logged_in": bool(acc_row),
     })
 

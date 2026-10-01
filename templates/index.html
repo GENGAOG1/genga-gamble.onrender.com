@@ -912,13 +912,17 @@ Curry</textarea>
       <div class="bet-amount-section">
         <div class="bet-label">Einsatz wählen</div>
         <div class="quick-bet-row" id="crossyQuickBets">
-          <button class="quick-bet" onclick="setCrossyBet(1, this)">1 €</button>
-          <button class="quick-bet" onclick="setCrossyBet(2, this)">2 €</button>
-          <button class="quick-bet" onclick="setCrossyBet(5, this)">5 €</button>
-          <button class="quick-bet" onclick="setCrossyBet(10, this)">10 €</button>
-          <button class="quick-bet" onclick="setCrossyBet(25, this)">25 €</button>
-        </div>
-      </div>
+  <button class="quick-bet" onclick="...">1 €</button>
+  <button class="quick-bet" onclick="...">2 €</button>
+  <button class="quick-bet" onclick="...">5 €</button>
+  <button class="quick-bet" onclick="...">10 €</button>
+  <button class="quick-bet" onclick="...">25 €</button>
+</div>
+<div class="custom-bet-row">
+  <input type="number" id="crossyCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
+  <button onclick="applyCrossyCustom()">OK</button>
+</div>
+</div>
       <div class="chicken-road-wrapper">
         <div class="chicken-road-header">
           <span class="step">Schritt: <b id="crossyStep">0</b> / 8</span>

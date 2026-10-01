@@ -30,6 +30,14 @@ def close_db(exc):
         db.close()
 
 def init_db():
+    # Ordner anlegen, falls er nicht existiert (z.B. /data auf Render)
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except Exception as e:
+            print(f"Warnung: Konnte Ordner {db_dir} nicht anlegen: {e}")
+
     db = sqlite3.connect(DB_PATH)
     db.executescript("""
         CREATE TABLE IF NOT EXISTS accounts (
@@ -110,7 +118,6 @@ def register():
     data = request.get_json(silent=True) or {}
     username = (data.get("username") or "").strip()
     email = (data.get("email") or "").strip()
-    # Optional: vom Gast übernommene Werte
     start_balance = data.get("start_balance", None)
     start_history = data.get("start_history", None)
 
@@ -133,7 +140,6 @@ def register():
     while db.execute("SELECT id FROM accounts WHERE code = ?", (code,)).fetchone():
         code = generate_code(6)
 
-    # Guthaben & Verlauf vom Gast übernehmen (falls mitgeschickt)
     try:
         balance = float(start_balance) if start_balance is not None else 100.0
     except (TypeError, ValueError):

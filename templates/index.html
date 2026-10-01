@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coinflip · Glücksrad · Roulette · Chicken Road</title>
+<title>Coinflip · Glücksrad · Roulette · Chicken Road · Slots</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -735,6 +735,157 @@
   }
   .go-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== SLOTS ===== */
+  .slots-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .slot-machine {
+    width: 100%;
+    max-width: 500px;
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    border: 4px solid #f59e0b;
+    border-radius: 20px;
+    padding: 1.2rem;
+    box-shadow: 0 20px 60px rgba(245, 158, 11, 0.3), inset 0 0 30px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+  .slot-machine::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+    animation: goldShine 2s linear infinite;
+  }
+  @keyframes goldShine {
+    from { background-position: 0% 0; }
+    to   { background-position: 200% 0; }
+  }
+  .slot-window {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    background: #0b1220;
+    border-radius: 14px;
+    padding: 1rem;
+    border: 2px solid #334155;
+    box-shadow: inset 0 4px 20px rgba(0,0,0,0.8);
+  }
+  .slot-reel {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+  }
+  .slot-reel-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 3.5rem;
+    line-height: 1;
+    will-change: transform;
+  }
+  .slot-reel.spinning .slot-reel-inner {
+    animation: reelSpin 0.15s linear infinite;
+  }
+  @keyframes reelSpin {
+    from { transform: translateY(-50%); }
+    to   { transform: translateY(0); }
+  }
+  .slot-reel.stopped {
+    animation: reelStop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes reelStop {
+    0%   { transform: translateY(-15px) scale(0.9); }
+    50%  { transform: translateY(5px) scale(1.05); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .slot-reel.jackpot {
+    animation: jackpotPulse 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes jackpotPulse {
+    from { box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 10px rgba(250, 204, 21, 0.6); }
+    to   { box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 30px rgba(250, 204, 21, 1); }
+  }
+  .slot-payline {
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 2px;
+    background: rgba(239, 68, 68, 0.4);
+    pointer-events: none;
+    z-index: 3;
+  }
+  .slot-result {
+    text-align: center;
+    font-size: 1.1rem;
+    min-height: 1.5rem;
+    margin-top: 0.6rem;
+    font-weight: 700;
+  }
+  .slot-big-win {
+    font-size: 1.6rem;
+    animation: bigWin 0.5s ease-in-out infinite alternate;
+    text-shadow: 0 0 20px currentColor;
+  }
+  @keyframes bigWin {
+    from { transform: scale(1); }
+    to   { transform: scale(1.1); }
+  }
+  .slot-spin-btn {
+    width: 100%;
+    max-width: 500px;
+    background: linear-gradient(135deg, #dc2626, #f59e0b);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 14px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(220, 38, 38, 0.5);
+    transition: transform 0.1s;
+    text-transform: uppercase;
+  }
+  .slot-spin-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(220, 38, 38, 0.7); }
+  .slot-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .slot-paytable {
+    width: 100%;
+    max-width: 500px;
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 1rem;
+    border: 1px solid #334155;
+  }
+  .slot-paytable h3 {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+  .slot-paytable-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid #0f172a;
+    font-size: 0.9rem;
+  }
+  .slot-paytable-row:last-child { border-bottom: none; }
+  .slot-paytable-row .symbols { font-size: 1.2rem; letter-spacing: 0.2em; }
+  .slot-paytable-row .pay { color: #facc15; font-weight: 800; }
 </style>
 </head>
 <body>
@@ -755,6 +906,7 @@
     <button id="nav-wheel" onclick="showPage('wheel')">🎡 Glücksrad</button>
     <button id="nav-roulette" onclick="showPage('roulette')">🎰 Roulette</button>
     <button id="nav-crossy" onclick="showPage('crossy')">🐔 Chicken Road</button>
+    <button id="nav-slots" onclick="showPage('slots')">🎰 Slots</button>
   </nav>
 </header>
 
@@ -941,6 +1093,75 @@ Curry</textarea>
     </div>
   </section>
 
+  <section id="page-slots" class="page">
+    <h1>🎰 Slot Machine</h1>
+    <div class="slots-stage">
+      <div class="bet-amount-section">
+        <div class="bet-label">Einsatz wählen</div>
+        <div class="quick-bet-row" id="slotsQuickBets">
+          <button class="quick-bet" onclick="setSlotsBet(1, this)">1 €</button>
+          <button class="quick-bet" onclick="setSlotsBet(2, this)">2 €</button>
+          <button class="quick-bet" onclick="setSlotsBet(5, this)">5 €</button>
+          <button class="quick-bet" onclick="setSlotsBet(10, this)">10 €</button>
+          <button class="quick-bet" onclick="setSlotsBet(25, this)">25 €</button>
+        </div>
+        <div class="custom-bet-row">
+          <input type="number" id="slotsCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
+          <button onclick="applySlotsCustom()">OK</button>
+        </div>
+      </div>
+
+      <div class="slot-machine">
+        <div class="slot-window">
+          <div class="slot-reel" id="reel0">
+            <div class="slot-reel-inner" id="reelInner0">🍒</div>
+          </div>
+          <div class="slot-reel" id="reel1">
+            <div class="slot-reel-inner" id="reelInner1">🍒</div>
+          </div>
+          <div class="slot-reel" id="reel2">
+            <div class="slot-reel-inner" id="reelInner2">🍒</div>
+          </div>
+        </div>
+        <div class="slot-result" id="slotsResult">Bereit zum Drehen!</div>
+      </div>
+
+      <button class="slot-spin-btn" id="slotsSpinBtn" onclick="doSlotsSpin()" disabled>🎰 DREHEN 🎰</button>
+
+      <div class="slot-paytable">
+        <h3>Gewinne</h3>
+        <div class="slot-paytable-row">
+          <span class="symbols">💎💎💎</span>
+          <span class="pay">× 100</span>
+        </div>
+        <div class="slot-paytable-row">
+          <span class="symbols">7️⃣7️⃣7️⃣</span>
+          <span class="pay">× 50</span>
+        </div>
+        <div class="slot-paytable-row">
+          <span class="symbols">⭐⭐⭐</span>
+          <span class="pay">× 20</span>
+        </div>
+        <div class="slot-paytable-row">
+          <span class="symbols">🍇🍇🍇</span>
+          <span class="pay">× 12</span>
+        </div>
+        <div class="slot-paytable-row">
+          <span class="symbols">🍋🍋🍋</span>
+          <span class="pay">× 8</span>
+        </div>
+        <div class="slot-paytable-row">
+          <span class="symbols">🍒🍒🍒</span>
+          <span class="pay">× 5</span>
+        </div>
+        <div class="slot-paytable-row">
+          <span class="symbols">Beliebige 2 gleiche</span>
+          <span class="pay">× 1,5</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <div class="modal-backdrop" id="accountModal">
@@ -989,10 +1210,14 @@ let wheelRotation = 0;
 let spinning = false;
 let crossyBet = 0;
 let crossyState = null;
+let slotsBet = 0;
+let slotsSpinning = false;
 let autoRefreshInterval = null;
 
 let lastLocalUpdate = 0;
 let lastLocalUpdateGuest = 0;
+
+const SLOT_ALL_EMOJIS = ['🍒', '🍋', '🍇', '⭐', '7️⃣', '💎'];
 
 /* =================================================
    HELPERS
@@ -1036,6 +1261,7 @@ function updateBalanceUI() {
   if (typeof updateCrossyButtons === 'function') updateCrossyButtons();
   if (typeof updateCoinButtonState === 'function') updateCoinButtonState();
   if (typeof updateRouletteButtonState === 'function') updateRouletteButtonState();
+  if (typeof updateSlotsButtonState === 'function') updateSlotsButtonState();
 }
 
 function addHistory(game, text, amount, win) {
@@ -1156,7 +1382,7 @@ async function syncGuestToServer() {
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(async () => {
-    if (flipping || rouletteSpinning || spinning || (crossyState && crossyState.active)) return;
+    if (flipping || rouletteSpinning || spinning || slotsSpinning || (crossyState && crossyState.active)) return;
 
     if (account) {
       try {
@@ -1586,6 +1812,29 @@ function updateRouletteButtonState() {
   const p = getCurrentPlayer();
   const canPlay = rouletteBet && rouletteBetAmount > 0 && rouletteBetAmount <= p.balance && !rouletteSpinning;
   const btn = document.getElementById('rouletteSpinBtn');
+  if (btn) btn.disabled = !canPlay;
+}
+
+function setSlotsBet(amount, btn) {
+  if (slotsSpinning) return;
+  slotsBet = amount;
+  document.getElementById('slotsCustomBet').value = '';
+  document.querySelectorAll('#slotsQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  updateSlotsButtonState();
+}
+function applySlotsCustom() {
+  if (slotsSpinning) return;
+  const v = parseFloat(document.getElementById('slotsCustomBet').value);
+  if (isNaN(v) || v <= 0) return;
+  slotsBet = v;
+  document.querySelectorAll('#slotsQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  updateSlotsButtonState();
+}
+function updateSlotsButtonState() {
+  const p = getCurrentPlayer();
+  const canPlay = slotsBet > 0 && slotsBet <= p.balance && !slotsSpinning;
+  const btn = document.getElementById('slotsSpinBtn');
   if (btn) btn.disabled = !canPlay;
 }
 
@@ -2078,7 +2327,6 @@ function crossyGo() {
     document.getElementById('crossyResult').innerHTML =
       `<span class="lose">💥 Verloren! −${formatEuro(crossyBet)}</span>`;
 
-    // Server informieren
     if (account) {
       fetch('/api/crossy', {
         method: 'POST',
@@ -2137,7 +2385,6 @@ async function crossyCashOut() {
   document.getElementById('crossyResult').innerHTML =
     `<span class="win">🎉 Ausgezahlt! +${formatEuro(profit)} (${mult.toFixed(2)}x)</span>`;
 
-  // Server informieren
   if (account) {
     try {
       const res = await fetch('/api/crossy', {
@@ -2163,6 +2410,116 @@ async function crossyCashOut() {
 }
 
 /* =================================================
+   SLOTS
+================================================= */
+function spinReelVisual(reelIndex, finalEmoji, duration) {
+  const reel = document.getElementById('reel' + reelIndex);
+  const inner = document.getElementById('reelInner' + reelIndex);
+
+  // Start the spinning animation
+  inner.innerHTML = '';
+  // Create a long strip of random emojis
+  for (let i = 0; i < 20; i++) {
+    const span = document.createElement('div');
+    span.textContent = SLOT_ALL_EMOJIS[Math.floor(Math.random() * SLOT_ALL_EMOJIS.length)];
+    span.style.fontSize = '3.5rem';
+    span.style.lineHeight = '1';
+    inner.appendChild(span);
+  }
+
+  reel.classList.remove('stopped', 'jackpot');
+  reel.classList.add('spinning');
+
+  setTimeout(() => {
+    reel.classList.remove('spinning');
+    inner.innerHTML = finalEmoji;
+    inner.style.fontSize = '3.5rem';
+    inner.style.lineHeight = '1';
+    reel.classList.add('stopped');
+    setTimeout(() => reel.classList.remove('stopped'), 400);
+  }, duration);
+}
+
+async function doSlotsSpin() {
+  if (slotsSpinning) return;
+  const p = getCurrentPlayer();
+  if (slotsBet <= 0 || slotsBet > p.balance) {
+    document.getElementById('slotsResult').innerHTML = '<span class="lose">Einsatz ungültig oder zu hoch!</span>';
+    return;
+  }
+
+  slotsSpinning = true;
+  const spinBtn = document.getElementById('slotsSpinBtn');
+  spinBtn.disabled = true;
+  document.getElementById('slotsResult').innerHTML = '🎰 Dreht...';
+  document.getElementById('slotsResult').classList.remove('slot-big-win');
+
+  // Reset jackpot animation
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('reel' + i).classList.remove('jackpot');
+  }
+
+  const res = await fetch('/api/slots', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ bet: slotsBet })
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById('slotsResult').innerHTML = '<span class="lose">⚠️ ' + data.error + '</span>';
+    slotsSpinning = false;
+    spinBtn.disabled = false;
+    return;
+  }
+
+  // Walzen-Animation mit verschiedenen Stopp-Zeiten (für Spannung)
+  const emojis = data.symbols.map(s => s.emoji);
+  spinReelVisual(0, emojis[0], 1500);
+  spinReelVisual(1, emojis[1], 2000);
+  spinReelVisual(2, emojis[2], 2500);
+
+  // Guthaben sofort aktualisieren (Server hat schon gespeichert)
+  if (account && typeof data.new_balance === 'number') {
+    setBalanceFromServer(data.new_balance, data.last_update);
+  } else if (!account) {
+    // Gast: lokales Guthaben ändern und syncen
+    if (guestState) {
+      guestState.balance += data.net_profit;
+      lastLocalUpdateGuest = Date.now();
+      saveGuestState();
+      syncGuestToServer();
+      updateBalanceUI();
+    }
+  }
+
+  // Ergebnis nach der letzten Walze anzeigen
+  setTimeout(() => {
+    const resultEl = document.getElementById('slotsResult');
+    const mult = data.multiplier;
+    const profit = data.net_profit;
+
+    if (data.result_type === 'jackpot') {
+      // Jackpot!
+      for (let i = 0; i < 3; i++) {
+        document.getElementById('reel' + i).classList.add('jackpot');
+      }
+      resultEl.innerHTML = `<span class="win slot-big-win">💎 JACKPOT! +${formatEuro(profit)} (× ${mult}) 💎</span>`;
+    } else if (data.result_type === 'win') {
+      resultEl.innerHTML = `<span class="win">🎉 Gewonnen! +${formatEuro(profit)} (× ${mult})</span>`;
+    } else {
+      resultEl.innerHTML = `<span class="lose">😢 Verloren! −${formatEuro(slotsBet)}</span>`;
+    }
+
+    addHistory('🎰 Slots', emojis.join(' '), slotsBet, mult > 0);
+
+    slotsSpinning = false;
+    spinBtn.disabled = false;
+    updateSlotsButtonState();
+  }, 2700);
+}
+
+/* =================================================
    INIT
 ================================================= */
 function closeModal(id) {
@@ -2184,6 +2541,7 @@ async function init() {
   updateBalanceUI();
   await checkLogin();
   startAutoRefresh();
+  updateSlotsButtonState();
 }
 
 init();

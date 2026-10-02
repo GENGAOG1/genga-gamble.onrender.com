@@ -1,0 +1,20 @@
+{
+  "name": "Genga Gamble",
+  "short_name": "Genga",
+  "description": "Coinflip, Roulette, Slots & mehr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

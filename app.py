@@ -588,14 +588,14 @@ def pay():
     if not recipient_name:
         return jsonify({"error": "Empfänger fehlt."}), 400
 
-    # Sender bestimmen
+    # ===== SENDER =====
     sender_type = None
     sender_row = None
-
     acc = get_current_account()
     if acc:
         sender_type = "account"
         sender_row = acc
+        print(f"🔍 SENDER=ACCOUNT: {acc['username']} (ID {acc['id']}, {acc['balance']:.2f} €)")
     else:
         guest_id = (data.get("guest_id") or "").strip()
         if not guest_id:
@@ -603,81 +603,128 @@ def pay():
         g = get_guest_by_id(guest_id)
         if not g:
             return jsonify({"error": "Gast nicht gefunden."}), 404
-        if not (g["username"] if "username" in g.keys() else None):
+        sender_username = g["username"] if "username" in g.keys() else None
+        if not sender_username:
             return jsonify({"error": "Du brauchst erst einen Namen, um Geld zu senden."}), 400
         sender_type = "guest"
         sender_row = g
+        print(f"🔍 SENDER=GUEST: {sender_username} (ID {g['id']}, {g['balance']:.2f} €)")
 
-    # Empfänger finden
-    recipient_type, recipient_row = get_any_user_by_name(recipient_name)
-    if not recipient_type:
+    # ===== EMPFÄNGER =====
+    db = get_db()
+
+    # Suche Account
+    recipient_row = db.execute(
+        "SELECT * FROM accounts WHERE username = ?",
+        (recipient_name,)
+    ).fetchone()
+    recipient_type = "account" if recipient_row else None
+
+    # Falls nicht gefunden: Suche Guest (auch case-insensitive)
+    if not recipient_row:
+        recipient_row = db.execute(
+            "SELECT * FROM guests WHERE username = ? COLLATE NOCASE",
+            (recipient_name,)
+        ).fetchone()
+        recipient_type = "guest" if recipient_row else None
+
+    print(f"🔍 EMPFÄNGER '{recipient_name}': type={recipient_type}, found={recipient_row is not None}")
+
+    if not recipient_row:
         return jsonify({"error": f"Empfänger '{recipient_name}' nicht gefunden."}), 404
 
+    sender_id = sender_row["id"]
+    recipient_id = recipient_row["id"]
+
     # Selbst-Senden verhindern
-    if sender_type == recipient_type and sender_row["id"] == recipient_row["id"]:
+    if str(sender_id) == str(recipient_id) and sender_type == recipient_type:
         return jsonify({"error": "Du kannst dir nicht selbst Geld senden."}), 400
 
     # Guthaben prüfen
     if sender_row["balance"] < amount:
         return jsonify({"error": f"Nicht genug Guthaben. Du hast {sender_row['balance']:.2f} €."}), 400
 
-    # Buchung durchführen
-    db = get_db()
+    # ===== BUCHUNG =====
     ts = now_iso()
     sender_name = sender_row["username"] if "username" in sender_row.keys() and sender_row["username"] else "Gast"
-    recipient_display = recipient_row["username"]
+    recipient_display = recipient_row["username"] if "username" in recipient_row.keys() and recipient_row["username"] else "Gast"
     msg = (data.get("message") or "").strip()[:100]
 
-    # Sender abbuchen
-    new_sender_balance = sender_row["balance"] - amount
-    if sender_type == "account":
-        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
-                   (new_sender_balance, ts, sender_row["id"]))
-    else:
-        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
-                   (new_sender_balance, ts, sender_row["id"]))
+    try:
+        # Sender abbuchen
+        new_sender_balance = sender_row["balance"] - amount
+        if sender_type == "account":
+            cur = db.execute(
+                "UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                (new_sender_balance, ts, sender_id)
+            )
+        else:
+            cur = db.execute(
+                "UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                (new_sender_balance, ts, sender_id)
+            )
+        print(f"🔍 SENDER-UPDATE: {cur.rowcount} Zeile(n) → {new_sender_balance:.2f} €")
 
-    # Empfänger gutschreiben
-    new_recipient_balance = recipient_row["balance"] + amount
-    if recipient_type == "account":
-        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
-                   (new_recipient_balance, ts, recipient_row["id"]))
-    else:
-        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
-                   (new_recipient_balance, ts, recipient_row["id"]))
+        if cur.rowcount == 0:
+            raise Exception(f"Sender {sender_type} {sender_id} nicht gefunden für Update")
 
-    # Verlauf-Einträge
-    send_text = f"an {recipient_display}" + (f" · \"{msg}\"" if msg else "")
-    recv_text = f"von {sender_name}" + (f" · \"{msg}\"" if msg else "")
+        # Empfänger gutschreiben
+        new_recipient_balance = recipient_row["balance"] + amount
+        if recipient_type == "account":
+            cur = db.execute(
+                "UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                (new_recipient_balance, ts, recipient_id)
+            )
+        else:
+            cur = db.execute(
+                "UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                (new_recipient_balance, ts, recipient_id)
+            )
+        print(f"🔍 EMPFÄNGER-UPDATE: {cur.rowcount} Zeile(n) → {new_recipient_balance:.2f} €")
 
-    if sender_type == "account":
-        add_history_to_account(db, sender_row["id"], {
-            "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
+        if cur.rowcount == 0:
+            raise Exception(f"Empfänger {recipient_type} {recipient_id} nicht gefunden für Update")
+
+        # History-Einträge
+        send_text = f"an {recipient_display}" + (f" · \"{msg}\"" if msg else "")
+        recv_text = f"von {sender_name}" + (f" · \"{msg}\"" if msg else "")
+
+        if sender_type == "account":
+            add_history_to_account(db, sender_id, {
+                "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
+            })
+        else:
+            add_history_to_guest(db, sender_id, {
+                "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
+            })
+
+        if recipient_type == "account":
+            add_history_to_account(db, recipient_id, {
+                "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
+            })
+        else:
+            add_history_to_guest(db, recipient_id, {
+                "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
+            })
+
+        db.commit()
+        print(f"✅ PAY OK: {sender_name} ({sender_type}) → {recipient_display} ({recipient_type}): {amount:.2f} €")
+
+        return jsonify({
+            "ok": True,
+            "sender_balance": new_sender_balance,
+            "recipient": recipient_display,
+            "recipient_type": recipient_type,
+            "amount": amount,
+            "last_update": ts
         })
-    else:
-        add_history_to_guest(db, sender_row["id"], {
-            "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
-        })
 
-    if recipient_type == "account":
-        add_history_to_account(db, recipient_row["id"], {
-            "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
-        })
-    else:
-        add_history_to_guest(db, recipient_row["id"], {
-            "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
-        })
-
-    db.commit()
-    print(f"💸 Pay: {sender_name} → {recipient_display}: {amount:.2f} €")
-
-    return jsonify({
-        "ok": True,
-        "sender_balance": new_sender_balance,
-        "recipient": recipient_display,
-        "amount": amount,
-        "last_update": ts
-    })
+    except Exception as e:
+        db.rollback()
+        print(f"❌ PAY-FEHLER: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Buchungsfehler: {str(e)}"}), 500
 
 # ---------- Guthaben-Sync (Account) ----------
 def update_account_balance(delta, history_entry=None):

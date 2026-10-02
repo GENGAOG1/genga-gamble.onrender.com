@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coinflip · Glücksrad · Roulette · Chicken Road · Slots</title>
+<title>Coinflip · Glücksrad · Roulette · Chicken · Slots · Slider</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -754,18 +754,6 @@
     position: relative;
     overflow: hidden;
   }
-  .slot-machine::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
-    animation: goldShine 2s linear infinite;
-  }
-  @keyframes goldShine {
-    from { background-position: 0% 0; }
-    to   { background-position: 200% 0; }
-  }
   .slot-window {
     display: flex;
     gap: 0.6rem;
@@ -818,14 +806,6 @@
     from { box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 10px rgba(250, 204, 21, 0.6); }
     to   { box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 30px rgba(250, 204, 21, 1); }
   }
-  .slot-payline {
-    position: absolute;
-    top: 50%; left: 0; right: 0;
-    height: 2px;
-    background: rgba(239, 68, 68, 0.4);
-    pointer-events: none;
-    z-index: 3;
-  }
   .slot-result {
     text-align: center;
     font-size: 1.1rem;
@@ -858,7 +838,7 @@
     transition: transform 0.1s;
     text-transform: uppercase;
   }
-  .slot-spin-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(220, 38, 38, 0.7); }
+  .slot-spin-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .slot-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .slot-paytable {
     width: 100%;
@@ -886,6 +866,234 @@
   .slot-paytable-row:last-child { border-bottom: none; }
   .slot-paytable-row .symbols { font-size: 1.2rem; letter-spacing: 0.2em; }
   .slot-paytable-row .pay { color: #facc15; font-weight: 800; }
+
+  /* ===== SLIDER ===== */
+  .slider-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .slider-display {
+    width: 100%;
+    max-width: 500px;
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    border-radius: 14px;
+    padding: 1.5rem 1.2rem;
+    border: 1px solid #334155;
+  }
+  .slider-roll-display {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+  }
+  .slider-roll-display.win { color: #4ade80; text-shadow: 0 0 25px rgba(74, 222, 128, 0.6); }
+  .slider-roll-display.lose { color: #f87171; text-shadow: 0 0 25px rgba(248, 113, 113, 0.6); }
+  .slider-roll-display.rolling { color: #facc15; }
+
+  .slider-bar-container {
+    position: relative;
+    margin: 1.2rem 0 2rem;
+  }
+  .slider-bar {
+    position: relative;
+    height: 40px;
+    background: #0f172a;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #334155;
+  }
+  .slider-bar-red {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(180deg, #dc2626, #991b1b);
+    transition: width 0.2s;
+  }
+  .slider-bar-green {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(180deg, #22c55e, #15803d);
+    transition: all 0.2s;
+  }
+  .slider-marker {
+    position: absolute;
+    top: -8px;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 56px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 0 15px rgba(255,255,255,0.6);
+    z-index: 5;
+    transition: left 0.05s linear;
+    pointer-events: none;
+  }
+  .slider-marker::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid white;
+  }
+  .slider-marker.stopped {
+    animation: markerGlow 0.6s ease-out;
+  }
+  @keyframes markerGlow {
+    0%   { box-shadow: 0 0 15px rgba(255,255,255,0.6); }
+    50%  { box-shadow: 0 0 40px rgba(255,255,255,1); }
+    100% { box-shadow: 0 0 15px rgba(255,255,255,0.6); }
+  }
+  .slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.4rem;
+    padding: 0 2px;
+  }
+  .slider-threshold {
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    width: 4px;
+    background: #facc15;
+    transform: translateX(-50%);
+    z-index: 3;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+  }
+  .slider-threshold-label {
+    position: absolute;
+    top: -30px;
+    transform: translateX(-50%);
+    background: #facc15;
+    color: #0b1220;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    z-index: 4;
+    white-space: nowrap;
+  }
+
+  .slider-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 1.2rem;
+  }
+  .slider-controls .full { grid-column: 1 / -1; }
+
+  .slider-field {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    border: 2px solid #334155;
+  }
+  .slider-field label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .slider-field .input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .slider-field input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #e2e8f0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    font-family: inherit;
+    width: 100%;
+    outline: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .slider-field .suffix {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .slider-field.highlight input { color: #facc15; }
+  .slider-field.green input { color: #4ade80; }
+
+  .slider-direction-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .direction-btn {
+    flex: 1;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.6rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.95rem;
+  }
+  .direction-btn.selected.over { background: #14532d; border-color: #22c55e; color: white; }
+  .direction-btn.selected.under { background: #7f1d1d; border-color: #ef4444; color: white; }
+  .direction-btn:hover:not(.selected) { border-color: #64748b; }
+
+  .slider-play-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 14px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4);
+    transition: transform 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 1rem;
+  }
+  .slider-play-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .slider-play-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .slider-quick-mults {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .quick-mult {
+    flex: 1;
+    min-width: 50px;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #e2e8f0;
+    padding: 0.4rem 0.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .quick-mult:hover { border-color: #64748b; }
+  .quick-mult.selected { background: #1e40af; border-color: #3b82f6; color: white; }
 </style>
 </head>
 <body>
@@ -907,6 +1115,7 @@
     <button id="nav-roulette" onclick="showPage('roulette')">🎰 Roulette</button>
     <button id="nav-crossy" onclick="showPage('crossy')">🐔 Chicken Road</button>
     <button id="nav-slots" onclick="showPage('slots')">🎰 Slots</button>
+    <button id="nav-slider" onclick="showPage('slider')">🎚️ Slider</button>
   </nav>
 </header>
 
@@ -1162,6 +1371,93 @@ Curry</textarea>
     </div>
   </section>
 
+  <section id="page-slider" class="page">
+    <h1>🎚️ Slider</h1>
+    <div class="slider-stage">
+
+      <div class="bet-amount-section">
+        <div class="bet-label">Einsatz wählen</div>
+        <div class="quick-bet-row" id="sliderQuickBets">
+          <button class="quick-bet" onclick="setSliderBet(1, this)">1 €</button>
+          <button class="quick-bet" onclick="setSliderBet(2, this)">2 €</button>
+          <button class="quick-bet" onclick="setSliderBet(5, this)">5 €</button>
+          <button class="quick-bet" onclick="setSliderBet(10, this)">10 €</button>
+          <button class="quick-bet" onclick="setSliderBet(25, this)">25 €</button>
+        </div>
+        <div class="custom-bet-row">
+          <input type="number" id="sliderCustomBet" placeholder="Anderer Betrag" min="0.01" step="0.01">
+          <button onclick="applySliderCustom()">OK</button>
+        </div>
+      </div>
+
+      <div class="slider-display">
+        <div class="slider-roll-display" id="sliderRollDisplay">–</div>
+
+        <div class="slider-bar-container">
+          <div class="slider-bar" id="sliderBar">
+            <div class="slider-bar-red" id="sliderBarRed"></div>
+            <div class="slider-bar-green" id="sliderBarGreen"></div>
+            <div class="slider-threshold" id="sliderThreshold" style="left: 50%;">
+              <div class="slider-threshold-label" id="sliderThresholdLabel">50</div>
+            </div>
+            <div class="slider-marker" id="sliderMarker" style="left: 50%;"></div>
+          </div>
+          <div class="slider-ticks">
+            <span>0</span>
+            <span>25</span>
+            <span>50</span>
+            <span>75</span>
+            <span>100</span>
+          </div>
+        </div>
+
+        <div class="slider-controls">
+          <div class="slider-field">
+            <label>Ziel</label>
+            <div class="input-row">
+              <input type="number" id="sliderTarget" min="0" max="100" step="0.01" value="50">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+
+          <div class="slider-field highlight">
+            <label>Multiplikator</label>
+            <div class="input-row">
+              <input type="number" id="sliderMultiplier" min="1.01" step="0.01" value="1.98">
+              <span class="suffix">×</span>
+            </div>
+          </div>
+
+          <div class="slider-field green full">
+            <label>Gewinnchance</label>
+            <div class="input-row">
+              <input type="number" id="sliderWinChance" min="0" max="100" step="0.01" value="50" disabled>
+              <span class="suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slider-direction-row">
+          <button class="direction-btn over selected" id="dirOver" onclick="setDirection('over')">⬆️ Über</button>
+          <button class="direction-btn under" id="dirUnder" onclick="setDirection('under')">⬇️ Unter</button>
+        </div>
+
+        <div class="slider-quick-mults">
+          <button class="quick-mult" onclick="setQuickMult(1.5)">1,5×</button>
+          <button class="quick-mult" onclick="setQuickMult(2)">2×</button>
+          <button class="quick-mult" onclick="setQuickMult(3)">3×</button>
+          <button class="quick-mult" onclick="setQuickMult(5)">5×</button>
+          <button class="quick-mult" onclick="setQuickMult(10)">10×</button>
+          <button class="quick-mult" onclick="setQuickMult(100)">100×</button>
+        </div>
+      </div>
+
+      <button class="slider-play-btn" id="sliderPlayBtn" onclick="doSliderSpin()" disabled>🎚️ LOS! 🎚️</button>
+
+      <div class="result-box" id="sliderResult"></div>
+    </div>
+  </section>
+
 </main>
 
 <div class="modal-backdrop" id="accountModal">
@@ -1212,6 +1508,9 @@ let crossyBet = 0;
 let crossyState = null;
 let slotsBet = 0;
 let slotsSpinning = false;
+let sliderBet = 0;
+let sliderSpinning = false;
+let sliderDirection = 'over';
 let autoRefreshInterval = null;
 
 let lastLocalUpdate = 0;
@@ -1262,6 +1561,7 @@ function updateBalanceUI() {
   if (typeof updateCoinButtonState === 'function') updateCoinButtonState();
   if (typeof updateRouletteButtonState === 'function') updateRouletteButtonState();
   if (typeof updateSlotsButtonState === 'function') updateSlotsButtonState();
+  if (typeof updateSliderButtonState === 'function') updateSliderButtonState();
 }
 
 function addHistory(game, text, amount, win) {
@@ -1382,7 +1682,7 @@ async function syncGuestToServer() {
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(async () => {
-    if (flipping || rouletteSpinning || spinning || slotsSpinning || (crossyState && crossyState.active)) return;
+    if (flipping || rouletteSpinning || spinning || slotsSpinning || sliderSpinning || (crossyState && crossyState.active)) return;
 
     if (account) {
       try {
@@ -1768,6 +2068,7 @@ function showPage(name) {
   if (navEl) navEl.classList.add('active');
   if (name === 'wheel') renderWheel();
   if (name === 'crossy') renderCrossyTrack();
+  if (name === 'slider') updateSliderVisuals();
 }
 
 /* =================================================
@@ -1835,6 +2136,29 @@ function updateSlotsButtonState() {
   const p = getCurrentPlayer();
   const canPlay = slotsBet > 0 && slotsBet <= p.balance && !slotsSpinning;
   const btn = document.getElementById('slotsSpinBtn');
+  if (btn) btn.disabled = !canPlay;
+}
+
+function setSliderBet(amount, btn) {
+  if (sliderSpinning) return;
+  sliderBet = amount;
+  document.getElementById('sliderCustomBet').value = '';
+  document.querySelectorAll('#sliderQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  updateSliderButtonState();
+}
+function applySliderCustom() {
+  if (sliderSpinning) return;
+  const v = parseFloat(document.getElementById('sliderCustomBet').value);
+  if (isNaN(v) || v <= 0) return;
+  sliderBet = v;
+  document.querySelectorAll('#sliderQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
+  updateSliderButtonState();
+}
+function updateSliderButtonState() {
+  const p = getCurrentPlayer();
+  const canPlay = sliderBet > 0 && sliderBet <= p.balance && !sliderSpinning;
+  const btn = document.getElementById('sliderPlayBtn');
   if (btn) btn.disabled = !canPlay;
 }
 
@@ -2416,9 +2740,7 @@ function spinReelVisual(reelIndex, finalEmoji, duration) {
   const reel = document.getElementById('reel' + reelIndex);
   const inner = document.getElementById('reelInner' + reelIndex);
 
-  // Start the spinning animation
   inner.innerHTML = '';
-  // Create a long strip of random emojis
   for (let i = 0; i < 20; i++) {
     const span = document.createElement('div');
     span.textContent = SLOT_ALL_EMOJIS[Math.floor(Math.random() * SLOT_ALL_EMOJIS.length)];
@@ -2454,7 +2776,6 @@ async function doSlotsSpin() {
   document.getElementById('slotsResult').innerHTML = '🎰 Dreht...';
   document.getElementById('slotsResult').classList.remove('slot-big-win');
 
-  // Reset jackpot animation
   for (let i = 0; i < 3; i++) {
     document.getElementById('reel' + i).classList.remove('jackpot');
   }
@@ -2473,17 +2794,14 @@ async function doSlotsSpin() {
     return;
   }
 
-  // Walzen-Animation mit verschiedenen Stopp-Zeiten (für Spannung)
   const emojis = data.symbols.map(s => s.emoji);
   spinReelVisual(0, emojis[0], 1500);
   spinReelVisual(1, emojis[1], 2000);
   spinReelVisual(2, emojis[2], 2500);
 
-  // Guthaben sofort aktualisieren (Server hat schon gespeichert)
   if (account && typeof data.new_balance === 'number') {
     setBalanceFromServer(data.new_balance, data.last_update);
   } else if (!account) {
-    // Gast: lokales Guthaben ändern und syncen
     if (guestState) {
       guestState.balance += data.net_profit;
       lastLocalUpdateGuest = Date.now();
@@ -2493,14 +2811,12 @@ async function doSlotsSpin() {
     }
   }
 
-  // Ergebnis nach der letzten Walze anzeigen
   setTimeout(() => {
     const resultEl = document.getElementById('slotsResult');
     const mult = data.multiplier;
     const profit = data.net_profit;
 
     if (data.result_type === 'jackpot') {
-      // Jackpot!
       for (let i = 0; i < 3; i++) {
         document.getElementById('reel' + i).classList.add('jackpot');
       }
@@ -2517,6 +2833,228 @@ async function doSlotsSpin() {
     spinBtn.disabled = false;
     updateSlotsButtonState();
   }, 2700);
+}
+
+/* =================================================
+   SLIDER
+================================================= */
+function updateSliderVisuals() {
+  const targetInput = document.getElementById('sliderTarget');
+  const multInput = document.getElementById('sliderMultiplier');
+  const winChanceInput = document.getElementById('sliderWinChance');
+  if (!targetInput) return;
+
+  let target = parseFloat(targetInput.value);
+  if (isNaN(target)) target = 50;
+  target = Math.max(0.01, Math.min(99.99, target));
+  targetInput.value = target.toFixed(2);
+
+  let mult = parseFloat(multInput.value);
+  if (isNaN(mult)) mult = 1.98;
+  mult = Math.max(1.01, Math.min(9900, mult));
+  multInput.value = mult.toFixed(2);
+
+  // Win chance basierend auf Richtung
+  let winChance;
+  if (sliderDirection === 'over') {
+    winChance = 100 - target;
+  } else {
+    winChance = target;
+  }
+  winChanceInput.value = winChance.toFixed(2);
+
+  // Bar-Farben
+  const redBar = document.getElementById('sliderBarRed');
+  const greenBar = document.getElementById('sliderBarGreen');
+  if (sliderDirection === 'over') {
+    // Rot = unter target, Grün = über target
+    redBar.style.left = '0';
+    redBar.style.width = target + '%';
+    greenBar.style.left = target + '%';
+    greenBar.style.width = (100 - target) + '%';
+    redBar.style.display = 'block';
+    greenBar.style.display = 'block';
+  } else {
+    // Grün = unter target, Rot = über target
+    greenBar.style.left = '0';
+    greenBar.style.width = target + '%';
+    redBar.style.left = target + '%';
+    redBar.style.width = (100 - target) + '%';
+    redBar.style.display = 'block';
+    greenBar.style.display = 'block';
+  }
+
+  // Threshold-Linie
+  const threshold = document.getElementById('sliderThreshold');
+  const thresholdLabel = document.getElementById('sliderThresholdLabel');
+  threshold.style.left = target + '%';
+  thresholdLabel.textContent = target.toFixed(0);
+
+  updateSliderButtonState();
+}
+
+function setDirection(dir) {
+  sliderDirection = dir;
+  document.getElementById('dirOver').classList.toggle('selected', dir === 'over');
+  document.getElementById('dirUnder').classList.toggle('selected', dir === 'under');
+  updateSliderVisuals();
+}
+
+function setQuickMult(mult) {
+  if (sliderSpinning) return;
+  const multInput = document.getElementById('sliderMultiplier');
+  multInput.value = mult.toFixed(2);
+
+  // Ziel aus Multiplikator berechnen: winChance = 99 / mult
+  const winChance = 99 / mult;
+  let target;
+  if (sliderDirection === 'over') {
+    target = 100 - winChance;
+  } else {
+    target = winChance;
+  }
+  target = Math.max(0.01, Math.min(99.99, target));
+  document.getElementById('sliderTarget').value = target.toFixed(2);
+  updateSliderVisuals();
+}
+
+document.getElementById('sliderTarget')?.addEventListener('input', () => {
+  const target = parseFloat(document.getElementById('sliderTarget').value);
+  if (!isNaN(target) && target >= 0.01 && target <= 99.99) {
+    let winChance;
+    if (sliderDirection === 'over') winChance = 100 - target;
+    else winChance = target;
+    if (winChance > 0) {
+      const newMult = 99 / winChance;
+      document.getElementById('sliderMultiplier').value = newMult.toFixed(2);
+    }
+  }
+  updateSliderVisuals();
+});
+
+document.getElementById('sliderMultiplier')?.addEventListener('input', () => {
+  const mult = parseFloat(document.getElementById('sliderMultiplier').value);
+  if (!isNaN(mult) && mult > 1) {
+    const winChance = 99 / mult;
+    let target;
+    if (sliderDirection === 'over') target = 100 - winChance;
+    else target = winChance;
+    if (target >= 0.01 && target <= 99.99) {
+      document.getElementById('sliderTarget').value = target.toFixed(2);
+    }
+  }
+  updateSliderVisuals();
+});
+
+async function doSliderSpin() {
+  if (sliderSpinning) return;
+
+  const p = getCurrentPlayer();
+  if (sliderBet <= 0 || sliderBet > p.balance) {
+    document.getElementById('sliderResult').innerHTML = '<span class="lose">Einsatz ungültig oder zu hoch!</span>';
+    return;
+  }
+
+  const target = parseFloat(document.getElementById('sliderTarget').value);
+  if (isNaN(target)) return;
+
+  sliderSpinning = true;
+  const playBtn = document.getElementById('sliderPlayBtn');
+  playBtn.disabled = true;
+  document.getElementById('sliderResult').textContent = '';
+
+  const rollEl = document.getElementById('sliderRollDisplay');
+  rollEl.classList.remove('win', 'lose');
+  rollEl.classList.add('rolling');
+  rollEl.textContent = '?';
+
+  const res = await fetch('/api/slider', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      bet: sliderBet,
+      direction: sliderDirection,
+      target: target
+    })
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    rollEl.classList.remove('rolling');
+    document.getElementById('sliderResult').innerHTML = '<span class="lose">⚠️ ' + data.error + '</span>';
+    sliderSpinning = false;
+    playBtn.disabled = false;
+    return;
+  }
+
+  // Marker-Animation (Roll)
+  const marker = document.getElementById('sliderMarker');
+  marker.classList.remove('stopped');
+  const finalRoll = data.roll;
+  const duration = 2200;
+  const startTime = performance.now();
+  const startPos = 50;
+
+  function animateMarker(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // Easing out (schnell am Anfang, langsam am Ende)
+    const eased = 1 - Math.pow(1 - progress, 3);
+    // Zufälliges "Vorbeizucken" am Anfang
+    let currentPos;
+    if (progress < 0.85) {
+      // Springt zufällig hin und her
+      const rand = Math.sin(progress * 50) * 40 + 50 + (Math.random() - 0.5) * 30;
+      currentPos = Math.max(0, Math.min(100, rand));
+    } else {
+      // Smooth zum Endziel
+      const tailProgress = (progress - 0.85) / 0.15;
+      const tailEased = 1 - Math.pow(1 - tailProgress, 2);
+      currentPos = currentPos0 + (finalRoll - currentPos0) * tailEased;
+    }
+    marker.style.left = currentPos + '%';
+    rollEl.textContent = currentPos.toFixed(2);
+
+    if (progress < 1) {
+      requestAnimationFrame(animateMarker);
+    } else {
+      marker.style.left = finalRoll + '%';
+      marker.classList.add('stopped');
+      rollEl.textContent = finalRoll.toFixed(2);
+      rollEl.classList.remove('rolling');
+      rollEl.classList.add(data.win ? 'win' : 'lose');
+
+      // Guthaben aktualisieren
+      if (account && typeof data.new_balance === 'number') {
+        setBalanceFromServer(data.new_balance, data.last_update);
+      } else if (guestState) {
+        guestState.balance += data.net_profit;
+        lastLocalUpdateGuest = Date.now();
+        saveGuestState();
+        syncGuestToServer();
+        updateBalanceUI();
+      }
+
+      const netProfit = data.net_profit;
+      const resultEl = document.getElementById('sliderResult');
+      if (data.win) {
+        resultEl.innerHTML = `<span class="win">🎉 Gewonnen! +${formatEuro(netProfit)} (× ${data.multiplier})</span>`;
+      } else {
+        resultEl.innerHTML = `<span class="lose">😢 Verloren! −${formatEuro(sliderBet)}</span>`;
+      }
+
+      addHistory('🎚️ Slider',
+        `${sliderDirection === 'over' ? 'Über' : 'Unter'} ${target.toFixed(2)} → Roll ${finalRoll.toFixed(2)}`,
+        sliderBet, data.win);
+
+      sliderSpinning = false;
+      playBtn.disabled = false;
+      updateSliderButtonState();
+    }
+  }
+
+  const currentPos0 = startPos;
+  requestAnimationFrame(animateMarker);
 }
 
 /* =================================================
@@ -2542,6 +3080,8 @@ async function init() {
   await checkLogin();
   startAutoRefresh();
   updateSlotsButtonState();
+  updateSliderVisuals();
+  updateSliderButtonState();
 }
 
 init();

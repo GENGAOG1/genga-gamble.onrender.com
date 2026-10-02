@@ -2,8 +2,16 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coinflip · Glücksrad · Roulette · Chicken · Slots · Slider</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Genga Gamble">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/static/icon.svg">
+<link rel="icon" type="image/svg+xml" href="/static/icon.svg">
+<title>Genga Gamble</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -15,6 +23,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   header {
     width: 100%;
@@ -119,6 +129,10 @@
   @keyframes fade {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bannerSlide {
+    from { transform: translate(-50%, 100px); opacity: 0; }
+    to   { transform: translate(-50%, 0); opacity: 1; }
   }
   h1 { text-align: center; margin: 0.5rem 0 1.5rem; font-size: 1.6rem; }
   h2 { text-align: center; margin: 0.5rem 0 1rem; font-size: 1.3rem; }
@@ -898,35 +912,44 @@
   .slider-bar-container {
     position: relative;
     margin: 1.2rem 0 2rem;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
   }
   .slider-bar {
     position: relative;
-    height: 40px;
+    height: 48px;
     background: #0f172a;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
     border: 2px solid #334155;
+  }
+  .slider-bar-inner {
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    overflow: hidden;
   }
   .slider-bar-red {
     position: absolute;
     top: 0;
     height: 100%;
     background: linear-gradient(180deg, #dc2626, #991b1b);
-    transition: width 0.2s;
+    transition: all 0.1s linear;
   }
   .slider-bar-green {
     position: absolute;
     top: 0;
     height: 100%;
     background: linear-gradient(180deg, #22c55e, #15803d);
-    transition: all 0.2s;
+    transition: all 0.1s linear;
   }
   .slider-marker {
     position: absolute;
-    top: -8px;
+    top: -10px;
     transform: translateX(-50%);
-    width: 24px;
-    height: 56px;
+    width: 28px;
+    height: 68px;
     background: white;
     border-radius: 6px;
     box-shadow: 0 0 15px rgba(255,255,255,0.6);
@@ -937,12 +960,12 @@
   .slider-marker::before {
     content: '';
     position: absolute;
-    top: -10px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 10px solid white;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 12px solid white;
   }
   .slider-marker.stopped {
     animation: markerGlow 0.6s ease-out;
@@ -957,32 +980,72 @@
     justify-content: space-between;
     font-size: 0.75rem;
     color: #94a3b8;
-    margin-top: 0.4rem;
+    margin-top: 0.6rem;
     padding: 0 2px;
   }
+
   .slider-threshold {
     position: absolute;
-    top: -6px;
-    bottom: -6px;
-    width: 4px;
-    background: #facc15;
+    top: -8px;
+    bottom: -8px;
+    width: 24px;
     transform: translateX(-50%);
-    z-index: 3;
+    z-index: 10;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .slider-threshold:active { cursor: grabbing; }
+  .slider-threshold-line {
+    width: 4px;
+    height: 100%;
+    background: #facc15;
     border-radius: 2px;
-    box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.9);
+    pointer-events: none;
+  }
+  .slider-threshold-grip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 18px;
+    height: 18px;
+    background: #facc15;
+    border: 2px solid #0b1220;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: #0b1220;
   }
   .slider-threshold-label {
     position: absolute;
-    top: -30px;
+    top: -32px;
+    left: 50%;
     transform: translateX(-50%);
     background: #facc15;
     color: #0b1220;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
     z-index: 4;
     white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.5);
+  }
+  .slider-threshold.dragging .slider-threshold-line {
+    box-shadow: 0 0 25px rgba(250, 204, 21, 1);
+    width: 6px;
+  }
+  .slider-threshold.dragging .slider-threshold-grip {
+    transform: translate(-50%, -50%) scale(1.2);
   }
 
   .slider-controls {
@@ -1097,6 +1160,7 @@
 </style>
 </head>
 <body>
+ <body>
 
 <header>
   <div class="topbar">
@@ -1393,11 +1457,15 @@ Curry</textarea>
       <div class="slider-display">
         <div class="slider-roll-display" id="sliderRollDisplay">–</div>
 
-        <div class="slider-bar-container">
+        <div class="slider-bar-container" id="sliderBarContainer">
           <div class="slider-bar" id="sliderBar">
-            <div class="slider-bar-red" id="sliderBarRed"></div>
-            <div class="slider-bar-green" id="sliderBarGreen"></div>
+            <div class="slider-bar-inner">
+              <div class="slider-bar-red" id="sliderBarRed"></div>
+              <div class="slider-bar-green" id="sliderBarGreen"></div>
+            </div>
             <div class="slider-threshold" id="sliderThreshold" style="left: 50%;">
+              <div class="slider-threshold-line"></div>
+              <div class="slider-threshold-grip">⇔</div>
               <div class="slider-threshold-label" id="sliderThresholdLabel">50</div>
             </div>
             <div class="slider-marker" id="sliderMarker" style="left: 50%;"></div>
@@ -1415,7 +1483,7 @@ Curry</textarea>
           <div class="slider-field">
             <label>Ziel</label>
             <div class="input-row">
-              <input type="number" id="sliderTarget" min="0" max="100" step="0.01" value="50">
+              <input type="number" id="sliderTarget" min="0.01" max="99.99" step="0.01" value="50">
               <span class="suffix">%</span>
             </div>
           </div>
@@ -2854,7 +2922,6 @@ function updateSliderVisuals() {
   mult = Math.max(1.01, Math.min(9900, mult));
   multInput.value = mult.toFixed(2);
 
-  // Win chance basierend auf Richtung
   let winChance;
   if (sliderDirection === 'over') {
     winChance = 100 - target;
@@ -2863,32 +2930,24 @@ function updateSliderVisuals() {
   }
   winChanceInput.value = winChance.toFixed(2);
 
-  // Bar-Farben
   const redBar = document.getElementById('sliderBarRed');
   const greenBar = document.getElementById('sliderBarGreen');
   if (sliderDirection === 'over') {
-    // Rot = unter target, Grün = über target
     redBar.style.left = '0';
     redBar.style.width = target + '%';
     greenBar.style.left = target + '%';
     greenBar.style.width = (100 - target) + '%';
-    redBar.style.display = 'block';
-    greenBar.style.display = 'block';
   } else {
-    // Grün = unter target, Rot = über target
     greenBar.style.left = '0';
     greenBar.style.width = target + '%';
     redBar.style.left = target + '%';
     redBar.style.width = (100 - target) + '%';
-    redBar.style.display = 'block';
-    greenBar.style.display = 'block';
   }
 
-  // Threshold-Linie
   const threshold = document.getElementById('sliderThreshold');
   const thresholdLabel = document.getElementById('sliderThresholdLabel');
-  threshold.style.left = target + '%';
-  thresholdLabel.textContent = target.toFixed(0);
+  if (threshold) threshold.style.left = target + '%';
+  if (thresholdLabel) thresholdLabel.textContent = target.toFixed(0);
 
   updateSliderButtonState();
 }
@@ -2905,7 +2964,6 @@ function setQuickMult(mult) {
   const multInput = document.getElementById('sliderMultiplier');
   multInput.value = mult.toFixed(2);
 
-  // Ziel aus Multiplikator berechnen: winChance = 99 / mult
   const winChance = 99 / mult;
   let target;
   if (sliderDirection === 'over') {
@@ -2945,6 +3003,79 @@ document.getElementById('sliderMultiplier')?.addEventListener('input', () => {
   }
   updateSliderVisuals();
 });
+
+/* ============ THRESHOLD DRAG ============ */
+let isDraggingThreshold = false;
+const sliderBarContainer = document.getElementById('sliderBarContainer');
+const sliderThreshold = document.getElementById('sliderThreshold');
+
+function getBarRect() {
+  const bar = document.getElementById('sliderBar');
+  return bar.getBoundingClientRect();
+}
+
+function positionToPercent(clientX) {
+  const rect = getBarRect();
+  const x = clientX - rect.left;
+  const pct = (x / rect.width) * 100;
+  return Math.max(0.01, Math.min(99.99, pct));
+}
+
+function handleDragStart(e) {
+  if (sliderSpinning) return;
+  isDraggingThreshold = true;
+  sliderThreshold.classList.add('dragging');
+  document.body.style.userSelect = 'none';
+  e.preventDefault();
+}
+
+function handleDragMove(e) {
+  if (!isDraggingThreshold) return;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const pct = positionToPercent(clientX);
+
+  document.getElementById('sliderTarget').value = pct.toFixed(2);
+  let winChance;
+  if (sliderDirection === 'over') winChance = 100 - pct;
+  else winChance = pct;
+  if (winChance > 0) {
+    const newMult = 99 / winChance;
+    document.getElementById('sliderMultiplier').value = newMult.toFixed(2);
+  }
+  updateSliderVisuals();
+}
+
+function handleDragEnd() {
+  if (!isDraggingThreshold) return;
+  isDraggingThreshold = false;
+  sliderThreshold.classList.remove('dragging');
+  document.body.style.userSelect = '';
+}
+
+if (sliderThreshold) {
+  sliderThreshold.addEventListener('mousedown', handleDragStart);
+  sliderThreshold.addEventListener('touchstart', handleDragStart, { passive: false });
+  document.addEventListener('mousemove', handleDragMove);
+  document.addEventListener('touchmove', handleDragMove, { passive: false });
+  document.addEventListener('mouseup', handleDragEnd);
+  document.addEventListener('touchend', handleDragEnd);
+
+  // Klick direkt auf die Bar (nicht auf Threshold) → Threshold dorthin springen
+  const sliderBarEl = document.getElementById('sliderBar');
+  sliderBarEl.addEventListener('click', (e) => {
+    if (sliderSpinning) return;
+    if (e.target === sliderThreshold || sliderThreshold.contains(e.target)) return;
+    const pct = positionToPercent(e.clientX);
+    document.getElementById('sliderTarget').value = pct.toFixed(2);
+    let winChance;
+    if (sliderDirection === 'over') winChance = 100 - pct;
+    else winChance = pct;
+    if (winChance > 0) {
+      document.getElementById('sliderMultiplier').value = (99 / winChance).toFixed(2);
+    }
+    updateSliderVisuals();
+  });
+}
 
 async function doSliderSpin() {
   if (sliderSpinning) return;
@@ -2987,30 +3118,25 @@ async function doSliderSpin() {
     return;
   }
 
-  // Marker-Animation (Roll)
   const marker = document.getElementById('sliderMarker');
   marker.classList.remove('stopped');
   const finalRoll = data.roll;
   const duration = 2200;
   const startTime = performance.now();
-  const startPos = 50;
+  let currentPos = 50;
 
   function animateMarker(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    // Easing out (schnell am Anfang, langsam am Ende)
     const eased = 1 - Math.pow(1 - progress, 3);
-    // Zufälliges "Vorbeizucken" am Anfang
-    let currentPos;
+
     if (progress < 0.85) {
-      // Springt zufällig hin und her
       const rand = Math.sin(progress * 50) * 40 + 50 + (Math.random() - 0.5) * 30;
       currentPos = Math.max(0, Math.min(100, rand));
     } else {
-      // Smooth zum Endziel
       const tailProgress = (progress - 0.85) / 0.15;
       const tailEased = 1 - Math.pow(1 - tailProgress, 2);
-      currentPos = currentPos0 + (finalRoll - currentPos0) * tailEased;
+      currentPos = currentPos + (finalRoll - currentPos) * tailEased;
     }
     marker.style.left = currentPos + '%';
     rollEl.textContent = currentPos.toFixed(2);
@@ -3024,7 +3150,6 @@ async function doSliderSpin() {
       rollEl.classList.remove('rolling');
       rollEl.classList.add(data.win ? 'win' : 'lose');
 
-      // Guthaben aktualisieren
       if (account && typeof data.new_balance === 'number') {
         setBalanceFromServer(data.new_balance, data.last_update);
       } else if (guestState) {
@@ -3053,7 +3178,6 @@ async function doSliderSpin() {
     }
   }
 
-  const currentPos0 = startPos;
   requestAnimationFrame(animateMarker);
 }
 
@@ -3085,6 +3209,78 @@ async function init() {
 }
 
 init();
+
+/* =================================================
+   PWA: Service Worker registrieren + Update-Check
+================================================= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+      .then(reg => {
+        console.log('✅ PWA Service Worker registriert:', reg.scope);
+
+        // Alle 60 Sekunden nach Updates suchen
+        setInterval(() => reg.update(), 60000);
+
+        // Update verfügbar?
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner();
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('⚠️ Service Worker Fehler:', err));
+
+    // Wenn neuer SW übernimmt → einmal neu laden
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+
+  function showUpdateBanner() {
+    if (document.getElementById('pwa-update-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'pwa-update-banner';
+    banner.innerHTML = '🔄 Neue Version verfügbar — <b>tippen zum Aktualisieren</b>';
+    banner.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+      z-index: 9999;
+      cursor: pointer;
+      animation: bannerSlide 0.3s ease;
+      max-width: 90vw;
+      text-align: center;
+    `;
+    banner.onclick = () => {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg && reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      });
+    };
+    document.body.appendChild(banner);
+
+    setTimeout(() => {
+      if (banner.parentNode) banner.remove();
+    }, 15000);
+  }
+}
 </script>
 </body>
 </html>

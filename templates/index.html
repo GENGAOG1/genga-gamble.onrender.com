@@ -56,11 +56,7 @@
     flex-wrap: wrap;
     justify-content: center;
   }
-  .player-name {
-    font-weight: 700;
-    color: #60a5fa;
-    cursor: pointer;
-  }
+  .player-name { font-weight: 700; color: #60a5fa; cursor: pointer; }
   .player-name:hover { text-decoration: underline; }
   .account-badge {
     font-size: 0.7rem;
@@ -72,11 +68,7 @@
   }
   .account-badge.guest { background: #334155; color: #94a3b8; }
   .account-badge.real { background: #14532d; color: #bbf7d0; }
-  .balance {
-    font-weight: 800;
-    color: #4ade80;
-    font-variant-numeric: tabular-nums;
-  }
+  .balance { font-weight: 800; color: #4ade80; font-variant-numeric: tabular-nums; }
   .balance.negative { color: #f87171; }
   .player-actions { display: flex; gap: 0.4rem; }
   .icon-btn {
@@ -94,6 +86,16 @@
     transition: all 0.15s;
   }
   .icon-btn:hover { background: #1e293b; border-color: #64748b; }
+  #pwa-install-btn {
+    background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+    border-color: #4ade80 !important;
+    color: white !important;
+    animation: pulseInstall 2s ease-in-out infinite;
+  }
+  @keyframes pulseInstall {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    50% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+  }
   nav {
     max-width: 900px;
     margin: 0 auto;
@@ -114,16 +116,8 @@
     transition: all 0.15s;
   }
   nav button:hover { background: #1e293b; }
-  nav button.active {
-    background: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-  }
-  main {
-    width: 100%;
-    max-width: 720px;
-    padding: 2rem 1rem 4rem;
-  }
+  nav button.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+  main { width: 100%; max-width: 720px; padding: 2rem 1rem 4rem; }
   .page { display: none; }
   .page.active { display: block; animation: fade 0.3s ease; }
   @keyframes fade {
@@ -156,11 +150,7 @@
   }
   .start-card h2 { margin: 0 0 0.4rem; }
   .start-card p { font-size: 0.9rem; color: #94a3b8; margin: 0 0 1rem; }
-  .start-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
+  .start-actions { display: flex; flex-direction: column; gap: 0.6rem; }
   .big-btn {
     background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     color: white;
@@ -184,11 +174,7 @@
     margin-bottom: 0.9rem;
     text-align: left;
   }
-  .form-row label {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    font-weight: 600;
-  }
+  .form-row label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
   .form-row input {
     background: #0f172a;
     border: 2px solid #334155;
@@ -267,11 +253,7 @@
     transition: all 0.15s;
   }
   .quick-bet:hover:not(:disabled) { border-color: #64748b; }
-  .quick-bet.selected {
-    border-color: #4ade80;
-    background: #14532d;
-    color: white;
-  }
+  .quick-bet.selected { border-color: #4ade80; background: #14532d; color: white; }
   .quick-bet:disabled { opacity: 0.4; cursor: not-allowed; }
   .custom-bet-row { display: flex; gap: 0.5rem; align-items: center; }
   .custom-bet-row input {
@@ -543,11 +525,7 @@
     transition: all 0.15s;
   }
   .bet-btn:hover:not(:disabled) { border-color: #64748b; }
-  .bet-btn.selected {
-    border-color: #3b82f6;
-    background: #1d4ed8;
-    color: white;
-  }
+  .bet-btn.selected { border-color: #3b82f6; background: #1d4ed8; color: white; }
   .bet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .bet-btn.red-btn.selected { background: #dc2626; border-color: #dc2626; }
   .bet-btn.black-btn.selected { background: #0f172a; border-color: #e2e8f0; color: white; }
@@ -587,11 +565,7 @@
     overflow-y: auto;
   }
   .modal h3 { margin: 0 0 1rem; }
-  .modal .form-row label {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    font-weight: 600;
-  }
+  .modal .form-row label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
   .modal-actions {
     display: flex;
     gap: 0.5rem;
@@ -750,13 +724,7 @@
   .go-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* ===== SLOTS ===== */
-  .slots-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
+  .slots-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
   .slot-machine {
     width: 100%;
     max-width: 500px;
@@ -798,24 +766,18 @@
     line-height: 1;
     will-change: transform;
   }
-  .slot-reel.spinning .slot-reel-inner {
-    animation: reelSpin 0.15s linear infinite;
-  }
+  .slot-reel.spinning .slot-reel-inner { animation: reelSpin 0.15s linear infinite; }
   @keyframes reelSpin {
     from { transform: translateY(-50%); }
     to   { transform: translateY(0); }
   }
-  .slot-reel.stopped {
-    animation: reelStop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  .slot-reel.stopped { animation: reelStop 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
   @keyframes reelStop {
     0%   { transform: translateY(-15px) scale(0.9); }
     50%  { transform: translateY(5px) scale(1.05); }
     100% { transform: translateY(0) scale(1); }
   }
-  .slot-reel.jackpot {
-    animation: jackpotPulse 0.6s ease-in-out infinite alternate;
-  }
+  .slot-reel.jackpot { animation: jackpotPulse 0.6s ease-in-out infinite alternate; }
   @keyframes jackpotPulse {
     from { box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 10px rgba(250, 204, 21, 0.6); }
     to   { box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 30px rgba(250, 204, 21, 1); }
@@ -881,13 +843,7 @@
   .slot-paytable-row .symbols { font-size: 1.2rem; letter-spacing: 0.2em; }
   .slot-paytable-row .pay { color: #facc15; font-weight: 800; }
 
-  /* ===== SLIDER ===== */
-  .slider-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
+  .slider-stage { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
   .slider-display {
     width: 100%;
     max-width: 500px;
@@ -967,9 +923,7 @@
     border-right: 10px solid transparent;
     border-top: 12px solid white;
   }
-  .slider-marker.stopped {
-    animation: markerGlow 0.6s ease-out;
-  }
+  .slider-marker.stopped { animation: markerGlow 0.6s ease-out; }
   @keyframes markerGlow {
     0%   { box-shadow: 0 0 15px rgba(255,255,255,0.6); }
     50%  { box-shadow: 0 0 40px rgba(255,255,255,1); }
@@ -983,7 +937,6 @@
     margin-top: 0.6rem;
     padding: 0 2px;
   }
-
   .slider-threshold {
     position: absolute;
     top: -8px;
@@ -1055,7 +1008,6 @@
     margin-top: 1.2rem;
   }
   .slider-controls .full { grid-column: 1 / -1; }
-
   .slider-field {
     background: #0f172a;
     border-radius: 10px;
@@ -1071,11 +1023,7 @@
     display: block;
     margin-bottom: 0.3rem;
   }
-  .slider-field .input-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
+  .slider-field .input-row { display: flex; align-items: center; gap: 0.4rem; }
   .slider-field input {
     flex: 1;
     background: transparent;
@@ -1088,19 +1036,11 @@
     outline: none;
     font-variant-numeric: tabular-nums;
   }
-  .slider-field .suffix {
-    color: #94a3b8;
-    font-weight: 700;
-    font-size: 0.95rem;
-  }
+  .slider-field .suffix { color: #94a3b8; font-weight: 700; font-size: 0.95rem; }
   .slider-field.highlight input { color: #facc15; }
   .slider-field.green input { color: #4ade80; }
 
-  .slider-direction-row {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-  }
+  .slider-direction-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
   .direction-btn {
     flex: 1;
     background: #0f172a;
@@ -1136,12 +1076,7 @@
   .slider-play-btn:hover:not(:disabled) { transform: translateY(-2px); }
   .slider-play-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .slider-quick-mults {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-  }
+  .slider-quick-mults { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
   .quick-mult {
     flex: 1;
     min-width: 50px;
@@ -1160,7 +1095,6 @@
 </style>
 </head>
 <body>
- <body>
 
 <header>
   <div class="topbar">
@@ -1169,6 +1103,7 @@
       <span class="account-badge guest" id="accountBadge">Gast</span>
       <span class="balance" id="balanceDisplay">100,00 €</span>
       <div class="player-actions">
+        <button class="icon-btn" id="pwa-install-btn" title="App installieren" onclick="installPWA()" style="display:none;">📥</button>
         <button class="icon-btn" title="Verlauf" onclick="openHistoryModal()">📜</button>
       </div>
     </div>
@@ -1403,34 +1338,13 @@ Curry</textarea>
 
       <div class="slot-paytable">
         <h3>Gewinne</h3>
-        <div class="slot-paytable-row">
-          <span class="symbols">💎💎💎</span>
-          <span class="pay">× 100</span>
-        </div>
-        <div class="slot-paytable-row">
-          <span class="symbols">7️⃣7️⃣7️⃣</span>
-          <span class="pay">× 50</span>
-        </div>
-        <div class="slot-paytable-row">
-          <span class="symbols">⭐⭐⭐</span>
-          <span class="pay">× 20</span>
-        </div>
-        <div class="slot-paytable-row">
-          <span class="symbols">🍇🍇🍇</span>
-          <span class="pay">× 12</span>
-        </div>
-        <div class="slot-paytable-row">
-          <span class="symbols">🍋🍋🍋</span>
-          <span class="pay">× 8</span>
-        </div>
-        <div class="slot-paytable-row">
-          <span class="symbols">🍒🍒🍒</span>
-          <span class="pay">× 5</span>
-        </div>
-        <div class="slot-paytable-row">
-          <span class="symbols">Beliebige 2 gleiche</span>
-          <span class="pay">× 1,5</span>
-        </div>
+        <div class="slot-paytable-row"><span class="symbols">💎💎💎</span><span class="pay">× 100</span></div>
+        <div class="slot-paytable-row"><span class="symbols">7️⃣7️⃣7️⃣</span><span class="pay">× 50</span></div>
+        <div class="slot-paytable-row"><span class="symbols">⭐⭐⭐</span><span class="pay">× 20</span></div>
+        <div class="slot-paytable-row"><span class="symbols">🍇🍇🍇</span><span class="pay">× 12</span></div>
+        <div class="slot-paytable-row"><span class="symbols">🍋🍋🍋</span><span class="pay">× 8</span></div>
+        <div class="slot-paytable-row"><span class="symbols">🍒🍒🍒</span><span class="pay">× 5</span></div>
+        <div class="slot-paytable-row"><span class="symbols">Beliebige 2 gleiche</span><span class="pay">× 1,5</span></div>
       </div>
     </div>
   </section>
@@ -1456,7 +1370,6 @@ Curry</textarea>
 
       <div class="slider-display">
         <div class="slider-roll-display" id="sliderRollDisplay">–</div>
-
         <div class="slider-bar-container" id="sliderBarContainer">
           <div class="slider-bar" id="sliderBar">
             <div class="slider-bar-inner">
@@ -1471,14 +1384,9 @@ Curry</textarea>
             <div class="slider-marker" id="sliderMarker" style="left: 50%;"></div>
           </div>
           <div class="slider-ticks">
-            <span>0</span>
-            <span>25</span>
-            <span>50</span>
-            <span>75</span>
-            <span>100</span>
+            <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
           </div>
         </div>
-
         <div class="slider-controls">
           <div class="slider-field">
             <label>Ziel</label>
@@ -1487,7 +1395,6 @@ Curry</textarea>
               <span class="suffix">%</span>
             </div>
           </div>
-
           <div class="slider-field highlight">
             <label>Multiplikator</label>
             <div class="input-row">
@@ -1495,7 +1402,6 @@ Curry</textarea>
               <span class="suffix">×</span>
             </div>
           </div>
-
           <div class="slider-field green full">
             <label>Gewinnchance</label>
             <div class="input-row">
@@ -1504,12 +1410,10 @@ Curry</textarea>
             </div>
           </div>
         </div>
-
         <div class="slider-direction-row">
           <button class="direction-btn over selected" id="dirOver" onclick="setDirection('over')">⬆️ Über</button>
           <button class="direction-btn under" id="dirUnder" onclick="setDirection('under')">⬇️ Unter</button>
         </div>
-
         <div class="slider-quick-mults">
           <button class="quick-mult" onclick="setQuickMult(1.5)">1,5×</button>
           <button class="quick-mult" onclick="setQuickMult(2)">2×</button>
@@ -1521,7 +1425,6 @@ Curry</textarea>
       </div>
 
       <button class="slider-play-btn" id="sliderPlayBtn" onclick="doSliderSpin()" disabled>🎚️ LOS! 🎚️</button>
-
       <div class="result-box" id="sliderResult"></div>
     </div>
   </section>
@@ -1529,17 +1432,11 @@ Curry</textarea>
 </main>
 
 <div class="modal-backdrop" id="accountModal">
-  <div class="modal">
-    <div id="accountModalContent"></div>
-  </div>
+  <div class="modal"><div id="accountModalContent"></div></div>
 </div>
-
 <div class="modal-backdrop" id="authModal">
-  <div class="modal">
-    <div id="authModalContent"></div>
-  </div>
+  <div class="modal"><div id="authModalContent"></div></div>
 </div>
-
 <div class="modal-backdrop" id="historyModal">
   <div class="modal">
     <h3>📜 Verlauf</h3>
@@ -1580,83 +1477,43 @@ let sliderBet = 0;
 let sliderSpinning = false;
 let sliderDirection = 'over';
 let autoRefreshInterval = null;
-
 let lastLocalUpdate = 0;
 let lastLocalUpdateGuest = 0;
-
 const SLOT_ALL_EMOJIS = ['🍒', '🍋', '🍇', '⭐', '7️⃣', '💎'];
 
-/* =================================================
-   HELPERS
-================================================= */
 function isoToMs(iso) {
   if (!iso) return 0;
-  try {
-    return new Date(iso + (iso.endsWith('Z') ? '' : 'Z')).getTime();
-  } catch (e) {
-    return 0;
-  }
+  try { return new Date(iso + (iso.endsWith('Z') ? '' : 'Z')).getTime(); } catch (e) { return 0; }
 }
-
 function formatEuro(n) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
-
-/* =================================================
-   PLAYER / BALANCE
-================================================= */
 function getCurrentPlayer() {
-  if (account) {
-    return { name: account.username, balance: account.balance, history: account.history };
-  }
+  if (account) return { name: account.username, balance: account.balance, history: account.history };
   return guestState || { name: 'Gast', balance: 0, history: [] };
 }
-
 function updateBalanceUI() {
   const p = getCurrentPlayer();
   document.getElementById('currentPlayerName').textContent = p.name;
   document.getElementById('balanceDisplay').textContent = formatEuro(p.balance);
   document.getElementById('balanceDisplay').classList.toggle('negative', p.balance < 0);
   const badge = document.getElementById('accountBadge');
-  if (account) {
-    badge.textContent = 'Account';
-    badge.className = 'account-badge real';
-  } else {
-    badge.textContent = 'Gast';
-    badge.className = 'account-badge guest';
-  }
+  if (account) { badge.textContent = 'Account'; badge.className = 'account-badge real'; }
+  else { badge.textContent = 'Gast'; badge.className = 'account-badge guest'; }
   if (typeof updateCrossyButtons === 'function') updateCrossyButtons();
   if (typeof updateCoinButtonState === 'function') updateCoinButtonState();
   if (typeof updateRouletteButtonState === 'function') updateRouletteButtonState();
   if (typeof updateSlotsButtonState === 'function') updateSlotsButtonState();
   if (typeof updateSliderButtonState === 'function') updateSliderButtonState();
 }
-
 function addHistory(game, text, amount, win) {
-  const entry = {
-    time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-    game, text, amount, win
-  };
-  if (account) {
-    account.history.unshift(entry);
-    if (account.history.length > 50) account.history.length = 50;
-  } else if (guestState) {
-    guestState.history.unshift(entry);
-    if (guestState.history.length > 50) guestState.history.length = 50;
-    saveGuestState();
-    syncGuestToServer();
-  }
+  const entry = { time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }), game, text, amount, win };
+  if (account) { account.history.unshift(entry); if (account.history.length > 50) account.history.length = 50; }
+  else if (guestState) { guestState.history.unshift(entry); if (guestState.history.length > 50) guestState.history.length = 50; saveGuestState(); syncGuestToServer(); }
 }
 
-/* =================================================
-   GUEST
-================================================= */
 function loadGuestState() {
-  try {
-    const raw = localStorage.getItem(GUEST_KEY);
-    if (raw) guestState = JSON.parse(raw);
-  } catch (e) {}
-
+  try { const raw = localStorage.getItem(GUEST_KEY); if (raw) guestState = JSON.parse(raw); } catch (e) {}
   if (!guestState || typeof guestState.balance !== 'number') {
     try {
       const oldRaw = localStorage.getItem(OLD_KEY);
@@ -1665,51 +1522,31 @@ function loadGuestState() {
         if (old && Array.isArray(old.players) && old.players.length) {
           const oldPlayer = old.players.find(p => p.id === old.currentPlayerId) || old.players[0];
           if (oldPlayer) {
-            guestState = {
-              name: oldPlayer.name || 'Gast',
-              balance: typeof oldPlayer.balance === 'number' ? oldPlayer.balance : 100,
-              history: Array.isArray(oldPlayer.history) ? oldPlayer.history : []
-            };
+            guestState = { name: oldPlayer.name || 'Gast', balance: typeof oldPlayer.balance === 'number' ? oldPlayer.balance : 100, history: Array.isArray(oldPlayer.history) ? oldPlayer.history : [] };
             saveGuestState();
-            console.log('✅ Altes Guthaben migriert:', guestState.balance, '€');
           }
         }
       }
     } catch (e) {}
   }
-
-  if (!guestState) {
-    guestState = { name: 'Gast', balance: 100, history: [] };
-    saveGuestState();
-  }
-
+  if (!guestState) { guestState = { name: 'Gast', balance: 100, history: [] }; saveGuestState(); }
   guestId = localStorage.getItem(GUEST_ID_KEY) || null;
 }
-
-function saveGuestState() {
-  localStorage.setItem(GUEST_KEY, JSON.stringify(guestState));
-}
+function saveGuestState() { localStorage.setItem(GUEST_KEY, JSON.stringify(guestState)); }
 
 async function ensureGuestOnServer() {
   if (guestId) {
     try {
-      const res = await fetch('/api/guest/me', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({guest_id: guestId})
-      });
+      const res = await fetch('/api/guest/me', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({guest_id: guestId}) });
       const data = await res.json();
       if (data.exists) {
         guestState.balance = data.guest.balance;
         guestState.history = data.guest.history || [];
         lastLocalUpdateGuest = isoToMs(data.guest.last_update || '');
         saveGuestState();
-        console.log('✅ Server-Guthaben übernommen:', guestState.balance, '€');
         return;
       }
-    } catch (e) {
-      console.warn('Konnte Server-Stand nicht abrufen:', e);
-    }
+    } catch (e) {}
   }
   try {
     const res = await fetch('/api/guest/create', { method: 'POST' });
@@ -1720,38 +1557,21 @@ async function ensureGuestOnServer() {
       lastLocalUpdateGuest = isoToMs(data.last_update || '');
       await syncGuestToServer();
     }
-  } catch (e) {
-    console.warn('Gast konnte nicht am Server erstellt werden:', e);
-  }
+  } catch (e) {}
 }
-
 async function syncGuestToServer() {
   if (!guestId || !guestState) return;
   try {
-    const res = await fetch('/api/guest/sync', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        guest_id: guestId,
-        balance: guestState.balance,
-        history: guestState.history || []
-      })
-    });
+    const res = await fetch('/api/guest/sync', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ guest_id: guestId, balance: guestState.balance, history: guestState.history || [] }) });
     const data = await res.json();
-    if (data.ok && data.last_update) {
-      lastLocalUpdateGuest = isoToMs(data.last_update);
-    }
+    if (data.ok && data.last_update) lastLocalUpdateGuest = isoToMs(data.last_update);
   } catch (e) {}
 }
 
-/* =================================================
-   AUTO-REFRESH
-================================================= */
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   autoRefreshInterval = setInterval(async () => {
     if (flipping || rouletteSpinning || spinning || slotsSpinning || sliderSpinning || (crossyState && crossyState.active)) return;
-
     if (account) {
       try {
         const res = await fetch('/api/me');
@@ -1764,20 +1584,13 @@ function startAutoRefresh() {
               account.history = data.account.history || account.history;
               lastLocalUpdate = serverMs;
               updateBalanceUI();
-              console.log('🔄 Account vom Server aktualisiert:', account.balance, '€');
-            } else {
-              lastLocalUpdate = Math.max(lastLocalUpdate, serverMs);
-            }
+            } else { lastLocalUpdate = Math.max(lastLocalUpdate, serverMs); }
           }
         }
       } catch (e) {}
     } else if (guestId) {
       try {
-        const res = await fetch('/api/guest/me', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({guest_id: guestId})
-        });
+        const res = await fetch('/api/guest/me', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({guest_id: guestId}) });
         const data = await res.json();
         if (data.exists && data.guest) {
           const serverMs = isoToMs(data.guest.last_update || '');
@@ -1788,10 +1601,7 @@ function startAutoRefresh() {
               lastLocalUpdateGuest = serverMs;
               saveGuestState();
               updateBalanceUI();
-              console.log('🔄 Gast vom Server aktualisiert:', guestState.balance, '€');
-            } else {
-              lastLocalUpdateGuest = Math.max(lastLocalUpdateGuest, serverMs);
-            }
+            } else { lastLocalUpdateGuest = Math.max(lastLocalUpdateGuest, serverMs); }
           }
         }
       } catch (e) {}
@@ -1809,9 +1619,6 @@ async function playAsGuest() {
   startAutoRefresh();
 }
 
-/* =================================================
-   AUTH
-================================================= */
 async function checkLogin() {
   try {
     const res = await fetch('/api/me');
@@ -1831,49 +1638,29 @@ async function checkLogin() {
 function showAuthForm(mode, fromGuest = false) {
   const modal = document.getElementById('authModal');
   const content = document.getElementById('authModalContent');
-
   if (mode === 'register') {
     let extraInfo = '';
-    if (fromGuest && guestState) {
-      extraInfo = `<p style="color:#4ade80; font-size:0.9rem; margin:0 0 0.8rem;">
-        💰 Guthaben (${formatEuro(guestState.balance)}) und Verlauf werden übernommen.
-      </p>`;
-    }
+    if (fromGuest && guestState) extraInfo = `<p style="color:#4ade80; font-size:0.9rem; margin:0 0 0.8rem;">💰 Guthaben (${formatEuro(guestState.balance)}) und Verlauf werden übernommen.</p>`;
     content.innerHTML = `
       <h3>✨ Account erstellen</h3>
       ${extraInfo}
-      <div class="form-row">
-        <label>Nutzername (3–20 Zeichen)</label>
-        <input type="text" id="regUsername" maxlength="20" placeholder="z.B. Jaden">
-      </div>
-      <div class="form-row">
-        <label>E-Mail</label>
-        <input type="email" id="regEmail" placeholder="deine@email.de">
-      </div>
+      <div class="form-row"><label>Nutzername (3–20 Zeichen)</label><input type="text" id="regUsername" maxlength="20" placeholder="z.B. Jaden"></div>
+      <div class="form-row"><label>E-Mail</label><input type="email" id="regEmail" placeholder="deine@email.de"></div>
       <div class="error-msg" id="authError"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
         <button class="btn-primary" onclick="doRegister(${fromGuest})">Erstellen</button>
-      </div>
-    `;
+      </div>`;
   } else {
     content.innerHTML = `
       <h3>🔑 Einloggen</h3>
-      <div class="form-row">
-        <label>Nutzername</label>
-        <input type="text" id="loginUsername" maxlength="20" placeholder="z.B. Jaden">
-      </div>
-      <div class="form-row">
-        <label>6-stelliger Code</label>
-        <input type="text" id="loginCode" maxlength="12" placeholder="ABC123"
-               style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace; font-weight:700;">
-      </div>
+      <div class="form-row"><label>Nutzername</label><input type="text" id="loginUsername" maxlength="20" placeholder="z.B. Jaden"></div>
+      <div class="form-row"><label>6-stelliger Code</label><input type="text" id="loginCode" maxlength="12" placeholder="ABC123" style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace; font-weight:700;"></div>
       <div class="error-msg" id="authError"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
         <button class="btn-primary" onclick="doLogin()">Einloggen</button>
-      </div>
-    `;
+      </div>`;
   }
   modal.classList.add('open');
 }
@@ -1883,47 +1670,20 @@ async function doRegister(fromGuest) {
   const email = document.getElementById('regEmail').value.trim();
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
-
   const body = { username, email };
-  if (fromGuest && guestState) {
-    body.start_balance = guestState.balance;
-    body.start_history = guestState.history;
-  }
-
+  if (fromGuest && guestState) { body.start_balance = guestState.balance; body.start_history = guestState.history; }
   try {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
-    });
+    const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
     const data = await res.json();
-    if (!res.ok) {
-      errEl.textContent = data.error || 'Fehler beim Erstellen.';
-      return;
-    }
-
+    if (!res.ok) { errEl.textContent = data.error || 'Fehler beim Erstellen.'; return; }
     document.getElementById('authModalContent').innerHTML = `
       <h3>🎉 Account erstellt!</h3>
-      <p style="color:#94a3b8; font-size:0.9rem;">Speichere diesen Code <b>sofort</b>! Er ist dein Login für andere Geräte.</p>
-      <div class="code-display">
-        <div class="code">${data.code}</div>
-        <div class="hint">⚠️ Notiere dir diesen Code!</div>
-      </div>
-      <div class="form-row">
-        <label>Nutzername</label>
-        <input type="text" value="${data.username}" disabled>
-      </div>
-      <div class="form-row">
-        <label>Guthaben</label>
-        <input type="text" value="${formatEuro(data.balance)}" disabled>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-primary" onclick="finishRegister(${fromGuest})">Verstanden, weiter!</button>
-      </div>
-    `;
-  } catch (e) {
-    errEl.textContent = 'Netzwerkfehler.';
-  }
+      <p style="color:#94a3b8; font-size:0.9rem;">Speichere diesen Code <b>sofort</b>!</p>
+      <div class="code-display"><div class="code">${data.code}</div><div class="hint">⚠️ Notiere dir diesen Code!</div></div>
+      <div class="form-row"><label>Nutzername</label><input type="text" value="${data.username}" disabled></div>
+      <div class="form-row"><label>Guthaben</label><input type="text" value="${formatEuro(data.balance)}" disabled></div>
+      <div class="modal-actions"><button class="btn-primary" onclick="finishRegister(${fromGuest})">Verstanden, weiter!</button></div>`;
+  } catch (e) { errEl.textContent = 'Netzwerkfehler.'; }
 }
 
 async function finishRegister(fromGuest) {
@@ -1944,18 +1704,10 @@ async function doLogin() {
   const code = document.getElementById('loginCode').value.trim().toUpperCase();
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
-
   try {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, code})
-    });
+    const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, code}) });
     const data = await res.json();
-    if (!res.ok) {
-      errEl.textContent = data.error || 'Login fehlgeschlagen.';
-      return;
-    }
+    if (!res.ok) { errEl.textContent = data.error || 'Login fehlgeschlagen.'; return; }
     account = data.account;
     lastLocalUpdate = isoToMs(data.account.last_update || '');
     isGuest = false;
@@ -1963,9 +1715,7 @@ async function doLogin() {
     showPage('coin');
     updateBalanceUI();
     startAutoRefresh();
-  } catch (e) {
-    errEl.textContent = 'Netzwerkfehler.';
-  }
+  } catch (e) { errEl.textContent = 'Netzwerkfehler.'; }
 }
 
 async function loadLoggedInAccount() {
@@ -1982,55 +1732,32 @@ async function loadLoggedInAccount() {
   } catch (e) {}
 }
 
-/* =================================================
-   ACCOUNT MODAL
-================================================= */
 function openAccountModal() {
   const modal = document.getElementById('accountModal');
   const content = document.getElementById('accountModalContent');
-
   if (account) {
     content.innerHTML = `
       <h3>👤 Account: ${escapeHtml(account.username)}</h3>
-      <div class="form-row">
-        <label>E-Mail</label>
-        <input type="email" id="accEmail" value="${escapeHtml(account.email)}">
-      </div>
-      <div class="form-row">
-        <label>Neuer Code (4–12 Zeichen, A–Z, 0–9)</label>
-        <input type="text" id="accCode" placeholder="Leer lassen = nicht ändern"
-               style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace;">
-      </div>
+      <div class="form-row"><label>E-Mail</label><input type="email" id="accEmail" value="${escapeHtml(account.email)}"></div>
+      <div class="form-row"><label>Neuer Code (4–12 Zeichen, A–Z, 0–9)</label><input type="text" id="accCode" placeholder="Leer lassen = nicht ändern" style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace;"></div>
       <div class="error-msg" id="accError"></div>
       <div class="success-msg" id="accSuccess"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="doLogout()">Ausloggen</button>
         <button class="btn-primary" onclick="saveAccount()">Speichern</button>
       </div>
-      <div style="margin-top:0.8rem;">
-        <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal')">Schließen</button>
-      </div>
-    `;
+      <div style="margin-top:0.8rem;"><button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal')">Schließen</button></div>`;
   } else {
     const guestBalance = guestState ? guestState.balance : 0;
     content.innerHTML = `
       <h3>👤 Gast-Modus</h3>
-      <p style="color:#94a3b8; font-size:0.9rem;">
-        Du spielst als Gast. Guthaben: <b style="color:#4ade80;">${formatEuro(guestBalance)}</b>
-      </p>
-      <p style="color:#94a3b8; font-size:0.9rem;">
-        Erstelle einen echten Account, um geräteübergreifend zu spielen. <b>Dein Guthaben und Verlauf werden übernommen!</b>
-      </p>
+      <p style="color:#94a3b8; font-size:0.9rem;">Du spielst als Gast. Guthaben: <b style="color:#4ade80;">${formatEuro(guestBalance)}</b></p>
+      <p style="color:#94a3b8; font-size:0.9rem;">Erstelle einen echten Account, um geräteübergreifend zu spielen. <b>Dein Guthaben und Verlauf werden übernommen!</b></p>
       <div class="modal-actions" style="flex-direction:column; gap:0.5rem;">
-        <button class="btn-primary" style="width:100%;" onclick="closeModal('accountModal'); showAuthForm('register', true);">
-          💾 Account aus diesem Gast erstellen
-        </button>
-        <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal'); showAuthForm('login');">
-          🔑 In bestehenden Account einloggen
-        </button>
+        <button class="btn-primary" style="width:100%;" onclick="closeModal('accountModal'); showAuthForm('register', true);">💾 Account aus diesem Gast erstellen</button>
+        <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal'); showAuthForm('login');">🔑 In bestehenden Account einloggen</button>
         <button class="btn-secondary" style="width:100%;" onclick="closeModal('accountModal')">Schließen</button>
-      </div>
-    `;
+      </div>`;
   }
   modal.classList.add('open');
 }
@@ -2040,42 +1767,28 @@ async function saveAccount() {
   const okEl = document.getElementById('accSuccess');
   errEl.textContent = '';
   okEl.textContent = '';
-
   const email = document.getElementById('accEmail').value.trim();
   const newCode = document.getElementById('accCode').value.trim().toUpperCase();
-
   try {
     if (email && email !== account.email) {
-      const res = await fetch('/api/update_email', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email})
-      });
+      const res = await fetch('/api/update_email', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email}) });
       const data = await res.json();
       if (!res.ok) { errEl.textContent = data.error; return; }
       account.email = data.email;
     }
     if (newCode) {
-      const res = await fetch('/api/update_code', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({new_code: newCode})
-      });
+      const res = await fetch('/api/update_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({new_code: newCode}) });
       const data = await res.json();
       if (!res.ok) { errEl.textContent = data.error; return; }
       okEl.textContent = `✅ Neuer Code: ${data.code}`;
     } else {
       okEl.textContent = '✅ Gespeichert.';
     }
-  } catch (e) {
-    errEl.textContent = 'Netzwerkfehler.';
-  }
+  } catch (e) { errEl.textContent = 'Netzwerkfehler.'; }
 }
 
 async function doLogout() {
-  try {
-    await fetch('/api/logout', { method: 'POST' });
-  } catch (e) {}
+  try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
   account = null;
   isGuest = false;
   lastLocalUpdate = 0;
@@ -2087,9 +1800,6 @@ async function doLogout() {
   updateBalanceUI();
 }
 
-/* =================================================
-   HISTORY
-================================================= */
 function openHistoryModal() {
   const p = getCurrentPlayer();
   const list = document.getElementById('historyList');
@@ -2101,10 +1811,7 @@ function openHistoryModal() {
       const item = document.createElement('div');
       item.className = 'history-item';
       const sign = h.win ? '+' : '−';
-      item.innerHTML = `
-        <span>${h.time} · ${escapeHtml(h.game)}<br><small style="color:#94a3b8">${escapeHtml(h.text)}</small></span>
-        <span class="amount ${h.win ? 'win' : 'lose'}">${sign}${formatEuro(Math.abs(h.amount))}</span>
-      `;
+      item.innerHTML = `<span>${h.time} · ${escapeHtml(h.game)}<br><small style="color:#94a3b8">${escapeHtml(h.text)}</small></span><span class="amount ${h.win ? 'win' : 'lose'}">${sign}${formatEuro(Math.abs(h.amount))}</span>`;
       list.appendChild(item);
     });
   }
@@ -2118,13 +1825,8 @@ function clearHistory() {
   openHistoryModal();
 }
 
-/* =================================================
-   HELPERS
-================================================= */
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function showPage(name) {
@@ -2139,9 +1841,6 @@ function showPage(name) {
   if (name === 'slider') updateSliderVisuals();
 }
 
-/* =================================================
-   BET
-================================================= */
 function setCoinBet(amount, btn) {
   coinBet = amount;
   document.getElementById('coinCustomBet').value = '';
@@ -2231,32 +1930,18 @@ function updateSliderButtonState() {
 }
 
 function applyBalanceChange(delta) {
-  if (account) {
-    account.balance += delta;
-    lastLocalUpdate = Date.now();
-  } else if (guestState) {
-    guestState.balance += delta;
-    lastLocalUpdateGuest = Date.now();
-    saveGuestState();
-    syncGuestToServer();
-  }
+  if (account) { account.balance += delta; lastLocalUpdate = Date.now(); }
+  else if (guestState) { guestState.balance += delta; lastLocalUpdateGuest = Date.now(); saveGuestState(); syncGuestToServer(); }
   updateBalanceUI();
 }
 function setBalanceFromServer(newBalance, serverLastUpdate) {
   if (account && typeof newBalance === 'number') {
     account.balance = newBalance;
-    if (serverLastUpdate) {
-      lastLocalUpdate = isoToMs(serverLastUpdate);
-    } else {
-      lastLocalUpdate = Date.now();
-    }
+    lastLocalUpdate = serverLastUpdate ? isoToMs(serverLastUpdate) : Date.now();
     updateBalanceUI();
   }
 }
 
-/* =================================================
-   COINFLIP
-================================================= */
 function pickChoice(c) {
   if (flipping) return;
   chosen = c;
@@ -2281,59 +1966,34 @@ async function doFlip() {
   const btnKopf = document.getElementById('btn-kopf');
   const btnZahl = document.getElementById('btn-zahl');
   const resultEl = document.getElementById('coinResult');
-
   flipBtn.disabled = true;
   btnKopf.disabled = true;
   btnZahl.disabled = true;
   resultEl.textContent = '';
-
-  const res = await fetch('/api/coinflip', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({choice: chosen, bet: coinBet})
-  });
+  const res = await fetch('/api/coinflip', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({choice: chosen, bet: coinBet}) });
   const data = await res.json();
-
-  if (data.error) {
-    resultEl.textContent = data.error;
-    resetCoinControls();
-    return;
-  }
-
+  if (data.error) { resultEl.textContent = data.error; resetCoinControls(); return; }
   const targetFace = data.result === 'kopf' ? 0 : 180;
   const normalized = ((currentRotation % 360) + 360) % 360;
   let delta = targetFace - normalized;
   if (delta < 0) delta += 360;
   currentRotation += 6 * 360 + delta;
-
   coin.classList.add('flipping');
   coin.classList.remove('settle');
   coin.style.transform = `rotateY(${currentRotation}deg)`;
-
   setTimeout(() => {
     coin.classList.remove('flipping');
     coin.classList.add('settle');
     const resultText = data.result === 'kopf' ? 'Kopf' : 'Zahl';
     const choiceText = data.choice === 'kopf' ? 'Kopf' : 'Zahl';
     const win = data.win;
-
-    if (account && typeof data.new_balance === 'number') {
-      setBalanceFromServer(data.new_balance, data.last_update);
-    } else {
-      applyBalanceChange(win ? coinBet : -coinBet);
-    }
+    if (account && typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+    else applyBalanceChange(win ? coinBet : -coinBet);
     addHistory('🪙 Coinflip', `${choiceText} → ${resultText}`, coinBet, win);
-
-    resultEl.innerHTML =
-      `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` +
-      (win
-        ? `<span class="win">🎉 Gewonnen! +${formatEuro(coinBet)}</span>`
-        : `<span class="lose">😢 Verloren! −${formatEuro(coinBet)}</span>`);
-
+    resultEl.innerHTML = `Gewählt: <b>${choiceText}</b> — Gefallen: <b>${resultText}</b><br>` + (win ? `<span class="win">🎉 Gewonnen! +${formatEuro(coinBet)}</span>` : `<span class="lose">😢 Verloren! −${formatEuro(coinBet)}</span>`);
     resetCoinControls();
   }, 2700);
 }
-
 function resetCoinControls() {
   flipping = false;
   document.getElementById('btn-kopf').disabled = false;
@@ -2341,37 +2001,24 @@ function resetCoinControls() {
   updateCoinButtonState();
 }
 
-/* =================================================
-   GLÜCKSRAD
-================================================= */
-const WHEEL_COLORS = [
-  '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
-  '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
-  '#84cc16', '#06b6d4', '#a855f7', '#eab308'
-];
-
+const WHEEL_COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#84cc16', '#06b6d4', '#a855f7', '#eab308'];
 function getWheelOptions() {
   const raw = document.getElementById('wheelOptions').value;
   return raw.split('\n').map(s => s.trim()).filter(Boolean);
 }
-
 function renderWheel() {
   const options = getWheelOptions();
   const svg = document.getElementById('wheelSvg');
   if (!svg) return;
   svg.innerHTML = '';
   if (options.length < 2) {
-    svg.innerHTML = '<circle cx="100" cy="100" r="95" fill="#1e293b" stroke="#334155" stroke-width="2"/>' +
-      '<text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="10">Mind. 2 Optionen</text>';
+    svg.innerHTML = '<circle cx="100" cy="100" r="95" fill="#1e293b" stroke="#334155" stroke-width="2"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="10">Mind. 2 Optionen</text>';
     return;
   }
   const n = options.length;
   const angle = 360 / n;
   const cx = 100, cy = 100, r = 95;
-  function polar(a, rad) {
-    const rr = (a - 90) * Math.PI / 180;
-    return [cx + rad * Math.cos(rr), cy + rad * Math.sin(rr)];
-  }
+  function polar(a, rad) { const rr = (a - 90) * Math.PI / 180; return [cx + rad * Math.cos(rr), cy + rad * Math.sin(rr)]; }
   for (let i = 0; i < n; i++) {
     const start = i * angle, end = start + angle;
     const [x1, y1] = polar(start, r);
@@ -2404,32 +2051,19 @@ function renderWheel() {
 async function doSpin() {
   if (spinning) return;
   const options = getWheelOptions();
-  if (options.length < 2) {
-    document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!';
-    return;
-  }
-  if (options.length > 12) {
-    document.getElementById('wheelResult').textContent = '⚠️ Maximal 12 Optionen!';
-    return;
-  }
+  if (options.length < 2) { document.getElementById('wheelResult').textContent = '⚠️ Mindestens 2 Optionen!'; return; }
+  if (options.length > 12) { document.getElementById('wheelResult').textContent = '⚠️ Maximal 12 Optionen!'; return; }
   spinning = true;
   document.getElementById('spinBtn').disabled = true;
   document.getElementById('wheelResult').textContent = '';
-
-  const res = await fetch('/api/wheel', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({options})
-  });
+  const res = await fetch('/api/wheel', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({options}) });
   const data = await res.json();
-
   if (data.error) {
     document.getElementById('wheelResult').textContent = '⚠️ ' + data.error;
     spinning = false;
     document.getElementById('spinBtn').disabled = false;
     return;
   }
-
   const n = options.length;
   const anglePer = 360 / n;
   const winnerIndex = data.index;
@@ -2440,11 +2074,9 @@ async function doSpin() {
   let delta = desired - currentNormalized;
   if (delta < 0) delta += 360;
   wheelRotation += extraSpins + delta;
-
   const svg = document.getElementById('wheelSvg');
   svg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.16, 1)';
   svg.style.transform = `rotate(${wheelRotation}deg)`;
-
   setTimeout(() => {
     document.getElementById('wheelResult').innerHTML = `🎯 Ergebnis: <b>${data.result}</b>`;
     spinning = false;
@@ -2456,31 +2088,18 @@ document.getElementById('wheelOptions').addEventListener('input', () => {
   if (document.getElementById('page-wheel').classList.contains('active')) renderWheel();
 });
 
-/* =================================================
-   ROULETTE
-================================================= */
 function setupRouletteButtons() {
   document.querySelectorAll('.roulette-bet-section .bet-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (rouletteSpinning) return;
       const betType = btn.dataset.bet;
       const betValue = btn.dataset.value;
-
       if (betType === 'number') {
         const input = document.getElementById('rouletteNumberInput');
         const val = input.value.trim();
-        if (val === '' || isNaN(val)) {
-          input.focus();
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => input.style.borderColor = '#334155', 800);
-          return;
-        }
+        if (val === '' || isNaN(val)) { input.focus(); input.style.borderColor = '#ef4444'; setTimeout(() => input.style.borderColor = '#334155', 800); return; }
         const num = parseInt(val, 10);
-        if (num < 0 || num > 36) {
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => input.style.borderColor = '#334155', 800);
-          return;
-        }
+        if (num < 0 || num > 36) { input.style.borderColor = '#ef4444'; setTimeout(() => input.style.borderColor = '#334155', 800); return; }
         rouletteBet = { type: 'number', value: String(num) };
       } else {
         rouletteBet = { type: betType, value: betValue };
@@ -2508,7 +2127,6 @@ async function doRouletteSpin() {
   const badge = document.getElementById('rouletteBadge');
   const hint = document.getElementById('rouletteHint');
   const resultEl = document.getElementById('rouletteResult');
-
   spinBtn.disabled = true;
   allBtns.forEach(b => b.disabled = true);
   numberEl.classList.remove('red', 'black', 'green');
@@ -2518,18 +2136,8 @@ async function doRouletteSpin() {
   badge.textContent = 'Dreht...';
   hint.textContent = '';
   resultEl.textContent = '';
-
-  const res = await fetch('/api/roulette', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      bet_type: rouletteBet.type,
-      bet_value: rouletteBet.value,
-      bet: rouletteBetAmount
-    })
-  });
+  const res = await fetch('/api/roulette', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value, bet: rouletteBetAmount }) });
   const data = await res.json();
-
   if (data.error) {
     resultEl.textContent = '⚠️ ' + data.error;
     numberEl.classList.remove('rolling');
@@ -2538,7 +2146,6 @@ async function doRouletteSpin() {
     updateRouletteButtonState();
     return;
   }
-
   let counter = 0;
   const rollInterval = setInterval(() => {
     const rand = Math.floor(Math.random() * 37);
@@ -2551,32 +2158,16 @@ async function doRouletteSpin() {
       numberEl.textContent = data.number;
       badge.className = 'roulette-color-badge ' + data.color;
       badge.textContent = data.color === 'red' ? 'Rot' : data.color === 'black' ? 'Schwarz' : 'Grün';
-
       const win = data.win;
       let netChange;
       let text;
-      if (win) {
-        netChange = rouletteBetAmount * data.payout;
-        text = `Gewinn (${data.payout}:1)`;
-      } else {
-        netChange = -rouletteBetAmount;
-        text = `Verlust`;
-      }
-
-      if (account && typeof data.new_balance === 'number') {
-        setBalanceFromServer(data.new_balance, data.last_update);
-      } else {
-        applyBalanceChange(netChange);
-      }
-      addHistory('🎰 Roulette',
-        `${data.number} ${data.color === 'red' ? '🔴' : data.color === 'black' ? '⚫' : '🟢'} · ${text}`,
-        rouletteBetAmount, win);
-
-      resultEl.innerHTML = win
-        ? `<span class="win">🎉 Gewonnen! +${formatEuro(netChange)}</span>`
-        : `<span class="lose">😢 Verloren −${formatEuro(rouletteBetAmount)}</span>`;
+      if (win) { netChange = rouletteBetAmount * data.payout; text = `Gewinn (${data.payout}:1)`; }
+      else { netChange = -rouletteBetAmount; text = `Verlust`; }
+      if (account && typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+      else applyBalanceChange(netChange);
+      addHistory('🎰 Roulette', `${data.number} ${data.color === 'red' ? '🔴' : data.color === 'black' ? '⚫' : '🟢'} · ${text}`, rouletteBetAmount, win);
+      resultEl.innerHTML = win ? `<span class="win">🎉 Gewonnen! +${formatEuro(netChange)}</span>` : `<span class="lose">😢 Verloren −${formatEuro(rouletteBetAmount)}</span>`;
       hint.textContent = 'Wähle eine neue Wette';
-
       rouletteSpinning = false;
       allBtns.forEach(b => b.disabled = false);
       allBtns.forEach(b => b.classList.remove('selected'));
@@ -2586,9 +2177,6 @@ async function doRouletteSpin() {
   }, 80);
 }
 
-/* =================================================
-   CROSSY
-================================================= */
 const CROSSY_STEPS = 8;
 const CROSSY_MULTS = [1.00, 1.20, 1.50, 1.95, 2.60, 3.55, 4.90, 6.80, 9.60];
 
@@ -2600,7 +2188,6 @@ function setCrossyBet(amount, btn) {
   if (btn) btn.classList.add('selected');
   updateCrossyButtons();
 }
-
 function applyCrossyCustom() {
   if (crossyState && crossyState.active) return;
   const v = parseFloat(document.getElementById('crossyCustomBet').value);
@@ -2609,7 +2196,6 @@ function applyCrossyCustom() {
   document.querySelectorAll('#crossyQuickBets .quick-bet').forEach(b => b.classList.remove('selected'));
   updateCrossyButtons();
 }
-
 function updateCrossyButtons() {
   const p = getCurrentPlayer();
   const goBtn = document.getElementById('crossyGoBtn');
@@ -2620,7 +2206,6 @@ function updateCrossyButtons() {
     cashBtn.disabled = true;
   }
 }
-
 function renderCrossyTrack() {
   const track = document.getElementById('crossyTrack');
   if (!track) return;
@@ -2629,16 +2214,12 @@ function renderCrossyTrack() {
     const cell = document.createElement('div');
     cell.className = 'crossy-cell';
     cell.id = 'crossyCell-' + i;
-    cell.innerHTML = `
-      <div class="mult-label">${CROSSY_MULTS[i + 1].toFixed(2)}x</div>
-      <div class="car-icon">🚗</div>
-    `;
+    cell.innerHTML = `<div class="mult-label">${CROSSY_MULTS[i + 1].toFixed(2)}x</div><div class="car-icon">🚗</div>`;
     track.appendChild(cell);
   }
   const road = document.createElement('div');
   road.className = 'crossy-road';
   track.appendChild(road);
-
   const chicken = document.createElement('div');
   chicken.id = 'crossyChicken';
   chicken.style.left = '2%';
@@ -2652,11 +2233,9 @@ function renderCrossyTrack() {
       <path d="M 52 24 L 61 26 L 52 29 Z" fill="#f59e0b" stroke="#1e293b" stroke-width="1.5"/>
       <path d="M 26 55 L 24 61 M 34 55 L 36 61" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
       <path d="M 20 61 L 28 61 M 32 61 L 40 61" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  `;
+    </svg>`;
   track.appendChild(chicken);
 }
-
 function crossyReset() {
   crossyState = { active: false, step: 0, crashed: false, cashedOut: false, pattern: [] };
   for (let i = 0; i < CROSSY_STEPS; i++) {
@@ -2679,12 +2258,10 @@ function crossyReset() {
   if (goBtn) goBtn.textContent = 'GO! 🐔';
   updateCrossyButtons();
 }
-
 function crossyGoClick() {
   if (!crossyState || !crossyState.active) crossyStart();
   else crossyGo();
 }
-
 function crossyStart() {
   const p = getCurrentPlayer();
   if (crossyBet <= 0 || crossyBet > p.balance) {
@@ -2698,17 +2275,14 @@ function crossyStart() {
   document.getElementById('crossyHint').textContent = 'Klick „GO! 🐔" für den ersten Schritt.';
   updateCrossyCashoutValue();
 }
-
 function crossyGo() {
   if (!crossyState || !crossyState.active || crossyState.crashed || crossyState.cashedOut) return;
   if (crossyState.step >= CROSSY_STEPS) { crossyCashOut(); return; }
-
   const currentStep = crossyState.step;
   const cell = document.getElementById('crossyCell-' + currentStep);
   const chicken = document.getElementById('crossyChicken');
   const newLeft = ((currentStep + 0.5) / CROSSY_STEPS) * 100;
   chicken.style.left = newLeft + '%';
-
   if (crossyState.pattern[currentStep] === 'crash') {
     crossyState.crashed = true;
     crossyState.active = false;
@@ -2716,25 +2290,16 @@ function crossyGo() {
     document.getElementById('crossyGoBtn').disabled = true;
     document.getElementById('crossyCashoutBtn').disabled = true;
     document.getElementById('crossyHint').textContent = '💥 Vom Auto erwischt!';
-    document.getElementById('crossyResult').innerHTML =
-      `<span class="lose">💥 Verloren! −${formatEuro(crossyBet)}</span>`;
-
+    document.getElementById('crossyResult').innerHTML = `<span class="lose">💥 Verloren! −${formatEuro(crossyBet)}</span>`;
     if (account) {
-      fetch('/api/crossy', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ result: 'lose', profit: -crossyBet, steps: currentStep + 1 })
-      }).then(r => r.json()).then(data => {
-        if (typeof data.new_balance === 'number') {
-          setBalanceFromServer(data.new_balance, data.last_update);
-        } else {
-          applyBalanceChange(-crossyBet);
-        }
-        addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
-      }).catch(() => {
-        applyBalanceChange(-crossyBet);
-        addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
-      });
+      fetch('/api/crossy', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ result: 'lose', profit: -crossyBet, steps: currentStep + 1 }) })
+        .then(r => r.json())
+        .then(data => {
+          if (typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+          else applyBalanceChange(-crossyBet);
+          addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
+        })
+        .catch(() => { applyBalanceChange(-crossyBet); addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false); });
     } else {
       applyBalanceChange(-crossyBet);
       addHistory('🐔 Chicken Road', `Crash bei Schritt ${currentStep + 1}`, crossyBet, false);
@@ -2742,7 +2307,6 @@ function crossyGo() {
     updateCrossyButtons();
     return;
   }
-
   cell.classList.add('passed');
   crossyState.step++;
   const mult = CROSSY_MULTS[crossyState.step];
@@ -2750,17 +2314,13 @@ function crossyGo() {
   document.getElementById('crossyMult').textContent = mult.toFixed(2) + 'x';
   updateCrossyCashoutValue();
   document.getElementById('crossyCashoutBtn').disabled = false;
-  document.getElementById('crossyHint').textContent =
-    `Sicher! Weiter oder Cash Out (${formatEuro(crossyBet * mult)}).`;
-
+  document.getElementById('crossyHint').textContent = `Sicher! Weiter oder Cash Out (${formatEuro(crossyBet * mult)}).`;
   if (crossyState.step >= CROSSY_STEPS) crossyCashOut();
 }
-
 function updateCrossyCashoutValue() {
   const mult = CROSSY_MULTS[crossyState ? crossyState.step : 0];
   document.getElementById('crossyCashoutValue').textContent = formatEuro(crossyBet * mult);
 }
-
 async function crossyCashOut() {
   if (!crossyState) return;
   if (crossyState.step === 0) return;
@@ -2768,46 +2328,27 @@ async function crossyCashOut() {
   const mult = CROSSY_MULTS[crossyState.step];
   const total = crossyBet * mult;
   const profit = total - crossyBet;
-
   crossyState.active = false;
   crossyState.cashedOut = true;
   document.getElementById('crossyGoBtn').disabled = true;
   document.getElementById('crossyCashoutBtn').disabled = true;
   document.getElementById('crossyHint').textContent = '✅ Ausgezahlt!';
-  document.getElementById('crossyResult').innerHTML =
-    `<span class="win">🎉 Ausgezahlt! +${formatEuro(profit)} (${mult.toFixed(2)}x)</span>`;
-
+  document.getElementById('crossyResult').innerHTML = `<span class="win">🎉 Ausgezahlt! +${formatEuro(profit)} (${mult.toFixed(2)}x)</span>`;
   if (account) {
     try {
-      const res = await fetch('/api/crossy', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ result: 'win', profit: profit, steps: crossyState.step })
-      });
+      const res = await fetch('/api/crossy', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ result: 'win', profit: profit, steps: crossyState.step }) });
       const data = await res.json();
-      if (typeof data.new_balance === 'number') {
-        setBalanceFromServer(data.new_balance, data.last_update);
-      } else {
-        applyBalanceChange(profit);
-      }
-    } catch (e) {
-      applyBalanceChange(profit);
-    }
-  } else {
-    applyBalanceChange(profit);
-  }
-
+      if (typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+      else applyBalanceChange(profit);
+    } catch (e) { applyBalanceChange(profit); }
+  } else { applyBalanceChange(profit); }
   addHistory('🐔 Chicken Road', `${crossyState.step} Schritte · ${mult.toFixed(2)}x`, profit, true);
   updateCrossyButtons();
 }
 
-/* =================================================
-   SLOTS
-================================================= */
 function spinReelVisual(reelIndex, finalEmoji, duration) {
   const reel = document.getElementById('reel' + reelIndex);
   const inner = document.getElementById('reelInner' + reelIndex);
-
   inner.innerHTML = '';
   for (let i = 0; i < 20; i++) {
     const span = document.createElement('div');
@@ -2816,10 +2357,8 @@ function spinReelVisual(reelIndex, finalEmoji, duration) {
     span.style.lineHeight = '1';
     inner.appendChild(span);
   }
-
   reel.classList.remove('stopped', 'jackpot');
   reel.classList.add('spinning');
-
   setTimeout(() => {
     reel.classList.remove('spinning');
     inner.innerHTML = finalEmoji;
@@ -2837,39 +2376,26 @@ async function doSlotsSpin() {
     document.getElementById('slotsResult').innerHTML = '<span class="lose">Einsatz ungültig oder zu hoch!</span>';
     return;
   }
-
   slotsSpinning = true;
   const spinBtn = document.getElementById('slotsSpinBtn');
   spinBtn.disabled = true;
   document.getElementById('slotsResult').innerHTML = '🎰 Dreht...';
   document.getElementById('slotsResult').classList.remove('slot-big-win');
-
-  for (let i = 0; i < 3; i++) {
-    document.getElementById('reel' + i).classList.remove('jackpot');
-  }
-
-  const res = await fetch('/api/slots', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ bet: slotsBet })
-  });
+  for (let i = 0; i < 3; i++) document.getElementById('reel' + i).classList.remove('jackpot');
+  const res = await fetch('/api/slots', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ bet: slotsBet }) });
   const data = await res.json();
-
   if (data.error) {
     document.getElementById('slotsResult').innerHTML = '<span class="lose">⚠️ ' + data.error + '</span>';
     slotsSpinning = false;
     spinBtn.disabled = false;
     return;
   }
-
   const emojis = data.symbols.map(s => s.emoji);
   spinReelVisual(0, emojis[0], 1500);
   spinReelVisual(1, emojis[1], 2000);
   spinReelVisual(2, emojis[2], 2500);
-
-  if (account && typeof data.new_balance === 'number') {
-    setBalanceFromServer(data.new_balance, data.last_update);
-  } else if (!account) {
+  if (account && typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+  else if (!account) {
     if (guestState) {
       guestState.balance += data.net_profit;
       lastLocalUpdateGuest = Date.now();
@@ -2878,118 +2404,85 @@ async function doSlotsSpin() {
       updateBalanceUI();
     }
   }
-
   setTimeout(() => {
     const resultEl = document.getElementById('slotsResult');
     const mult = data.multiplier;
     const profit = data.net_profit;
-
     if (data.result_type === 'jackpot') {
-      for (let i = 0; i < 3; i++) {
-        document.getElementById('reel' + i).classList.add('jackpot');
-      }
+      for (let i = 0; i < 3; i++) document.getElementById('reel' + i).classList.add('jackpot');
       resultEl.innerHTML = `<span class="win slot-big-win">💎 JACKPOT! +${formatEuro(profit)} (× ${mult}) 💎</span>`;
     } else if (data.result_type === 'win') {
       resultEl.innerHTML = `<span class="win">🎉 Gewonnen! +${formatEuro(profit)} (× ${mult})</span>`;
     } else {
       resultEl.innerHTML = `<span class="lose">😢 Verloren! −${formatEuro(slotsBet)}</span>`;
     }
-
     addHistory('🎰 Slots', emojis.join(' '), slotsBet, mult > 0);
-
     slotsSpinning = false;
     spinBtn.disabled = false;
     updateSlotsButtonState();
   }, 2700);
 }
 
-/* =================================================
-   SLIDER
-================================================= */
 function updateSliderVisuals() {
   const targetInput = document.getElementById('sliderTarget');
   const multInput = document.getElementById('sliderMultiplier');
   const winChanceInput = document.getElementById('sliderWinChance');
   if (!targetInput) return;
-
   let target = parseFloat(targetInput.value);
   if (isNaN(target)) target = 50;
   target = Math.max(0.01, Math.min(99.99, target));
   targetInput.value = target.toFixed(2);
-
   let mult = parseFloat(multInput.value);
   if (isNaN(mult)) mult = 1.98;
   mult = Math.max(1.01, Math.min(9900, mult));
   multInput.value = mult.toFixed(2);
-
   let winChance;
-  if (sliderDirection === 'over') {
-    winChance = 100 - target;
-  } else {
-    winChance = target;
-  }
+  if (sliderDirection === 'over') winChance = 100 - target;
+  else winChance = target;
   winChanceInput.value = winChance.toFixed(2);
-
   const redBar = document.getElementById('sliderBarRed');
   const greenBar = document.getElementById('sliderBarGreen');
   if (sliderDirection === 'over') {
-    redBar.style.left = '0';
-    redBar.style.width = target + '%';
-    greenBar.style.left = target + '%';
-    greenBar.style.width = (100 - target) + '%';
+    redBar.style.left = '0'; redBar.style.width = target + '%';
+    greenBar.style.left = target + '%'; greenBar.style.width = (100 - target) + '%';
   } else {
-    greenBar.style.left = '0';
-    greenBar.style.width = target + '%';
-    redBar.style.left = target + '%';
-    redBar.style.width = (100 - target) + '%';
+    greenBar.style.left = '0'; greenBar.style.width = target + '%';
+    redBar.style.left = target + '%'; redBar.style.width = (100 - target) + '%';
   }
-
   const threshold = document.getElementById('sliderThreshold');
   const thresholdLabel = document.getElementById('sliderThresholdLabel');
   if (threshold) threshold.style.left = target + '%';
   if (thresholdLabel) thresholdLabel.textContent = target.toFixed(0);
-
   updateSliderButtonState();
 }
-
 function setDirection(dir) {
   sliderDirection = dir;
   document.getElementById('dirOver').classList.toggle('selected', dir === 'over');
   document.getElementById('dirUnder').classList.toggle('selected', dir === 'under');
   updateSliderVisuals();
 }
-
 function setQuickMult(mult) {
   if (sliderSpinning) return;
   const multInput = document.getElementById('sliderMultiplier');
   multInput.value = mult.toFixed(2);
-
   const winChance = 99 / mult;
   let target;
-  if (sliderDirection === 'over') {
-    target = 100 - winChance;
-  } else {
-    target = winChance;
-  }
+  if (sliderDirection === 'over') target = 100 - winChance;
+  else target = winChance;
   target = Math.max(0.01, Math.min(99.99, target));
   document.getElementById('sliderTarget').value = target.toFixed(2);
   updateSliderVisuals();
 }
-
 document.getElementById('sliderTarget')?.addEventListener('input', () => {
   const target = parseFloat(document.getElementById('sliderTarget').value);
   if (!isNaN(target) && target >= 0.01 && target <= 99.99) {
     let winChance;
     if (sliderDirection === 'over') winChance = 100 - target;
     else winChance = target;
-    if (winChance > 0) {
-      const newMult = 99 / winChance;
-      document.getElementById('sliderMultiplier').value = newMult.toFixed(2);
-    }
+    if (winChance > 0) document.getElementById('sliderMultiplier').value = (99 / winChance).toFixed(2);
   }
   updateSliderVisuals();
 });
-
 document.getElementById('sliderMultiplier')?.addEventListener('input', () => {
   const mult = parseFloat(document.getElementById('sliderMultiplier').value);
   if (!isNaN(mult) && mult > 1) {
@@ -2997,30 +2490,20 @@ document.getElementById('sliderMultiplier')?.addEventListener('input', () => {
     let target;
     if (sliderDirection === 'over') target = 100 - winChance;
     else target = winChance;
-    if (target >= 0.01 && target <= 99.99) {
-      document.getElementById('sliderTarget').value = target.toFixed(2);
-    }
+    if (target >= 0.01 && target <= 99.99) document.getElementById('sliderTarget').value = target.toFixed(2);
   }
   updateSliderVisuals();
 });
 
-/* ============ THRESHOLD DRAG ============ */
 let isDraggingThreshold = false;
-const sliderBarContainer = document.getElementById('sliderBarContainer');
 const sliderThreshold = document.getElementById('sliderThreshold');
-
-function getBarRect() {
-  const bar = document.getElementById('sliderBar');
-  return bar.getBoundingClientRect();
-}
-
+function getBarRect() { return document.getElementById('sliderBar').getBoundingClientRect(); }
 function positionToPercent(clientX) {
   const rect = getBarRect();
   const x = clientX - rect.left;
   const pct = (x / rect.width) * 100;
   return Math.max(0.01, Math.min(99.99, pct));
 }
-
 function handleDragStart(e) {
   if (sliderSpinning) return;
   isDraggingThreshold = true;
@@ -3028,30 +2511,23 @@ function handleDragStart(e) {
   document.body.style.userSelect = 'none';
   e.preventDefault();
 }
-
 function handleDragMove(e) {
   if (!isDraggingThreshold) return;
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
   const pct = positionToPercent(clientX);
-
   document.getElementById('sliderTarget').value = pct.toFixed(2);
   let winChance;
   if (sliderDirection === 'over') winChance = 100 - pct;
   else winChance = pct;
-  if (winChance > 0) {
-    const newMult = 99 / winChance;
-    document.getElementById('sliderMultiplier').value = newMult.toFixed(2);
-  }
+  if (winChance > 0) document.getElementById('sliderMultiplier').value = (99 / winChance).toFixed(2);
   updateSliderVisuals();
 }
-
 function handleDragEnd() {
   if (!isDraggingThreshold) return;
   isDraggingThreshold = false;
   sliderThreshold.classList.remove('dragging');
   document.body.style.userSelect = '';
 }
-
 if (sliderThreshold) {
   sliderThreshold.addEventListener('mousedown', handleDragStart);
   sliderThreshold.addEventListener('touchstart', handleDragStart, { passive: false });
@@ -3059,8 +2535,6 @@ if (sliderThreshold) {
   document.addEventListener('touchmove', handleDragMove, { passive: false });
   document.addEventListener('mouseup', handleDragEnd);
   document.addEventListener('touchend', handleDragEnd);
-
-  // Klick direkt auf die Bar (nicht auf Threshold) → Threshold dorthin springen
   const sliderBarEl = document.getElementById('sliderBar');
   sliderBarEl.addEventListener('click', (e) => {
     if (sliderSpinning) return;
@@ -3070,46 +2544,30 @@ if (sliderThreshold) {
     let winChance;
     if (sliderDirection === 'over') winChance = 100 - pct;
     else winChance = pct;
-    if (winChance > 0) {
-      document.getElementById('sliderMultiplier').value = (99 / winChance).toFixed(2);
-    }
+    if (winChance > 0) document.getElementById('sliderMultiplier').value = (99 / winChance).toFixed(2);
     updateSliderVisuals();
   });
 }
 
 async function doSliderSpin() {
   if (sliderSpinning) return;
-
   const p = getCurrentPlayer();
   if (sliderBet <= 0 || sliderBet > p.balance) {
     document.getElementById('sliderResult').innerHTML = '<span class="lose">Einsatz ungültig oder zu hoch!</span>';
     return;
   }
-
   const target = parseFloat(document.getElementById('sliderTarget').value);
   if (isNaN(target)) return;
-
   sliderSpinning = true;
   const playBtn = document.getElementById('sliderPlayBtn');
   playBtn.disabled = true;
   document.getElementById('sliderResult').textContent = '';
-
   const rollEl = document.getElementById('sliderRollDisplay');
   rollEl.classList.remove('win', 'lose');
   rollEl.classList.add('rolling');
   rollEl.textContent = '?';
-
-  const res = await fetch('/api/slider', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      bet: sliderBet,
-      direction: sliderDirection,
-      target: target
-    })
-  });
+  const res = await fetch('/api/slider', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ bet: sliderBet, direction: sliderDirection, target: target }) });
   const data = await res.json();
-
   if (data.error) {
     rollEl.classList.remove('rolling');
     document.getElementById('sliderResult').innerHTML = '<span class="lose">⚠️ ' + data.error + '</span>';
@@ -3117,19 +2575,15 @@ async function doSliderSpin() {
     playBtn.disabled = false;
     return;
   }
-
   const marker = document.getElementById('sliderMarker');
   marker.classList.remove('stopped');
   const finalRoll = data.roll;
   const duration = 2200;
   const startTime = performance.now();
   let currentPos = 50;
-
   function animateMarker(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-
     if (progress < 0.85) {
       const rand = Math.sin(progress * 50) * 40 + 50 + (Math.random() - 0.5) * 30;
       currentPos = Math.max(0, Math.min(100, rand));
@@ -3140,7 +2594,6 @@ async function doSliderSpin() {
     }
     marker.style.left = currentPos + '%';
     rollEl.textContent = currentPos.toFixed(2);
-
     if (progress < 1) {
       requestAnimationFrame(animateMarker);
     } else {
@@ -3149,49 +2602,30 @@ async function doSliderSpin() {
       rollEl.textContent = finalRoll.toFixed(2);
       rollEl.classList.remove('rolling');
       rollEl.classList.add(data.win ? 'win' : 'lose');
-
-      if (account && typeof data.new_balance === 'number') {
-        setBalanceFromServer(data.new_balance, data.last_update);
-      } else if (guestState) {
+      if (account && typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+      else if (guestState) {
         guestState.balance += data.net_profit;
         lastLocalUpdateGuest = Date.now();
         saveGuestState();
         syncGuestToServer();
         updateBalanceUI();
       }
-
       const netProfit = data.net_profit;
       const resultEl = document.getElementById('sliderResult');
-      if (data.win) {
-        resultEl.innerHTML = `<span class="win">🎉 Gewonnen! +${formatEuro(netProfit)} (× ${data.multiplier})</span>`;
-      } else {
-        resultEl.innerHTML = `<span class="lose">😢 Verloren! −${formatEuro(sliderBet)}</span>`;
-      }
-
-      addHistory('🎚️ Slider',
-        `${sliderDirection === 'over' ? 'Über' : 'Unter'} ${target.toFixed(2)} → Roll ${finalRoll.toFixed(2)}`,
-        sliderBet, data.win);
-
+      if (data.win) resultEl.innerHTML = `<span class="win">🎉 Gewonnen! +${formatEuro(netProfit)} (× ${data.multiplier})</span>`;
+      else resultEl.innerHTML = `<span class="lose">😢 Verloren! −${formatEuro(sliderBet)}</span>`;
+      addHistory('🎚️ Slider', `${sliderDirection === 'over' ? 'Über' : 'Unter'} ${target.toFixed(2)} → Roll ${finalRoll.toFixed(2)}`, sliderBet, data.win);
       sliderSpinning = false;
       playBtn.disabled = false;
       updateSliderButtonState();
     }
   }
-
   requestAnimationFrame(animateMarker);
 }
 
-/* =================================================
-   INIT
-================================================= */
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) backdrop.classList.remove('open');
-  });
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.classList.remove('open'); });
 });
 
 async function init() {
@@ -3207,35 +2641,26 @@ async function init() {
   updateSliderVisuals();
   updateSliderButtonState();
 }
-
 init();
 
 /* =================================================
-   PWA: Service Worker registrieren + Update-Check
+   PWA: Service Worker
 ================================================= */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
       .then(reg => {
-        console.log('✅ PWA Service Worker registriert:', reg.scope);
-
-        // Alle 60 Sekunden nach Updates suchen
+        console.log('✅ PWA SW registriert');
         setInterval(() => reg.update(), 60000);
-
-        // Update verfügbar?
         reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (!newWorker) return;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdateBanner();
-            }
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
           });
         });
       })
-      .catch(err => console.warn('⚠️ Service Worker Fehler:', err));
-
-    // Wenn neuer SW übernimmt → einmal neu laden
+      .catch(err => console.warn('⚠️ SW Fehler:', err));
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
@@ -3243,44 +2668,75 @@ if ('serviceWorker' in navigator) {
       window.location.reload();
     });
   });
-
   function showUpdateBanner() {
     if (document.getElementById('pwa-update-banner')) return;
     const banner = document.createElement('div');
     banner.id = 'pwa-update-banner';
-    banner.innerHTML = '🔄 Neue Version verfügbar — <b>tippen zum Aktualisieren</b>';
-    banner.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
-      z-index: 9999;
-      cursor: pointer;
-      animation: bannerSlide 0.3s ease;
-      max-width: 90vw;
-      text-align: center;
-    `;
+    banner.innerHTML = '🔄 Neue Version — <b>tippen zum Aktualisieren</b>';
+    banner.style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.95rem; font-weight: 600; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5); z-index: 9999; cursor: pointer; animation: bannerSlide 0.3s ease; max-width: 90vw; text-align: center;`;
     banner.onclick = () => {
-      navigator.serviceWorker.getRegistration().then(reg => {
-        if (reg && reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
-      });
+      navigator.serviceWorker.getRegistration().then(reg => { if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); });
     };
     document.body.appendChild(banner);
-
-    setTimeout(() => {
-      if (banner.parentNode) banner.remove();
-    }, 15000);
+    setTimeout(() => { if (banner.parentNode) banner.remove(); }, 15000);
   }
 }
+
+/* =================================================
+   PWA: Install-Button — AUTOMATISCH
+================================================= */
+let deferredInstallPrompt = null;
+const installBtn = document.getElementById('pwa-install-btn');
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isAndroid = /android/i.test(navigator.userAgent);
+
+function shouldShowInstallBtn() {
+  if (isStandalone) return false;
+  if (deferredInstallPrompt) return true;
+  if (isIOS && !isStandalone) return true;
+  return false;
+}
+function updateInstallBtn() {
+  if (!installBtn) return;
+  installBtn.style.display = shouldShowInstallBtn() ? 'flex' : 'none';
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  updateInstallBtn();
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  if (installBtn) installBtn.style.display = 'none';
+  console.log('✅ PWA installiert');
+});
+
+async function installPWA() {
+  // FALL 1: Android/Desktop → nativer Auto-Install
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    console.log('User-Antwort:', outcome);
+    deferredInstallPrompt = null;
+    updateInstallBtn();
+    return;
+  }
+  // FALL 2: iOS Safari → Safari-Share-Dialog öffnen (mehr geht nicht)
+  if (isIOS) {
+    // Safari kann per JS keinen Share-Dialog öffnen. Wir zeigen einen Mini-Hinweis.
+    const hint = document.createElement('div');
+    hint.style.cssText = `position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #e2e8f0; padding: 14px 20px; border-radius: 12px; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 9999; max-width: 90vw; text-align: center; border: 2px solid #3b82f6; animation: bannerSlide 0.3s ease;`;
+    hint.innerHTML = `📲 Tippe unten auf <b>Teilen □↑</b> und dann auf <b>„Zum Home-Bildschirm"</b>`;
+    document.body.appendChild(hint);
+    setTimeout(() => { if (hint.parentNode) hint.remove(); }, 6000);
+    return;
+  }
+  alert('Installation wird von deinem Browser nicht unterstützt. Nutze Chrome auf Android oder Safari auf iPhone.');
+}
+
+setTimeout(updateInstallBtn, 500);
+window.addEventListener('load', updateInstallBtn);
 </script>
 </body>
 </html>

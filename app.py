@@ -22,7 +22,6 @@ DB_PATH = os.environ.get("DB_PATH", "accounts.db")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
 # ---------- Slot-Symbole & Auszahlungen ----------
-# Symbol → (Emoji, Auszahlung bei 3x)
 SLOT_SYMBOLS = [
     {"id": "cherry",  "emoji": "🍒", "payout3": 5},
     {"id": "lemon",   "emoji": "🍋", "payout3": 8},
@@ -31,8 +30,6 @@ SLOT_SYMBOLS = [
     {"id": "seven",   "emoji": "7️⃣", "payout3": 50},
     {"id": "diamond", "emoji": "💎", "payout3": 100},
 ]
-# 2 gleiche (erste zwei) → Einsatz × 1,5
-# 3 beliebige gleiche (auch wenn nicht gleiche Symbole) → Einsatz × 3
 
 # ---------- Datenbank ----------
 def get_db():
@@ -675,7 +672,6 @@ def crossy():
 # ---------- Slot Machine ----------
 @app.route("/api/slots", methods=["POST"])
 def slots():
-    """Dreht 3 Walzen und berechnet die Auszahlung."""
     data = request.get_json(silent=True) or {}
     bet = float(data.get("bet", 0) or 0)
 
@@ -684,38 +680,29 @@ def slots():
 
     acc_row = get_current_account()
 
-    # Prüfen ob genug Guthaben (nur wenn eingeloggt)
     if acc_row and bet > acc_row["balance"]:
         return jsonify({"error": "Nicht genug Guthaben."}), 400
 
-    # 3 zufällige Symbole ziehen
     symbols = [secrets.choice(SLOT_SYMBOLS) for _ in range(3)]
     ids = [s["id"] for s in symbols]
 
-    # Auszahlung berechnen (Multiplikator auf Einsatz)
     multiplier = 0
     result_type = "lose"
 
     if ids[0] == ids[1] == ids[2]:
-        # 3 gleiche
         symbol = symbols[0]
         multiplier = symbol["payout3"]
         result_type = "jackpot"
     elif ids[0] == ids[1] or ids[1] == ids[2] or ids[0] == ids[2]:
-        # 2 gleiche (an beliebiger Stelle)
         multiplier = 1.5
         result_type = "win"
-    # sonst: lose (multiplier = 0)
 
-    # Netto-Gewinn = (Einsatz × Multiplikator) - Einsatz
-    payout_total = bet * multiplier  # Was der Spieler insgesamt zurück bekommt
-    net_profit = payout_total - bet   # Was sich am Guthaben ändert
+    payout_total = bet * multiplier
+    net_profit = payout_total - bet
 
     new_balance = None
     ts = None
     if acc_row:
-        # Wenn gewonnen: net_profit positiv → gutschreiben
-        # Wenn verloren: net_profit = -bet → abziehen
         new_balance, ts = update_account_balance(net_profit, {
             "time": now_iso(),
             "game": "🎰 Slots",
@@ -730,6 +717,87 @@ def slots():
         "multiplier": multiplier,
         "net_profit": net_profit,
         "payout_total": payout_total,
+        "bet": bet,
+        "new_balance": new_balance,
+        "last_update": ts,
+        "logged_in": bool(acc_row),
+    })
+
+# ---------- Slider-Spiel ----------
+@app.route("/api/slider", methods=["POST"])
+def slider():
+    """Slider-Spiel: Nutzer wählt Multiplikator & Richtung. Roll zwischen 0 und 100."""
+    data = request.get_json(silent=True) or {}
+    bet = float(data.get("bet", 0) or 0)
+    direction = data.get("direction", "over").lower()  # "over" oder "under"
+    target = data.get("target", None)  # z.B. 50.00
+
+    if bet <= 0:
+        return jsonify({"error": "Einsatz muss größer als 0 sein."}), 400
+
+    if direction not in ("over", "under"):
+        return jsonify({"error": "Richtung muss 'over' oder 'under' sein."}), 400
+
+    try:
+        target = float(target)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Ungültiges Ziel."}), 400
+
+    if not (0 <= target <= 100):
+        return jsonify({"error": "Ziel muss zwischen 0 und 100 liegen."}), 400
+
+    # Multiplikator aus Ziel berechnen (99% RTP)
+    if direction == "over":
+        win_chance = 100 - target
+    else:
+        win_chance = target
+
+    if win_chance < 0.01:
+        return jsonify({"error": "Ziel zu extrem — keine Chance zu gewinnen."}), 400
+
+    # Multiplikator = 99 / win_chance (mit Cap)
+    multiplier = 99.0 / win_chance
+
+    # Roll würfeln
+    roll = secrets.randbelow(10001) / 100.0  # 0.00 bis 100.00
+
+    # Prüfen ob gewonnen
+    if direction == "over":
+        win = roll > target
+    else:
+        win = roll < target
+
+    acc_row = get_current_account()
+
+    if acc_row and bet > acc_row["balance"]:
+        return jsonify({"error": "Nicht genug Guthaben."}), 400
+
+    if win:
+        net_profit = bet * (multiplier - 1)
+        text = f"{direction} {target:.2f} → roll {roll:.2f}"
+    else:
+        net_profit = -bet
+        text = f"{direction} {target:.2f} → roll {roll:.2f}"
+
+    new_balance = None
+    ts = None
+    if acc_row:
+        new_balance, ts = update_account_balance(net_profit, {
+            "time": now_iso(),
+            "game": "🎚️ Slider",
+            "text": text,
+            "amount": bet,
+            "win": win,
+        })
+
+    return jsonify({
+        "roll": roll,
+        "target": target,
+        "direction": direction,
+        "win": win,
+        "multiplier": round(multiplier, 2),
+        "win_chance": round(win_chance, 2),
+        "net_profit": net_profit,
         "bet": bet,
         "new_balance": new_balance,
         "last_update": ts,

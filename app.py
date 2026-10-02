@@ -21,7 +21,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 DB_PATH = os.environ.get("DB_PATH", "accounts.db")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
-# ---------- Slot-Symbole & Auszahlungen ----------
+# ---------- Slot-Symbole ----------
 SLOT_SYMBOLS = [
     {"id": "cherry",  "emoji": "🍒", "payout3": 5},
     {"id": "lemon",   "emoji": "🍋", "payout3": 8},
@@ -68,6 +68,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS guests (
             id TEXT PRIMARY KEY,
+            username TEXT UNIQUE,
             balance REAL NOT NULL DEFAULT 100.0,
             history TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
@@ -75,13 +76,23 @@ def init_db():
             last_update TEXT NOT NULL DEFAULT ''
         );
     """)
+    # Migrationen
+    try:
+        cols = [r[1] for r in db.execute("PRAGMA table_info(guests)").fetchall()]
+        if "username" not in cols:
+            db.execute("ALTER TABLE guests ADD COLUMN username TEXT")
+            db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_guests_username ON guests(username) WHERE username IS NOT NULL")
+            print("✅ Migration: guests.username hinzugefügt")
+    except Exception as e:
+        print(f"Migration guests.username: {e}")
+
     for table in ("accounts", "guests"):
         try:
             cols = [r[1] for r in db.execute(f"PRAGMA table_info({table})").fetchall()]
             if "last_update" not in cols:
                 db.execute(f"ALTER TABLE {table} ADD COLUMN last_update TEXT NOT NULL DEFAULT ''")
         except Exception as e:
-            print(f"Migration {table}: {e}")
+            print(f"Migration {table}.last_update: {e}")
     db.commit()
     db.close()
 
@@ -92,6 +103,7 @@ def generate_code(length=6):
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+USERNAME_RE = re.compile(r"^[A-Za-z0-9_\-]{3,20}$")
 
 def check_email_syntax(email):
     return bool(EMAIL_RE.match(email))
@@ -114,6 +126,16 @@ def check_email(email):
 def now_iso():
     return datetime.utcnow().isoformat()
 
+def username_exists(db, username, exclude_account_id=None, exclude_guest_id=None):
+    """Prüft ob ein Username bereits existiert (in accounts ODER guests)."""
+    row = db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone()
+    if row and (exclude_account_id is None or row["id"] != exclude_account_id):
+        return True
+    row = db.execute("SELECT id FROM guests WHERE username = ?", (username,)).fetchone()
+    if row and (exclude_guest_id is None or row["id"] != exclude_guest_id):
+        return True
+    return False
+
 def account_to_dict(row):
     try:
         history = json.loads(row["history"] or "[]")
@@ -135,6 +157,7 @@ def guest_to_dict(row):
         history = []
     return {
         "id": row["id"],
+        "username": row["username"] if "username" in row.keys() else None,
         "balance": row["balance"],
         "history": history,
         "created_at": row["created_at"],
@@ -171,6 +194,41 @@ def get_guest_by_id(guest_id):
     db = get_db()
     return db.execute("SELECT * FROM guests WHERE id = ?", (guest_id,)).fetchone()
 
+def get_any_user_by_name(username):
+    """Sucht User (account oder guest) per Name."""
+    db = get_db()
+    row = db.execute("SELECT * FROM accounts WHERE username = ?", (username,)).fetchone()
+    if row:
+        return ("account", row)
+    row = db.execute("SELECT * FROM guests WHERE username = ?", (username,)).fetchone()
+    if row:
+        return ("guest", row)
+    return (None, None)
+
+def add_history_to_account(db, account_id, entry):
+    row = db.execute("SELECT history FROM accounts WHERE id = ?", (account_id,)).fetchone()
+    if not row:
+        return
+    try:
+        history = json.loads(row["history"] or "[]")
+    except Exception:
+        history = []
+    history.insert(0, entry)
+    history = history[:50]
+    db.execute("UPDATE accounts SET history = ? WHERE id = ?", (json.dumps(history), account_id))
+
+def add_history_to_guest(db, guest_id, entry):
+    row = db.execute("SELECT history FROM guests WHERE id = ?", (guest_id,)).fetchone()
+    if not row:
+        return
+    try:
+        history = json.loads(row["history"] or "[]")
+    except Exception:
+        history = []
+    history.insert(0, entry)
+    history = history[:50]
+    db.execute("UPDATE guests SET history = ? WHERE id = ?", (json.dumps(history), guest_id))
+
 # ---------- Hauptseiten ----------
 @app.route("/")
 def index():
@@ -180,29 +238,20 @@ def index():
 def admin_page():
     return render_template("admin.html")
 
-# ---------- PWA: Service Worker + Manifest im Root-Scope ----------
+# ---------- PWA ----------
 @app.route("/service-worker.js")
 def service_worker():
-    return send_from_directory(
-        app.static_folder,
-        "service-worker.js",
-        mimetype="application/javascript"
-    )
+    return send_from_directory(app.static_folder, "service-worker.js", mimetype="application/javascript")
 
 @app.route("/manifest.json")
 def manifest():
-    return send_from_directory(
-        app.static_folder,
-        "manifest.json",
-        mimetype="application/manifest+json"
-    )
+    return send_from_directory(app.static_folder, "manifest.json", mimetype="application/manifest+json")
 
 # ---------- Admin ----------
 @app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     data = request.get_json(silent=True) or {}
-    pw = data.get("password", "")
-    if pw != ADMIN_PASSWORD:
+    if data.get("password", "") != ADMIN_PASSWORD:
         return jsonify({"error": "Falsches Passwort."}), 401
     session["is_admin"] = True
     session.permanent = True
@@ -236,7 +285,7 @@ def admin_data():
     guests = [{
         "type": "guest",
         "id": r["id"],
-        "name": "Gast",
+        "name": (r["username"] if "username" in r.keys() and r["username"] else "Gast (kein Name)"),
         "email": "-",
         "balance": r["balance"],
         "created_at": r["created_at"],
@@ -260,23 +309,19 @@ def admin_set_balance():
     data = request.get_json(silent=True) or {}
     kind = data.get("type")
     target_id = data.get("id")
-    new_balance = data.get("balance")
-
     try:
-        new_balance = float(new_balance)
+        new_balance = float(data.get("balance"))
     except (TypeError, ValueError):
         return jsonify({"error": "Ungültiges Guthaben."}), 400
 
     db = get_db()
     ts = now_iso()
     if kind == "account":
-        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
-                   (new_balance, ts, target_id))
+        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?", (new_balance, ts, target_id))
         print(f"🛠️ Admin: Account {target_id} → {new_balance:.2f} €")
     elif kind == "guest":
-        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
-                   (new_balance, ts, target_id))
-        print(f"🛠️ Admin: Gast {target_id[:10]}… → {new_balance:.2f} €")
+        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?", (new_balance, ts, target_id))
+        print(f"🛠️ Admin: Gast {str(target_id)[:10]}… → {new_balance:.2f} €")
     else:
         return jsonify({"error": "Ungültiger Typ."}), 400
     db.commit()
@@ -288,7 +333,6 @@ def admin_delete():
     data = request.get_json(silent=True) or {}
     kind = data.get("type")
     target_id = data.get("id")
-
     db = get_db()
     if kind == "account":
         db.execute("DELETE FROM accounts WHERE id = ?", (target_id,))
@@ -299,7 +343,7 @@ def admin_delete():
     db.commit()
     return jsonify({"ok": True})
 
-# ---------- Auth (Accounts) ----------
+# ---------- Auth ----------
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json(silent=True) or {}
@@ -320,7 +364,7 @@ def register():
         return jsonify({"error": msg}), 400
 
     db = get_db()
-    if db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone():
+    if username_exists(db, username):
         return jsonify({"error": "Nutzername ist schon vergeben."}), 409
 
     code = generate_code(6)
@@ -350,32 +394,19 @@ def register():
     session.clear()
     session["account_id"] = acc_id
     session.permanent = True
-
     print(f"✅ Registrierung: {username} (ID {acc_id})")
-
-    return jsonify({
-        "ok": True,
-        "username": username,
-        "code": code,
-        "balance": balance,
-        "last_update": ts,
-    })
+    return jsonify({"ok": True, "username": username, "code": code, "balance": balance, "last_update": ts})
 
 @app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json(silent=True) or {}
     username = (data.get("username") or "").strip()
     code = (data.get("code") or "").strip().upper()
-
     if not username or not code:
         return jsonify({"error": "Nutzername und Code nötig."}), 400
 
     db = get_db()
-    row = db.execute(
-        "SELECT * FROM accounts WHERE username = ? AND code = ?",
-        (username, code)
-    ).fetchone()
-
+    row = db.execute("SELECT * FROM accounts WHERE username = ? AND code = ?", (username, code)).fetchone()
     if not row:
         return jsonify({"error": "Nutzername oder Code falsch."}), 401
 
@@ -404,12 +435,10 @@ def update_code():
     db = get_db()
     data = request.get_json(silent=True) or {}
     new_code = (data.get("new_code") or "").strip().upper()
-
     if not re.match(r"^[A-Z0-9]{4,12}$", new_code):
         return jsonify({"error": "Code muss 4–12 Zeichen (A-Z, 0-9) haben."}), 400
     if db.execute("SELECT id FROM accounts WHERE code = ? AND id != ?", (new_code, row["id"])).fetchone():
         return jsonify({"error": "Code ist schon vergeben."}), 409
-
     db.execute("UPDATE accounts SET code = ? WHERE id = ?", (new_code, row["id"]))
     db.commit()
     return jsonify({"ok": True, "code": new_code})
@@ -421,11 +450,9 @@ def update_email():
     db = get_db()
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip()
-
     ok, msg = check_email(email)
     if not ok:
         return jsonify({"error": msg}), 400
-
     db.execute("UPDATE accounts SET email = ? WHERE id = ?", (email, row["id"]))
     db.commit()
     return jsonify({"ok": True, "email": email})
@@ -449,10 +476,8 @@ def guest_sync():
     guest_id = (data.get("guest_id") or "").strip()
     balance = data.get("balance", None)
     history = data.get("history", None)
-
     if not guest_id:
         return jsonify({"error": "guest_id fehlt."}), 400
-
     try:
         balance = float(balance)
     except (TypeError, ValueError):
@@ -468,15 +493,11 @@ def guest_sync():
     row = db.execute("SELECT id FROM guests WHERE id = ?", (guest_id,)).fetchone()
     ts = now_iso()
     if row:
-        db.execute(
-            "UPDATE guests SET balance = ?, history = ?, last_seen = ?, last_update = ? WHERE id = ?",
-            (balance, json.dumps(hist), ts, ts, guest_id)
-        )
+        db.execute("UPDATE guests SET balance = ?, history = ?, last_seen = ?, last_update = ? WHERE id = ?",
+                   (balance, json.dumps(hist), ts, ts, guest_id))
     else:
-        db.execute(
-            "INSERT INTO guests (id, balance, history, created_at, last_seen, last_update) VALUES (?, ?, ?, ?, ?, ?)",
-            (guest_id, balance, json.dumps(hist), ts, ts, ts)
-        )
+        db.execute("INSERT INTO guests (id, balance, history, created_at, last_seen, last_update) VALUES (?, ?, ?, ?, ?, ?)",
+                   (guest_id, balance, json.dumps(hist), ts, ts, ts))
     db.commit()
     return jsonify({"ok": True, "last_update": ts})
 
@@ -490,6 +511,173 @@ def guest_me():
     if not row:
         return jsonify({"exists": False})
     return jsonify({"exists": True, "guest": guest_to_dict(row)})
+
+# ---------- Gast: Namen setzen ----------
+@app.route("/api/guest/set_name", methods=["POST"])
+def guest_set_name():
+    data = request.get_json(silent=True) or {}
+    guest_id = (data.get("guest_id") or "").strip()
+    username = (data.get("username") or "").strip()
+
+    if not guest_id:
+        return jsonify({"error": "guest_id fehlt."}), 400
+    if not USERNAME_RE.match(username):
+        return jsonify({"error": "Name: 3–20 Zeichen, nur Buchstaben, Zahlen, _ und -"}), 400
+
+    db = get_db()
+    row = db.execute("SELECT id FROM guests WHERE id = ?", (guest_id,)).fetchone()
+    if not row:
+        return jsonify({"error": "Gast nicht gefunden."}), 404
+
+    if username_exists(db, username, exclude_guest_id=guest_id):
+        return jsonify({"error": "Name ist schon vergeben."}), 409
+
+    db.execute("UPDATE guests SET username = ? WHERE id = ?", (username, guest_id))
+    db.commit()
+    print(f"✅ Gast {guest_id[:10]}… → Name: {username}")
+    return jsonify({"ok": True, "username": username})
+
+# ---------- User-Suche ----------
+@app.route("/api/users/search", methods=["POST"])
+def users_search():
+    data = request.get_json(silent=True) or {}
+    query = (data.get("q") or "").strip()
+    my_guest_id = (data.get("guest_id") or "").strip()
+    my_account_id = session.get("account_id")
+
+    if len(query) < 1:
+        return jsonify({"users": []})
+
+    db = get_db()
+    like = f"%{query}%"
+
+    # Suche in accounts
+    account_rows = db.execute(
+        "SELECT id, username FROM accounts WHERE username LIKE ? AND id != ? LIMIT 10",
+        (like, my_account_id if my_account_id else -1)
+    ).fetchall()
+
+    # Suche in guests
+    guest_rows = db.execute(
+        "SELECT id, username FROM guests WHERE username LIKE ? AND username IS NOT NULL AND id != ? LIMIT 10",
+        (like, my_guest_id if my_guest_id else "")
+    ).fetchall()
+
+    users = []
+    for r in account_rows:
+        users.append({"type": "account", "id": r["id"], "username": r["username"]})
+    for r in guest_rows:
+        users.append({"type": "guest", "id": r["id"], "username": r["username"]})
+
+    return jsonify({"users": users[:15]})
+
+# ---------- Pay-System ----------
+@app.route("/api/pay", methods=["POST"])
+def pay():
+    data = request.get_json(silent=True) or {}
+    recipient_name = (data.get("recipient") or "").strip()
+    try:
+        amount = float(data.get("amount", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Ungültiger Betrag."}), 400
+
+    if amount <= 0:
+        return jsonify({"error": "Betrag muss größer als 0 sein."}), 400
+    if amount > 1000000:
+        return jsonify({"error": "Betrag zu hoch (max. 1.000.000 €)."}), 400
+    if not recipient_name:
+        return jsonify({"error": "Empfänger fehlt."}), 400
+
+    # Sender bestimmen
+    sender_type = None
+    sender_row = None
+
+    acc = get_current_account()
+    if acc:
+        sender_type = "account"
+        sender_row = acc
+    else:
+        guest_id = (data.get("guest_id") or "").strip()
+        if not guest_id:
+            return jsonify({"error": "Nicht eingeloggt."}), 401
+        g = get_guest_by_id(guest_id)
+        if not g:
+            return jsonify({"error": "Gast nicht gefunden."}), 404
+        if not (g["username"] if "username" in g.keys() else None):
+            return jsonify({"error": "Du brauchst erst einen Namen, um Geld zu senden."}), 400
+        sender_type = "guest"
+        sender_row = g
+
+    # Empfänger finden
+    recipient_type, recipient_row = get_any_user_by_name(recipient_name)
+    if not recipient_type:
+        return jsonify({"error": f"Empfänger '{recipient_name}' nicht gefunden."}), 404
+
+    # Selbst-Senden verhindern
+    if sender_type == recipient_type and sender_row["id"] == recipient_row["id"]:
+        return jsonify({"error": "Du kannst dir nicht selbst Geld senden."}), 400
+
+    # Guthaben prüfen
+    if sender_row["balance"] < amount:
+        return jsonify({"error": f"Nicht genug Guthaben. Du hast {sender_row['balance']:.2f} €."}), 400
+
+    # Buchung durchführen
+    db = get_db()
+    ts = now_iso()
+    sender_name = sender_row["username"] if "username" in sender_row.keys() and sender_row["username"] else "Gast"
+    recipient_display = recipient_row["username"]
+    msg = (data.get("message") or "").strip()[:100]
+
+    # Sender abbuchen
+    new_sender_balance = sender_row["balance"] - amount
+    if sender_type == "account":
+        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                   (new_sender_balance, ts, sender_row["id"]))
+    else:
+        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                   (new_sender_balance, ts, sender_row["id"]))
+
+    # Empfänger gutschreiben
+    new_recipient_balance = recipient_row["balance"] + amount
+    if recipient_type == "account":
+        db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                   (new_recipient_balance, ts, recipient_row["id"]))
+    else:
+        db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                   (new_recipient_balance, ts, recipient_row["id"]))
+
+    # Verlauf-Einträge
+    send_text = f"an {recipient_display}" + (f" · \"{msg}\"" if msg else "")
+    recv_text = f"von {sender_name}" + (f" · \"{msg}\"" if msg else "")
+
+    if sender_type == "account":
+        add_history_to_account(db, sender_row["id"], {
+            "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
+        })
+    else:
+        add_history_to_guest(db, sender_row["id"], {
+            "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
+        })
+
+    if recipient_type == "account":
+        add_history_to_account(db, recipient_row["id"], {
+            "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
+        })
+    else:
+        add_history_to_guest(db, recipient_row["id"], {
+            "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
+        })
+
+    db.commit()
+    print(f"💸 Pay: {sender_name} → {recipient_display}: {amount:.2f} €")
+
+    return jsonify({
+        "ok": True,
+        "sender_balance": new_sender_balance,
+        "recipient": recipient_display,
+        "amount": amount,
+        "last_update": ts
+    })
 
 # ---------- Guthaben-Sync (Account) ----------
 def update_account_balance(delta, history_entry=None):
@@ -507,10 +695,8 @@ def update_account_balance(delta, history_entry=None):
         history.insert(0, history_entry)
         history = history[:50]
     ts = now_iso()
-    db.execute(
-        "UPDATE accounts SET balance = ?, history = ?, last_update = ? WHERE id = ?",
-        (new_balance, json.dumps(history), ts, row["id"])
-    )
+    db.execute("UPDATE accounts SET balance = ?, history = ?, last_update = ? WHERE id = ?",
+               (new_balance, json.dumps(history), ts, row["id"]))
     db.commit()
     print(f"✅ Account {row['id']} ({row['username']}): {row['balance']:.2f} → {new_balance:.2f} €")
     return new_balance, ts
@@ -521,55 +707,34 @@ def coinflip():
     data = request.get_json(silent=True) or {}
     choice = data.get("choice", "").lower()
     bet = float(data.get("bet", 0) or 0)
-
     if choice not in ("kopf", "zahl"):
         return jsonify({"error": "Bitte 'kopf' oder 'zahl' wählen."}), 400
-
     result = secrets.choice(["kopf", "zahl"])
     win = result == choice
-
     acc_row = get_current_account()
     new_balance = None
     ts = None
     if acc_row and bet > 0:
         delta = bet if win else -bet
         new_balance, ts = update_account_balance(delta, {
-            "time": now_iso(),
-            "game": "🪙 Coinflip",
-            "text": f"{choice} → {result}",
-            "amount": bet,
-            "win": win,
+            "time": now_iso(), "game": "🪙 Coinflip",
+            "text": f"{choice} → {result}", "amount": bet, "win": win,
         })
-
-    return jsonify({
-        "choice": choice,
-        "result": result,
-        "win": win,
-        "new_balance": new_balance,
-        "last_update": ts,
-        "logged_in": bool(acc_row),
-    })
+    return jsonify({"choice": choice, "result": result, "win": win, "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row)})
 
 @app.route("/api/wheel", methods=["POST"])
 def wheel():
     data = request.get_json(silent=True) or {}
     options = data.get("options", [])
-
     if not isinstance(options, list):
         return jsonify({"error": "Options müssen eine Liste sein."}), 400
-
     cleaned = [str(o).strip() for o in options if str(o).strip()]
     if len(cleaned) < 2:
         return jsonify({"error": "Mindestens 2 Optionen nötig."}), 400
     if len(cleaned) > 12:
         return jsonify({"error": "Maximal 12 Optionen erlaubt."}), 400
-
     index = secrets.randbelow(len(cleaned))
-    return jsonify({
-        "index": index,
-        "result": cleaned[index],
-        "options": cleaned
-    })
+    return jsonify({"index": index, "result": cleaned[index], "options": cleaned})
 
 ROULETTE_RED = {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36}
 
@@ -579,7 +744,6 @@ def roulette():
     bet_type = data.get("bet_type", "")
     bet_value = data.get("bet_value", None)
     bet = float(data.get("bet", 0) or 0)
-
     number = secrets.randbelow(37)
     if number == 0:
         color = "green"
@@ -587,10 +751,8 @@ def roulette():
         color = "red"
     else:
         color = "black"
-
     win = False
     payout = 0
-
     if bet_type == "color" and bet_value in ("red", "black"):
         if color == bet_value:
             win = True
@@ -637,183 +799,114 @@ def roulette():
             delta = -bet
             text = "Verlust"
         new_balance, ts = update_account_balance(delta, {
-            "time": now_iso(),
-            "game": "🎰 Roulette",
-            "text": f"{number} {color} · {text}",
-            "amount": bet,
-            "win": win,
+            "time": now_iso(), "game": "🎰 Roulette",
+            "text": f"{number} {color} · {text}", "amount": bet, "win": win,
         })
+    return jsonify({"number": number, "color": color, "win": win, "payout": payout, "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row)})
 
-    return jsonify({
-        "number": number,
-        "color": color,
-        "win": win,
-        "payout": payout,
-        "new_balance": new_balance,
-        "last_update": ts,
-        "logged_in": bool(acc_row),
-    })
-
-# ---------- Chicken Road ----------
 @app.route("/api/crossy", methods=["POST"])
 def crossy():
     data = request.get_json(silent=True) or {}
     result = data.get("result", "")
     profit = float(data.get("profit", 0) or 0)
     steps = int(data.get("steps", 0) or 0)
-
     if result not in ("win", "lose"):
         return jsonify({"error": "Ungültiges Ergebnis."}), 400
-
     acc_row = get_current_account()
     new_balance = None
     ts = None
-
     if acc_row and profit != 0:
         text = f"{steps} Schritte" if result == "win" else f"Crash bei Schritt {steps}"
         new_balance, ts = update_account_balance(profit, {
-            "time": now_iso(),
-            "game": "🐔 Chicken Road",
-            "text": text,
-            "amount": abs(profit),
-            "win": result == "win",
+            "time": now_iso(), "game": "🐔 Chicken Road",
+            "text": text, "amount": abs(profit), "win": result == "win",
         })
+    return jsonify({"ok": True, "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row)})
 
-    return jsonify({
-        "ok": True,
-        "new_balance": new_balance,
-        "last_update": ts,
-        "logged_in": bool(acc_row),
-    })
-
-# ---------- Slot Machine ----------
 @app.route("/api/slots", methods=["POST"])
 def slots():
     data = request.get_json(silent=True) or {}
     bet = float(data.get("bet", 0) or 0)
-
     if bet <= 0:
         return jsonify({"error": "Einsatz muss größer als 0 sein."}), 400
-
     acc_row = get_current_account()
-
     if acc_row and bet > acc_row["balance"]:
         return jsonify({"error": "Nicht genug Guthaben."}), 400
-
     symbols = [secrets.choice(SLOT_SYMBOLS) for _ in range(3)]
     ids = [s["id"] for s in symbols]
-
     multiplier = 0
     result_type = "lose"
-
     if ids[0] == ids[1] == ids[2]:
-        symbol = symbols[0]
-        multiplier = symbol["payout3"]
+        multiplier = symbols[0]["payout3"]
         result_type = "jackpot"
     elif ids[0] == ids[1] or ids[1] == ids[2] or ids[0] == ids[2]:
         multiplier = 1.5
         result_type = "win"
-
     payout_total = bet * multiplier
     net_profit = payout_total - bet
-
     new_balance = None
     ts = None
     if acc_row:
         new_balance, ts = update_account_balance(net_profit, {
-            "time": now_iso(),
-            "game": "🎰 Slots",
+            "time": now_iso(), "game": "💸 Slot Maschine",
             "text": f"{' × '.join([s['emoji'] for s in symbols])} {'×' + str(multiplier) if multiplier > 0 else ''}".strip(),
-            "amount": bet,
-            "win": multiplier > 0,
+            "amount": bet, "win": multiplier > 0,
         })
-
     return jsonify({
         "symbols": [{"id": s["id"], "emoji": s["emoji"]} for s in symbols],
-        "result_type": result_type,
-        "multiplier": multiplier,
-        "net_profit": net_profit,
-        "payout_total": payout_total,
-        "bet": bet,
-        "new_balance": new_balance,
-        "last_update": ts,
-        "logged_in": bool(acc_row),
+        "result_type": result_type, "multiplier": multiplier,
+        "net_profit": net_profit, "payout_total": payout_total, "bet": bet,
+        "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row),
     })
 
-# ---------- Slider-Spiel ----------
 @app.route("/api/slider", methods=["POST"])
 def slider():
     data = request.get_json(silent=True) or {}
     bet = float(data.get("bet", 0) or 0)
     direction = data.get("direction", "over").lower()
     target = data.get("target", None)
-
     if bet <= 0:
         return jsonify({"error": "Einsatz muss größer als 0 sein."}), 400
-
     if direction not in ("over", "under"):
         return jsonify({"error": "Richtung muss 'over' oder 'under' sein."}), 400
-
     try:
         target = float(target)
     except (TypeError, ValueError):
         return jsonify({"error": "Ungültiges Ziel."}), 400
-
     if not (0 <= target <= 100):
         return jsonify({"error": "Ziel muss zwischen 0 und 100 liegen."}), 400
-
     if direction == "over":
         win_chance = 100 - target
     else:
         win_chance = target
-
     if win_chance < 0.01:
         return jsonify({"error": "Ziel zu extrem — keine Chance zu gewinnen."}), 400
-
     multiplier = 99.0 / win_chance
-
     roll = secrets.randbelow(10001) / 100.0
-
     if direction == "over":
         win = roll > target
     else:
         win = roll < target
-
     acc_row = get_current_account()
-
     if acc_row and bet > acc_row["balance"]:
         return jsonify({"error": "Nicht genug Guthaben."}), 400
-
     if win:
         net_profit = bet * (multiplier - 1)
     else:
         net_profit = -bet
-
     text = f"{direction} {target:.2f} → roll {roll:.2f}"
-
     new_balance = None
     ts = None
     if acc_row:
         new_balance, ts = update_account_balance(net_profit, {
-            "time": now_iso(),
-            "game": "🎚️ Slider",
-            "text": text,
-            "amount": bet,
-            "win": win,
+            "time": now_iso(), "game": "🎚️ Slider",
+            "text": text, "amount": bet, "win": win,
         })
-
     return jsonify({
-        "roll": roll,
-        "target": target,
-        "direction": direction,
-        "win": win,
-        "multiplier": round(multiplier, 2),
-        "win_chance": round(win_chance, 2),
-        "net_profit": net_profit,
-        "bet": bet,
-        "new_balance": new_balance,
-        "last_update": ts,
-        "logged_in": bool(acc_row),
+        "roll": roll, "target": target, "direction": direction, "win": win,
+        "multiplier": round(multiplier, 2), "win_chance": round(win_chance, 2),
+        "net_profit": net_profit, "bet": bet,
+        "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row),
     })
 
 # ---------- Init ----------

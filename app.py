@@ -8,9 +8,9 @@ import socket
 from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import Flask, render_template, request, jsonify, session, g
+from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
@@ -179,6 +179,23 @@ def index():
 @app.route("/admin")
 def admin_page():
     return render_template("admin.html")
+
+# ---------- PWA: Service Worker + Manifest im Root-Scope ----------
+@app.route("/service-worker.js")
+def service_worker():
+    return send_from_directory(
+        app.static_folder,
+        "service-worker.js",
+        mimetype="application/javascript"
+    )
+
+@app.route("/manifest.json")
+def manifest():
+    return send_from_directory(
+        app.static_folder,
+        "manifest.json",
+        mimetype="application/manifest+json"
+    )
 
 # ---------- Admin ----------
 @app.route("/api/admin/login", methods=["POST"])
@@ -726,11 +743,10 @@ def slots():
 # ---------- Slider-Spiel ----------
 @app.route("/api/slider", methods=["POST"])
 def slider():
-    """Slider-Spiel: Nutzer wählt Multiplikator & Richtung. Roll zwischen 0 und 100."""
     data = request.get_json(silent=True) or {}
     bet = float(data.get("bet", 0) or 0)
-    direction = data.get("direction", "over").lower()  # "over" oder "under"
-    target = data.get("target", None)  # z.B. 50.00
+    direction = data.get("direction", "over").lower()
+    target = data.get("target", None)
 
     if bet <= 0:
         return jsonify({"error": "Einsatz muss größer als 0 sein."}), 400
@@ -746,7 +762,6 @@ def slider():
     if not (0 <= target <= 100):
         return jsonify({"error": "Ziel muss zwischen 0 und 100 liegen."}), 400
 
-    # Multiplikator aus Ziel berechnen (99% RTP)
     if direction == "over":
         win_chance = 100 - target
     else:
@@ -755,13 +770,10 @@ def slider():
     if win_chance < 0.01:
         return jsonify({"error": "Ziel zu extrem — keine Chance zu gewinnen."}), 400
 
-    # Multiplikator = 99 / win_chance (mit Cap)
     multiplier = 99.0 / win_chance
 
-    # Roll würfeln
-    roll = secrets.randbelow(10001) / 100.0  # 0.00 bis 100.00
+    roll = secrets.randbelow(10001) / 100.0
 
-    # Prüfen ob gewonnen
     if direction == "over":
         win = roll > target
     else:
@@ -774,10 +786,10 @@ def slider():
 
     if win:
         net_profit = bet * (multiplier - 1)
-        text = f"{direction} {target:.2f} → roll {roll:.2f}"
     else:
         net_profit = -bet
-        text = f"{direction} {target:.2f} → roll {roll:.2f}"
+
+    text = f"{direction} {target:.2f} → roll {roll:.2f}"
 
     new_balance = None
     ts = None

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Hintergrund -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  
+  <!-- Äußerer Goldrand -->
+  <rect x="16" y="16" width="480" height="480" rx="80" fill="none" stroke="url(#gold)" stroke-width="8" opacity="0.5"/>
+  
+  <!-- Slot-Maschine Gehäuse -->
+  <rect x="96" y="140" width="320" height="260" rx="24" fill="#0f172a" stroke="url(#gold)" stroke-width="8"/>
+  
+  <!-- Drei Walzen -->
+  <rect x="128" y="180" width="72" height="90" rx="8" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  <rect x="220" y="180" width="72" height="90" rx="8" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  <rect x="312" y="180" width="72" height="90" rx="8" fill="#1e293b" stroke="#475569" stroke-width="3"/>
+  
+  <!-- Symbol 1: Kirsche -->
+  <circle cx="164" cy="215" r="14" fill="#ef4444"/>
+  <circle cx="164" cy="240" r="10" fill="#dc2626"/>
+  <path d="M 164 200 Q 175 190 175 205" stroke="#22c55e" stroke-width="3" fill="none"/>
+  
+  <!-- Symbol 2: Stern -->
+  <path d="M 256 195 L 264 215 L 286 215 L 268 228 L 275 249 L 256 237 L 237 249 L 244 228 L 226 215 L 248 215 Z" fill="#fbbf24"/>
+  
+  <!-- Symbol 3: Sieben -->
+  <text x="348" y="245" font-family="Arial Black, sans-serif" font-size="60" font-weight="900" fill="#fbbf24" text-anchor="middle">7</text>
+  
+  <!-- Unterer Balken mit LINIE -->
+  <rect x="128" y="300" width="256" height="60" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="256" y="345" font-family="Arial Black, sans-serif" font-size="42" font-weight="900" fill="#fbbf24" text-anchor="middle">🎰</text>
+  
+  <!-- Münzen oben -->
+  <circle cx="160" cy="100" r="22" fill="url(#gold)" stroke="#78350f" stroke-width="3"/>
+  <text x="160" y="110" font-family="Arial Black, sans-serif" font-size="22" font-weight="900" fill="#78350f" text-anchor="middle">€</text>
+  
+  <circle cx="352" cy="100" r="22" fill="url(#gold)" stroke="#78350f" stroke-width="3"/>
+  <text x="352" y="110" font-family="Arial Black, sans-serif" font-size="22" font-weight="900" fill="#78350f" text-anchor="middle">€</text>
+</svg>

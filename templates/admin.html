@@ -317,14 +317,11 @@ function renderTables() {
     `;
   }
 
-  // Gäste — NUR HIER IST DIE ÄNDERUNG
+  // Gäste
   const guestContainer = document.getElementById('guestsTable');
-  const guestFiltered = data.guests.filter(g => {
-    if (!search) return true;
-    const nameMatch = g.name && g.name.toLowerCase().includes(search);
-    const idMatch = g.id.toLowerCase().includes(search);
-    return nameMatch || idMatch;
-  });
+  const guestFiltered = data.guests.filter(g =>
+    !search || g.name.toLowerCase().includes(search)
+  );
   if (!guestFiltered.length) {
     guestContainer.innerHTML = '<div class="empty">Keine Gäste.</div>';
   } else {
@@ -332,7 +329,7 @@ function renderTables() {
       <table>
         <thead>
           <tr>
-            <th>Name / ID</th>
+            <th>ID</th>
             <th>Zuletzt gesehen</th>
             <th>Guthaben</th>
             <th>Aktionen</th>
@@ -341,13 +338,7 @@ function renderTables() {
         <tbody>
           ${guestFiltered.map(g => `
             <tr>
-              <td>
-                ${g.has_name
-                  ? `<span class="badge guest" style="background:#16a34a;color:white;">👤 ${escapeHtml(g.name)}</span>`
-                  : `<span class="badge guest">Gast</span>`
-                }
-                <br><code style="font-size:0.7rem; color:#94a3b8;">${escapeHtml(g.id.slice(0,10))}…</code>
-              </td>
+              <td><span class="badge guest">Gast</span> <code style="font-size:0.75rem;">${escapeHtml(g.id.slice(0,10))}…</code></td>
               <td>${escapeHtml((g.last_seen || '').slice(0,16).replace('T',' '))}</td>
               <td>
                 <input type="number" step="0.01" class="balance-input" id="bal-guest-${g.id}" value="${g.balance}">

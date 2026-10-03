@@ -190,27 +190,6 @@
     font-family: inherit;
   }
   .form-row input:focus { outline: none; border-color: #3b82f6; }
-  .code-display {
-    background: #0f172a;
-    border: 2px dashed #4ade80;
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-    margin: 0.8rem 0;
-  }
-  .code-display .code {
-    font-family: 'Courier New', monospace;
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: 0.3em;
-    color: #4ade80;
-  }
-  .code-display .hint {
-    font-size: 0.8rem;
-    color: #f87171;
-    margin-top: 0.4rem;
-    font-weight: 700;
-  }
   .error-msg {
     color: #f87171;
     font-size: 0.9rem;
@@ -1056,7 +1035,6 @@
   .quick-mult:hover { border-color: #64748b; }
   .quick-mult.selected { background: #1e40af; border-color: #3b82f6; color: white; }
 
-  /* ===== PAY SYSTEM ===== */
   .pay-recipient-display {
     display: flex;
     align-items: center;
@@ -1131,7 +1109,6 @@
   .user-item .info { display: flex; flex-direction: column; }
   .user-item .name { font-weight: 700; color: #e2e8f0; }
   .user-item .type { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
-
   .quick-amount-row {
     display: flex;
     gap: 0.4rem;
@@ -1153,7 +1130,6 @@
   }
   .quick-amount:hover { border-color: #8b5cf6; }
   .quick-amount.selected { background: #6d28d9; border-color: #8b5cf6; color: white; }
-
   .pay-success {
     text-align: center;
     padding: 1.2rem 0.5rem;
@@ -1219,7 +1195,7 @@
       </div>
       <div class="start-card">
         <h2>Account</h2>
-        <p>Geräteübergreifend spielen mit Nutzername + Code.</p>
+        <p>Geräteübergreifend spielen mit Nutzername + Passwort.</p>
         <div class="start-actions">
           <button class="big-btn" onclick="showAuthForm('register')">✨ Account erstellen</button>
           <button class="big-btn gray" onclick="showAuthForm('login')">🔑 Einloggen</button>
@@ -1582,10 +1558,6 @@ function getCurrentPlayer() {
 function getMyGuestId() {
   return guestId || localStorage.getItem(GUEST_ID_KEY) || null;
 }
-
-/* =================================================
-   UI UPDATE
-================================================= */
 function updateBalanceUI() {
   const p = getCurrentPlayer();
   document.getElementById('currentPlayerName').textContent = p.name;
@@ -1600,18 +1572,10 @@ function updateBalanceUI() {
   if (typeof updateSlotsButtonState === 'function') updateSlotsButtonState();
   if (typeof updateSliderButtonState === 'function') updateSliderButtonState();
 }
-
 function addHistory(game, text, amount, win) {
   const entry = { time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }), game, text, amount, win };
-  if (account) {
-    account.history.unshift(entry);
-    if (account.history.length > 50) account.history.length = 50;
-  } else if (guestState) {
-    guestState.history.unshift(entry);
-    if (guestState.history.length > 50) guestState.history.length = 50;
-    saveGuestState();
-    syncGuestToServer();
-  }
+  if (account) { account.history.unshift(entry); if (account.history.length > 50) account.history.length = 50; }
+  else if (guestState) { guestState.history.unshift(entry); if (guestState.history.length > 50) guestState.history.length = 50; saveGuestState(); syncGuestToServer(); }
 }
 
 /* =================================================
@@ -1699,9 +1663,7 @@ function startAutoRefresh() {
               account.history = data.account.history || account.history;
               lastLocalUpdate = serverMs;
               updateBalanceUI();
-            } else {
-              lastLocalUpdate = Math.max(lastLocalUpdate, serverMs);
-            }
+            } else { lastLocalUpdate = Math.max(lastLocalUpdate, serverMs); }
           }
         }
       } catch (e) {}
@@ -1719,9 +1681,7 @@ function startAutoRefresh() {
               lastLocalUpdateGuest = serverMs;
               saveGuestState();
               updateBalanceUI();
-            } else {
-              lastLocalUpdateGuest = Math.max(lastLocalUpdateGuest, serverMs);
-            }
+            } else { lastLocalUpdateGuest = Math.max(lastLocalUpdateGuest, serverMs); }
           }
         }
       } catch (e) {}
@@ -1769,6 +1729,7 @@ function showAuthForm(mode, fromGuest = false) {
       ${extraInfo}
       <div class="form-row"><label>Nutzername (3–20 Zeichen)</label><input type="text" id="regUsername" maxlength="20" placeholder="z.B. Jaden"></div>
       <div class="form-row"><label>E-Mail</label><input type="email" id="regEmail" placeholder="deine@email.de"></div>
+      <div class="form-row"><label>Passwort (min. 6 Zeichen)</label><input type="password" id="regPassword" placeholder="Dein Passwort"></div>
       <div class="error-msg" id="authError"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
@@ -1778,7 +1739,7 @@ function showAuthForm(mode, fromGuest = false) {
     content.innerHTML = `
       <h3>🔑 Einloggen</h3>
       <div class="form-row"><label>Nutzername</label><input type="text" id="loginUsername" maxlength="20" placeholder="z.B. Jaden"></div>
-      <div class="form-row"><label>6-stelliger Code</label><input type="text" id="loginCode" maxlength="12" placeholder="ABC123" style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace; font-weight:700;"></div>
+      <div class="form-row"><label>Passwort</label><input type="password" id="loginPassword" placeholder="Dein Passwort"></div>
       <div class="error-msg" id="authError"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('authModal')">Abbrechen</button>
@@ -1791,9 +1752,10 @@ function showAuthForm(mode, fromGuest = false) {
 async function doRegister(fromGuest) {
   const username = document.getElementById('regUsername').value.trim();
   const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
-  const body = { username, email };
+  const body = { username, email, password };
   if (fromGuest && guestState) { body.start_balance = guestState.balance; body.start_history = guestState.history; }
   try {
     const res = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
@@ -1801,8 +1763,7 @@ async function doRegister(fromGuest) {
     if (!res.ok) { errEl.textContent = data.error || 'Fehler beim Erstellen.'; return; }
     document.getElementById('authModalContent').innerHTML = `
       <h3>🎉 Account erstellt!</h3>
-      <p style="color:#94a3b8; font-size:0.9rem;">Speichere diesen Code <b>sofort</b>!</p>
-      <div class="code-display"><div class="code">${data.code}</div><div class="hint">⚠️ Notiere dir diesen Code!</div></div>
+      <p style="color:#4ade80; text-align:center; font-size:0.95rem; margin:1rem 0;">✅ Dein Account ist bereit. Du kannst dich ab jetzt jederzeit mit deinem <b>Nutzernamen</b> und deinem <b>Passwort</b> einloggen.</p>
       <div class="form-row"><label>Nutzername</label><input type="text" value="${escapeHtml(data.username)}" disabled></div>
       <div class="form-row"><label>Guthaben</label><input type="text" value="${formatEuro(data.balance)}" disabled></div>
       <div class="modal-actions"><button class="btn-primary" onclick="finishRegister(${fromGuest})">Verstanden, weiter!</button></div>`;
@@ -1824,11 +1785,11 @@ async function finishRegister(fromGuest) {
 
 async function doLogin() {
   const username = document.getElementById('loginUsername').value.trim();
-  const code = document.getElementById('loginCode').value.trim().toUpperCase();
+  const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
   try {
-    const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, code}) });
+    const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password}) });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'Login fehlgeschlagen.'; return; }
     account = data.account;
@@ -1865,7 +1826,8 @@ function openAccountModal() {
     content.innerHTML = `
       <h3>👤 Account: ${escapeHtml(account.username)}</h3>
       <div class="form-row"><label>E-Mail</label><input type="email" id="accEmail" value="${escapeHtml(account.email)}"></div>
-      <div class="form-row"><label>Neuer Code (4–12 Zeichen, A–Z, 0–9)</label><input type="text" id="accCode" placeholder="Leer lassen = nicht ändern" style="text-transform:uppercase; letter-spacing:0.2em; font-family:'Courier New',monospace;"></div>
+      <div class="form-row"><label>Altes Passwort</label><input type="password" id="accOldPassword" placeholder="Altes Passwort"></div>
+      <div class="form-row"><label>Neues Passwort (min. 6 Zeichen)</label><input type="password" id="accNewPassword" placeholder="Leer lassen = nicht ändern"></div>
       <div class="error-msg" id="accError"></div>
       <div class="success-msg" id="accSuccess"></div>
       <div class="modal-actions">
@@ -1929,7 +1891,8 @@ async function saveAccount() {
   errEl.textContent = '';
   okEl.textContent = '';
   const email = document.getElementById('accEmail').value.trim();
-  const newCode = document.getElementById('accCode').value.trim().toUpperCase();
+  const oldPassword = document.getElementById('accOldPassword').value;
+  const newPassword = document.getElementById('accNewPassword').value;
   try {
     if (email && email !== account.email) {
       const res = await fetch('/api/update_email', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email}) });
@@ -1937,11 +1900,12 @@ async function saveAccount() {
       if (!res.ok) { errEl.textContent = data.error; return; }
       account.email = data.email;
     }
-    if (newCode) {
-      const res = await fetch('/api/update_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({new_code: newCode}) });
+    if (newPassword) {
+      if (!oldPassword) { errEl.textContent = 'Altes Passwort nötig.'; return; }
+      const res = await fetch('/api/update_password', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({old_password: oldPassword, new_password: newPassword}) });
       const data = await res.json();
       if (!res.ok) { errEl.textContent = data.error; return; }
-      okEl.textContent = `✅ Neuer Code: ${data.code}`;
+      okEl.textContent = '✅ Passwort geändert.';
     } else {
       okEl.textContent = '✅ Gespeichert.';
     }
@@ -2013,10 +1977,7 @@ function renderPayModal(successData) {
       </div>`;
     return;
   }
-
-  const myGuestId = getMyGuestId();
   const isGuestWithoutName = !account && (!guestState || !guestState.username);
-
   if (isGuestWithoutName) {
     content.innerHTML = `
       <h3>💸 Geld senden</h3>
@@ -2034,7 +1995,6 @@ function renderPayModal(successData) {
       </div>`;
     return;
   }
-
   content.innerHTML = `
     <h3>💸 Geld senden</h3>
     <div class="form-row">
@@ -2064,21 +2024,18 @@ function renderPayModal(successData) {
       <button class="btn-pay" id="paySendBtn" onclick="doPay()" disabled>💸 Senden</button>
     </div>
   `;
-
   const searchInput = document.getElementById('paySearch');
   searchInput.focus();
   searchInput.addEventListener('input', (e) => {
     clearTimeout(payDebounce);
     payDebounce = setTimeout(() => searchUsers(e.target.value.trim()), 250);
   });
+  document.getElementById('payAmount').addEventListener('input', updatePaySendBtn);
 }
 
 async function searchUsers(q) {
   const list = document.getElementById('payUserList');
-  if (!q || q.length < 1) {
-    list.innerHTML = '';
-    return;
-  }
+  if (!q || q.length < 1) { list.innerHTML = ''; return; }
   try {
     const res = await fetch('/api/users/search', {
       method: 'POST',
@@ -2090,8 +2047,8 @@ async function searchUsers(q) {
       list.innerHTML = '<div style="padding:0.8rem;color:#94a3b8;font-size:0.9rem;text-align:center;">Keine Nutzer gefunden</div>';
       return;
     }
-    list.innerHTML = '<div class="user-list">' + data.users.map(u => `
-      <div class="user-item" onclick='selectPayRecipient(${JSON.stringify(u).replace(/'/g, "&#39;")})'>
+    list.innerHTML = '<div class="user-list">' + data.users.map((u, i) => `
+      <div class="user-item" onclick='selectPayRecipientByIndex(${i})'>
         <div class="avatar ${u.type}">${escapeHtml(u.username.charAt(0).toUpperCase())}</div>
         <div class="info">
           <div class="name">${escapeHtml(u.username)}</div>
@@ -2099,9 +2056,15 @@ async function searchUsers(q) {
         </div>
       </div>
     `).join('') + '</div>';
+    window.__payUsers = data.users;
   } catch (e) {
     list.innerHTML = '<div style="padding:0.8rem;color:#f87171;font-size:0.9rem;text-align:center;">Fehler beim Suchen</div>';
   }
+}
+
+function selectPayRecipientByIndex(i) {
+  const user = window.__payUsers && window.__payUsers[i];
+  if (user) selectPayRecipient(user);
 }
 
 function selectPayRecipient(user) {
@@ -2138,9 +2101,10 @@ function setPayAmount(val) {
 
 function updatePaySendBtn() {
   const btn = document.getElementById('paySendBtn');
-  const amount = parseFloat(document.getElementById('payAmount')?.value || 0);
+  const amountEl = document.getElementById('payAmount');
+  if (!btn || !amountEl) return;
+  const amount = parseFloat(amountEl.value || 0);
   const p = getCurrentPlayer();
-  if (!btn) return;
   const canSend = payRecipient && amount > 0 && amount <= p.balance;
   btn.disabled = !canSend;
 }
@@ -2173,24 +2137,19 @@ async function doPay() {
   const message = document.getElementById('payMessage').value.trim();
   const errEl = document.getElementById('payError');
   errEl.textContent = '';
-
   if (!payRecipient) { errEl.textContent = 'Bitte Empfänger wählen.'; return; }
   if (isNaN(amount) || amount <= 0) { errEl.textContent = 'Ungültiger Betrag.'; return; }
-
   const p = getCurrentPlayer();
   if (amount > p.balance) { errEl.textContent = 'Nicht genug Guthaben.'; return; }
-
   const sendBtn = document.getElementById('paySendBtn');
   sendBtn.disabled = true;
   sendBtn.textContent = '💸 Sendet…';
-
   const body = {
     recipient: payRecipient.username,
     amount: amount,
     message: message,
     guest_id: getMyGuestId()
   };
-
   try {
     const res = await fetch('/api/pay', {
       method: 'POST',
@@ -2204,8 +2163,6 @@ async function doPay() {
       sendBtn.textContent = '💸 Senden';
       return;
     }
-
-    // Lokales Guthaben aktualisieren
     if (account) {
       account.balance = data.sender_balance;
       lastLocalUpdate = isoToMs(data.last_update || '');
@@ -2215,9 +2172,7 @@ async function doPay() {
       saveGuestState();
     }
     updateBalanceUI();
-
     addHistory('💸 Gesendet', `an ${data.recipient}` + (message ? ` · "${message}"` : ''), amount, false);
-
     renderPayModal({
       amount: amount,
       recipient: data.recipient,
@@ -2231,7 +2186,7 @@ async function doPay() {
 }
 
 /* =================================================
-   INIT
+   NAVIGATION
 ================================================= */
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2249,8 +2204,9 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.classList.remove('open'); });
 });
- /* =================================================
-   BET-AMOUNT (Einsatz)
+
+/* =================================================
+   BET AMOUNTS
 ================================================= */
 function setCoinBet(amount, btn) {
   coinBet = amount;
@@ -2384,7 +2340,6 @@ async function doFlip() {
   btnKopf.disabled = true;
   btnZahl.disabled = true;
   resultEl.textContent = '';
-
   const res = await fetch('/api/coinflip', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -2392,7 +2347,6 @@ async function doFlip() {
   });
   const data = await res.json();
   if (data.error) { resultEl.textContent = data.error; resetCoinControls(); return; }
-
   const targetFace = data.result === 'kopf' ? 0 : 180;
   const normalized = ((currentRotation % 360) + 360) % 360;
   let delta = targetFace - normalized;
@@ -2401,7 +2355,6 @@ async function doFlip() {
   coin.classList.add('flipping');
   coin.classList.remove('settle');
   coin.style.transform = `rotateY(${currentRotation}deg)`;
-
   setTimeout(() => {
     coin.classList.remove('flipping');
     coin.classList.add('settle');
@@ -2471,7 +2424,6 @@ function renderWheel() {
     svg.appendChild(text);
   }
 }
-
 async function doSpin() {
   if (spinning) return;
   const options = getWheelOptions();
@@ -2480,20 +2432,9 @@ async function doSpin() {
   spinning = true;
   document.getElementById('spinBtn').disabled = true;
   document.getElementById('wheelResult').textContent = '';
-
-  const res = await fetch('/api/wheel', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({options})
-  });
+  const res = await fetch('/api/wheel', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({options}) });
   const data = await res.json();
-  if (data.error) {
-    document.getElementById('wheelResult').textContent = '⚠️ ' + data.error;
-    spinning = false;
-    document.getElementById('spinBtn').disabled = false;
-    return;
-  }
-
+  if (data.error) { document.getElementById('wheelResult').textContent = '⚠️ ' + data.error; spinning = false; document.getElementById('spinBtn').disabled = false; return; }
   const n = options.length;
   const anglePer = 360 / n;
   const winnerIndex = data.index;
@@ -2504,18 +2445,15 @@ async function doSpin() {
   let delta = desired - currentNormalized;
   if (delta < 0) delta += 360;
   wheelRotation += extraSpins + delta;
-
   const svg = document.getElementById('wheelSvg');
   svg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.16, 1)';
   svg.style.transform = `rotate(${wheelRotation}deg)`;
-
   setTimeout(() => {
     document.getElementById('wheelResult').innerHTML = `🎯 Ergebnis: <b>${data.result}</b>`;
     spinning = false;
     document.getElementById('spinBtn').disabled = false;
   }, 4100);
 }
-
 document.getElementById('wheelOptions').addEventListener('input', () => {
   if (document.getElementById('page-wheel').classList.contains('active')) renderWheel();
 });
@@ -2532,18 +2470,9 @@ function setupRouletteButtons() {
       if (betType === 'number') {
         const input = document.getElementById('rouletteNumberInput');
         const val = input.value.trim();
-        if (val === '' || isNaN(val)) {
-          input.focus();
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => input.style.borderColor = '#334155', 800);
-          return;
-        }
+        if (val === '' || isNaN(val)) { input.focus(); input.style.borderColor = '#ef4444'; setTimeout(() => input.style.borderColor = '#334155', 800); return; }
         const num = parseInt(val, 10);
-        if (num < 0 || num > 36) {
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => input.style.borderColor = '#334155', 800);
-          return;
-        }
+        if (num < 0 || num > 36) { input.style.borderColor = '#ef4444'; setTimeout(() => input.style.borderColor = '#334155', 800); return; }
         rouletteBet = { type: 'number', value: String(num) };
       } else {
         rouletteBet = { type: betType, value: betValue };
@@ -2556,7 +2485,6 @@ function setupRouletteButtons() {
     });
   });
 }
-
 async function doRouletteSpin() {
   if (!rouletteBet || rouletteSpinning) return;
   const p = getCurrentPlayer();
@@ -2580,12 +2508,7 @@ async function doRouletteSpin() {
   badge.textContent = 'Dreht...';
   hint.textContent = '';
   resultEl.textContent = '';
-
-  const res = await fetch('/api/roulette', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value, bet: rouletteBetAmount })
-  });
+  const res = await fetch('/api/roulette', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ bet_type: rouletteBet.type, bet_value: rouletteBet.value, bet: rouletteBetAmount }) });
   const data = await res.json();
   if (data.error) {
     resultEl.textContent = '⚠️ ' + data.error;
@@ -2631,7 +2554,6 @@ async function doRouletteSpin() {
 ================================================= */
 const CROSSY_STEPS = 8;
 const CROSSY_MULTS = [1.00, 1.20, 1.50, 1.95, 2.60, 3.55, 4.90, 6.80, 9.60];
-
 function setCrossyBet(amount, btn) {
   if (crossyState && crossyState.active) return;
   crossyBet = amount;
@@ -2826,12 +2748,7 @@ async function doSlotsSpin() {
   document.getElementById('slotsResult').innerHTML = '🎰 Dreht...';
   document.getElementById('slotsResult').classList.remove('slot-big-win');
   for (let i = 0; i < 3; i++) document.getElementById('reel' + i).classList.remove('jackpot');
-
-  const res = await fetch('/api/slots', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ bet: slotsBet })
-  });
+  const res = await fetch('/api/slots', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ bet: slotsBet }) });
   const data = await res.json();
   if (data.error) {
     document.getElementById('slotsResult').innerHTML = '<span class="lose">⚠️ ' + data.error + '</span>';
@@ -2843,17 +2760,14 @@ async function doSlotsSpin() {
   spinReelVisual(0, emojis[0], 1500);
   spinReelVisual(1, emojis[1], 2000);
   spinReelVisual(2, emojis[2], 2500);
-
-  if (account && typeof data.new_balance === 'number') {
-    setBalanceFromServer(data.new_balance, data.last_update);
-  } else if (!account && guestState) {
+  if (account && typeof data.new_balance === 'number') setBalanceFromServer(data.new_balance, data.last_update);
+  else if (!account && guestState) {
     guestState.balance += data.net_profit;
     lastLocalUpdateGuest = Date.now();
     saveGuestState();
     syncGuestToServer();
     updateBalanceUI();
   }
-
   setTimeout(() => {
     const resultEl = document.getElementById('slotsResult');
     const mult = data.multiplier;
@@ -2947,7 +2861,6 @@ document.getElementById('sliderMultiplier')?.addEventListener('input', () => {
   }
   updateSliderVisuals();
 });
-
 let isDraggingThreshold = false;
 const sliderThreshold = document.getElementById('sliderThreshold');
 function getBarRect() { return document.getElementById('sliderBar').getBoundingClientRect(); }
@@ -3001,7 +2914,6 @@ if (sliderThreshold) {
     updateSliderVisuals();
   });
 }
-
 async function doSliderSpin() {
   if (sliderSpinning) return;
   const p = getCurrentPlayer();
@@ -3019,12 +2931,7 @@ async function doSliderSpin() {
   rollEl.classList.remove('win', 'lose');
   rollEl.classList.add('rolling');
   rollEl.textContent = '?';
-
-  const res = await fetch('/api/slider', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ bet: sliderBet, direction: sliderDirection, target: target })
-  });
+  const res = await fetch('/api/slider', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ bet: sliderBet, direction: sliderDirection, target: target }) });
   const data = await res.json();
   if (data.error) {
     rollEl.classList.remove('rolling');

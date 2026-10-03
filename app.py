@@ -8,6 +8,7 @@ import socket
 from datetime import datetime, timedelta
 from functools import wraps
 
+import libsql_experimental as libsql
 from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -18,7 +19,8 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = False
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 
-DB_PATH = os.environ.get("DB_PATH", "accounts.db")
+TURSO_URL = os.environ.get("TURSO_DATABASE_URL", "")
+TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
 # ---------- Slot-Symbole ----------
@@ -34,26 +36,29 @@ SLOT_SYMBOLS = [
 # ---------- Datenbank ----------
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
+        if TURSO_URL and TURSO_TOKEN:
+            g.db = libsql.connect(database=TURSO_URL, auth_token=TURSO_TOKEN)
+        else:
+            g.db = sqlite3.connect("accounts.db")
+            print("⚠️ WARNUNG: Nutze lokale SQLite (Accounts gehen bei Deploy verloren!)")
         g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
+        try:
+            g.db.execute("PRAGMA foreign_keys = ON")
+        except Exception:
+            pass
     return g.db
 
 @app.teardown_appcontext
 def close_db(exc):
     db = g.pop("db", None)
     if db is not None:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
 
 def init_db():
-    db_dir = os.path.dirname(DB_PATH)
-    if db_dir and not os.path.exists(db_dir):
-        try:
-            os.makedirs(db_dir, exist_ok=True)
-        except Exception as e:
-            print(f"Warnung: Konnte Ordner {db_dir} nicht anlegen: {e}")
-
-    db = sqlite3.connect(DB_PATH)
+    db = get_db()
     db.executescript("""
         CREATE TABLE IF NOT EXISTS accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,7 +86,6 @@ def init_db():
         cols = [r[1] for r in db.execute("PRAGMA table_info(guests)").fetchall()]
         if "username" not in cols:
             db.execute("ALTER TABLE guests ADD COLUMN username TEXT")
-            db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_guests_username ON guests(username) WHERE username IS NOT NULL")
             print("✅ Migration: guests.username hinzugefügt")
     except Exception as e:
         print(f"Migration guests.username: {e}")
@@ -94,7 +98,7 @@ def init_db():
         except Exception as e:
             print(f"Migration {table}.last_update: {e}")
     db.commit()
-    db.close()
+    print("✅ Datenbank initialisiert (Turso)" if TURSO_URL else "✅ Datenbank initialisiert (lokal)")
 
 # ---------- Helpers ----------
 def generate_code(length=6):
@@ -127,7 +131,6 @@ def now_iso():
     return datetime.utcnow().isoformat()
 
 def username_exists(db, username, exclude_account_id=None, exclude_guest_id=None):
-    """Prüft ob ein Username bereits existiert (in accounts ODER guests)."""
     row = db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone()
     if row and (exclude_account_id is None or row["id"] != exclude_account_id):
         return True
@@ -195,12 +198,11 @@ def get_guest_by_id(guest_id):
     return db.execute("SELECT * FROM guests WHERE id = ?", (guest_id,)).fetchone()
 
 def get_any_user_by_name(username):
-    """Sucht User (account oder guest) per Name."""
     db = get_db()
     row = db.execute("SELECT * FROM accounts WHERE username = ?", (username,)).fetchone()
     if row:
         return ("account", row)
-    row = db.execute("SELECT * FROM guests WHERE username = ?", (username,)).fetchone()
+    row = db.execute("SELECT * FROM guests WHERE username = ? COLLATE NOCASE", (username,)).fetchone()
     if row:
         return ("guest", row)
     return (None, None)
@@ -238,7 +240,6 @@ def index():
 def admin_page():
     return render_template("admin.html")
 
-# ---------- PWA ----------
 @app.route("/service-worker.js")
 def service_worker():
     return send_from_directory(app.static_folder, "service-worker.js", mimetype="application/javascript")
@@ -285,7 +286,8 @@ def admin_data():
     guests = [{
         "type": "guest",
         "id": r["id"],
-        "name": (r["username"] if "username" in r.keys() and r["username"] else "Gast (kein Name)"),
+        "name": (r["username"] if "username" in r.keys() and r["username"] else None),
+        "has_name": bool(r["username"]) if "username" in r.keys() else False,
         "email": "-",
         "balance": r["balance"],
         "created_at": r["created_at"],
@@ -457,7 +459,7 @@ def update_email():
     db.commit()
     return jsonify({"ok": True, "email": email})
 
-# ---------- Gäste-Sync ----------
+# ---------- Gäste ----------
 @app.route("/api/guest/create", methods=["POST"])
 def guest_create():
     db = get_db()
@@ -512,7 +514,6 @@ def guest_me():
         return jsonify({"exists": False})
     return jsonify({"exists": True, "guest": guest_to_dict(row)})
 
-# ---------- Gast: Namen setzen ----------
 @app.route("/api/guest/set_name", methods=["POST"])
 def guest_set_name():
     data = request.get_json(silent=True) or {}
@@ -551,13 +552,11 @@ def users_search():
     db = get_db()
     like = f"%{query}%"
 
-    # Suche in accounts
     account_rows = db.execute(
         "SELECT id, username FROM accounts WHERE username LIKE ? AND id != ? LIMIT 10",
         (like, my_account_id if my_account_id else -1)
     ).fetchall()
 
-    # Suche in guests
     guest_rows = db.execute(
         "SELECT id, username FROM guests WHERE username LIKE ? AND username IS NOT NULL AND id != ? LIMIT 10",
         (like, my_guest_id if my_guest_id else "")
@@ -571,7 +570,7 @@ def users_search():
 
     return jsonify({"users": users[:15]})
 
-# ---------- Pay-System ----------
+# ---------- Pay ----------
 @app.route("/api/pay", methods=["POST"])
 def pay():
     data = request.get_json(silent=True) or {}
@@ -588,14 +587,12 @@ def pay():
     if not recipient_name:
         return jsonify({"error": "Empfänger fehlt."}), 400
 
-    # ===== SENDER =====
     sender_type = None
     sender_row = None
     acc = get_current_account()
     if acc:
         sender_type = "account"
         sender_row = acc
-        print(f"🔍 SENDER=ACCOUNT: {acc['username']} (ID {acc['id']}, {acc['balance']:.2f} €)")
     else:
         guest_id = (data.get("guest_id") or "").strip()
         if not guest_id:
@@ -608,107 +605,58 @@ def pay():
             return jsonify({"error": "Du brauchst erst einen Namen, um Geld zu senden."}), 400
         sender_type = "guest"
         sender_row = g
-        print(f"🔍 SENDER=GUEST: {sender_username} (ID {g['id']}, {g['balance']:.2f} €)")
 
-    # ===== EMPFÄNGER =====
-    db = get_db()
-
-    # Suche Account
-    recipient_row = db.execute(
-        "SELECT * FROM accounts WHERE username = ?",
-        (recipient_name,)
-    ).fetchone()
-    recipient_type = "account" if recipient_row else None
-
-    # Falls nicht gefunden: Suche Guest (auch case-insensitive)
-    if not recipient_row:
-        recipient_row = db.execute(
-            "SELECT * FROM guests WHERE username = ? COLLATE NOCASE",
-            (recipient_name,)
-        ).fetchone()
-        recipient_type = "guest" if recipient_row else None
-
-    print(f"🔍 EMPFÄNGER '{recipient_name}': type={recipient_type}, found={recipient_row is not None}")
-
-    if not recipient_row:
+    recipient_type, recipient_row = get_any_user_by_name(recipient_name)
+    if not recipient_type:
         return jsonify({"error": f"Empfänger '{recipient_name}' nicht gefunden."}), 404
 
     sender_id = sender_row["id"]
     recipient_id = recipient_row["id"]
 
-    # Selbst-Senden verhindern
     if str(sender_id) == str(recipient_id) and sender_type == recipient_type:
         return jsonify({"error": "Du kannst dir nicht selbst Geld senden."}), 400
 
-    # Guthaben prüfen
     if sender_row["balance"] < amount:
         return jsonify({"error": f"Nicht genug Guthaben. Du hast {sender_row['balance']:.2f} €."}), 400
 
-    # ===== BUCHUNG =====
+    db = get_db()
     ts = now_iso()
     sender_name = sender_row["username"] if "username" in sender_row.keys() and sender_row["username"] else "Gast"
     recipient_display = recipient_row["username"] if "username" in recipient_row.keys() and recipient_row["username"] else "Gast"
     msg = (data.get("message") or "").strip()[:100]
 
     try:
-        # Sender abbuchen
         new_sender_balance = sender_row["balance"] - amount
         if sender_type == "account":
-            cur = db.execute(
-                "UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
-                (new_sender_balance, ts, sender_id)
-            )
+            db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                       (new_sender_balance, ts, sender_id))
         else:
-            cur = db.execute(
-                "UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
-                (new_sender_balance, ts, sender_id)
-            )
-        print(f"🔍 SENDER-UPDATE: {cur.rowcount} Zeile(n) → {new_sender_balance:.2f} €")
+            db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                       (new_sender_balance, ts, sender_id))
 
-        if cur.rowcount == 0:
-            raise Exception(f"Sender {sender_type} {sender_id} nicht gefunden für Update")
-
-        # Empfänger gutschreiben
         new_recipient_balance = recipient_row["balance"] + amount
         if recipient_type == "account":
-            cur = db.execute(
-                "UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
-                (new_recipient_balance, ts, recipient_id)
-            )
+            db.execute("UPDATE accounts SET balance = ?, last_update = ? WHERE id = ?",
+                       (new_recipient_balance, ts, recipient_id))
         else:
-            cur = db.execute(
-                "UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
-                (new_recipient_balance, ts, recipient_id)
-            )
-        print(f"🔍 EMPFÄNGER-UPDATE: {cur.rowcount} Zeile(n) → {new_recipient_balance:.2f} €")
+            db.execute("UPDATE guests SET balance = ?, last_update = ? WHERE id = ?",
+                       (new_recipient_balance, ts, recipient_id))
 
-        if cur.rowcount == 0:
-            raise Exception(f"Empfänger {recipient_type} {recipient_id} nicht gefunden für Update")
-
-        # History-Einträge
         send_text = f"an {recipient_display}" + (f" · \"{msg}\"" if msg else "")
         recv_text = f"von {sender_name}" + (f" · \"{msg}\"" if msg else "")
 
         if sender_type == "account":
-            add_history_to_account(db, sender_id, {
-                "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
-            })
+            add_history_to_account(db, sender_id, {"time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False})
         else:
-            add_history_to_guest(db, sender_id, {
-                "time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False
-            })
+            add_history_to_guest(db, sender_id, {"time": ts, "game": "💸 Gesendet", "text": send_text, "amount": amount, "win": False})
 
         if recipient_type == "account":
-            add_history_to_account(db, recipient_id, {
-                "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
-            })
+            add_history_to_account(db, recipient_id, {"time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True})
         else:
-            add_history_to_guest(db, recipient_id, {
-                "time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True
-            })
+            add_history_to_guest(db, recipient_id, {"time": ts, "game": "💰 Erhalten", "text": recv_text, "amount": amount, "win": True})
 
         db.commit()
-        print(f"✅ PAY OK: {sender_name} ({sender_type}) → {recipient_display} ({recipient_type}): {amount:.2f} €")
+        print(f"✅ Pay OK: {sender_name} ({sender_type}) → {recipient_display} ({recipient_type}): {amount:.2f} €")
 
         return jsonify({
             "ok": True,
@@ -721,9 +669,7 @@ def pay():
 
     except Exception as e:
         db.rollback()
-        print(f"❌ PAY-FEHLER: {type(e).__name__}: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Pay-Fehler: {type(e).__name__}: {e}")
         return jsonify({"error": f"Buchungsfehler: {str(e)}"}), 500
 
 # ---------- Guthaben-Sync (Account) ----------
@@ -895,7 +841,7 @@ def slots():
     ts = None
     if acc_row:
         new_balance, ts = update_account_balance(net_profit, {
-            "time": now_iso(), "game": "💸 Slot Maschine",
+            "time": now_iso(), "game": "🎰 Slots",
             "text": f"{' × '.join([s['emoji'] for s in symbols])} {'×' + str(multiplier) if multiplier > 0 else ''}".strip(),
             "amount": bet, "win": multiplier > 0,
         })
@@ -927,7 +873,7 @@ def slider():
     else:
         win_chance = target
     if win_chance < 0.01:
-        return jsonify({"error": "Ziel zu extrem — keine Chance zu gewinnen."}), 400
+        return jsonify({"error": "Ziel zu extrem."}), 400
     multiplier = 99.0 / win_chance
     roll = secrets.randbelow(10001) / 100.0
     if direction == "over":
@@ -957,7 +903,8 @@ def slider():
     })
 
 # ---------- Init ----------
-init_db()
+with app.app_context():
+    init_db()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

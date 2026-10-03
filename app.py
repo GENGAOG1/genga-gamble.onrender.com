@@ -8,7 +8,8 @@ import socket
 from datetime import datetime, timedelta
 from functools import wraps
 
-import libsql_experimental as libsql
+# NEU: Verwende das 'libsql'-Paket statt 'libsql-experimental'
+import libsql
 from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -37,6 +38,7 @@ SLOT_SYMBOLS = [
 def get_db():
     if "db" not in g:
         if TURSO_URL and TURSO_TOKEN:
+            # Verbindung über das 'libsql'-Paket
             g.db = libsql.connect(database=TURSO_URL, auth_token=TURSO_TOKEN)
         else:
             g.db = sqlite3.connect("accounts.db")
@@ -81,7 +83,6 @@ def init_db():
             last_update TEXT NOT NULL DEFAULT ''
         );
     """)
-    # Migrationen
     try:
         cols = [r[1] for r in db.execute("PRAGMA table_info(guests)").fetchall()]
         if "username" not in cols:

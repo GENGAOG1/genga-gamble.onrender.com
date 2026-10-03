@@ -5,6 +5,7 @@ import secrets
 import sqlite3
 import string
 import socket
+import hashlib
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -32,14 +33,47 @@ SLOT_SYMBOLS = [
     {"id": "diamond", "emoji": "💎", "payout3": 100},
 ]
 
+# =================================================
+# PASSWORT-HASHING
+# =================================================
+def hash_password(password):
+    """Erzeugt einen sicheren Hash mit Salt."""
+    salt = secrets.token_hex(16)
+    pwd_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt.encode('utf-8'),
+        100000
+    ).hex()
+    return f"{salt}${pwd_hash}"
+
+def verify_password(password, stored):
+    """Prüft ein Passwort gegen den gespeicherten Hash."""
+    if not stored or '$' not in stored:
+        return False
+    try:
+        salt, pwd_hash = stored.split('$', 1)
+        check_hash = hashlib.pbkdf2_hmac(
+            'sha256',
+            password.encode('utf-8'),
+            salt.encode('utf-8'),
+            100000
+        ).hex()
+        return secrets.compare_digest(check_hash, pwd_hash)
+    except Exception:
+        return False
+
+# =================================================
+# DATENBANK
+# =================================================
 def get_db():
     if "db" not in g:
         if TURSO_URL and TURSO_TOKEN:
             g.db = libsql.connect(database=TURSO_URL, auth_token=TURSO_TOKEN)
         else:
             g.db = sqlite3.connect("accounts.db")
-            print("⚠️ WARNUNG: Nutze lokale SQLite (Accounts gehen bei Deploy verloren!)")
-        g.db.row_factory = sqlite3.Row
+            g.db.row_factory = sqlite3.Row
+            print("⚠️ WARNUNG: Nutze lokale SQLite")
         try:
             g.db.execute("PRAGMA foreign_keys = ON")
         except Exception:
@@ -62,7 +96,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT NOT NULL,
-            code TEXT NOT NULL,
+            password_hash TEXT NOT NULL DEFAULT '',
+            code TEXT NOT NULL DEFAULT '',
             balance REAL NOT NULL DEFAULT 100.0,
             history TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
@@ -79,13 +114,25 @@ def init_db():
             last_update TEXT NOT NULL DEFAULT ''
         );
     """)
+    # Migrationen
+    try:
+        cols = [r[1] for r in db.execute("PRAGMA table_info(accounts)").fetchall()]
+        if "password_hash" not in cols:
+            db.execute("ALTER TABLE accounts ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''")
+            print("✅ Migration: accounts.password_hash")
+        if "code" not in cols:
+            db.execute("ALTER TABLE accounts ADD COLUMN code TEXT NOT NULL DEFAULT ''")
+            print("✅ Migration: accounts.code")
+    except Exception as e:
+        print(f"Migration accounts: {e}")
+
     try:
         cols = [r[1] for r in db.execute("PRAGMA table_info(guests)").fetchall()]
         if "username" not in cols:
             db.execute("ALTER TABLE guests ADD COLUMN username TEXT")
-            print("✅ Migration: guests.username hinzugefügt")
+            print("✅ Migration: guests.username")
     except Exception as e:
-        print(f"Migration guests.username: {e}")
+        print(f"Migration guests: {e}")
 
     for table in ("accounts", "guests"):
         try:
@@ -97,6 +144,9 @@ def init_db():
     db.commit()
     print("✅ Datenbank initialisiert (Turso)" if TURSO_URL else "✅ Datenbank initialisiert (lokal)")
 
+# =================================================
+# HELPERS
+# =================================================
 def generate_code(length=6):
     alphabet = string.ascii_uppercase + string.digits
     alphabet = alphabet.replace("O", "").replace("0", "").replace("I", "").replace("1", "")
@@ -227,6 +277,9 @@ def add_history_to_guest(db, guest_id, entry):
     history = history[:50]
     db.execute("UPDATE guests SET history = ? WHERE id = ?", (json.dumps(history), guest_id))
 
+# =================================================
+# HAUPTSEITEN
+# =================================================
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -243,6 +296,9 @@ def service_worker():
 def manifest():
     return send_from_directory(app.static_folder, "manifest.json", mimetype="application/manifest+json")
 
+# =================================================
+# ADMIN
+# =================================================
 @app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     data = request.get_json(silent=True) or {}
@@ -344,11 +400,15 @@ def admin_delete():
     db.commit()
     return jsonify({"ok": True})
 
+# =================================================
+# AUTH (mit Passwort)
+# =================================================
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json(silent=True) or {}
     username = (data.get("username") or "").strip()
     email = (data.get("email") or "").strip()
+    password = data.get("password") or ""
     start_balance = data.get("start_balance", None)
     start_history = data.get("start_history", None)
 
@@ -358,6 +418,10 @@ def register():
         return jsonify({"error": "Nutzername darf max. 20 Zeichen haben."}), 400
     if not re.match(r"^[A-Za-z0-9_\-]+$", username):
         return jsonify({"error": "Nur Buchstaben, Zahlen, _ und - erlaubt."}), 400
+    if not password or len(password) < 6:
+        return jsonify({"error": "Passwort muss mind. 6 Zeichen haben."}), 400
+    if len(password) > 100:
+        return jsonify({"error": "Passwort zu lang."}), 400
 
     ok, msg = check_email(email)
     if not ok:
@@ -367,9 +431,7 @@ def register():
     if username_exists(db, username):
         return jsonify({"error": "Nutzername ist schon vergeben."}), 409
 
-    code = generate_code(6)
-    while db.execute("SELECT id FROM accounts WHERE code = ?", (code,)).fetchone():
-        code = generate_code(6)
+    pwd_hash = hash_password(password)
 
     try:
         balance = float(start_balance) if start_balance is not None else 100.0
@@ -386,8 +448,8 @@ def register():
 
     ts = now_iso()
     cur = db.execute(
-        "INSERT INTO accounts (username, email, code, balance, history, created_at, last_update) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (username, email, code, balance, json.dumps(history), ts, ts)
+        "INSERT INTO accounts (username, email, password_hash, balance, history, created_at, last_update) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (username, email, pwd_hash, balance, json.dumps(history), ts, ts)
     )
     db.commit()
     acc_id = cur.lastrowid
@@ -395,20 +457,25 @@ def register():
     session["account_id"] = acc_id
     session.permanent = True
     print(f"✅ Registrierung: {username} (ID {acc_id})")
-    return jsonify({"ok": True, "username": username, "code": code, "balance": balance, "last_update": ts})
+    return jsonify({"ok": True, "username": username, "balance": balance, "last_update": ts})
 
 @app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json(silent=True) or {}
     username = (data.get("username") or "").strip()
-    code = (data.get("code") or "").strip().upper()
-    if not username or not code:
-        return jsonify({"error": "Nutzername und Code nötig."}), 400
+    password = data.get("password") or ""
+
+    if not username or not password:
+        return jsonify({"error": "Nutzername und Passwort nötig."}), 400
 
     db = get_db()
-    row = db.execute("SELECT * FROM accounts WHERE username = ? AND code = ?", (username, code)).fetchone()
+    row = db.execute("SELECT * FROM accounts WHERE username = ?", (username,)).fetchone()
     if not row:
-        return jsonify({"error": "Nutzername oder Code falsch."}), 401
+        return jsonify({"error": "Nutzername oder Passwort falsch."}), 401
+
+    stored = row["password_hash"] if "password_hash" in row.keys() else ""
+    if not verify_password(password, stored):
+        return jsonify({"error": "Nutzername oder Passwort falsch."}), 401
 
     session.clear()
     session["account_id"] = row["id"]
@@ -428,20 +495,24 @@ def me():
         return jsonify({"logged_in": False})
     return jsonify({"logged_in": True, "account": account_to_dict(row)})
 
-@app.route("/api/update_code", methods=["POST"])
+@app.route("/api/update_password", methods=["POST"])
 @login_required
-def update_code():
+def update_password():
     row = get_current_account()
     db = get_db()
     data = request.get_json(silent=True) or {}
-    new_code = (data.get("new_code") or "").strip().upper()
-    if not re.match(r"^[A-Z0-9]{4,12}$", new_code):
-        return jsonify({"error": "Code muss 4–12 Zeichen (A-Z, 0-9) haben."}), 400
-    if db.execute("SELECT id FROM accounts WHERE code = ? AND id != ?", (new_code, row["id"])).fetchone():
-        return jsonify({"error": "Code ist schon vergeben."}), 409
-    db.execute("UPDATE accounts SET code = ? WHERE id = ?", (new_code, row["id"]))
+    old_password = data.get("old_password") or ""
+    new_password = data.get("new_password") or ""
+
+    if not verify_password(old_password, row["password_hash"] if "password_hash" in row.keys() else ""):
+        return jsonify({"error": "Altes Passwort falsch."}), 401
+    if not new_password or len(new_password) < 6:
+        return jsonify({"error": "Neues Passwort muss mind. 6 Zeichen haben."}), 400
+
+    new_hash = hash_password(new_password)
+    db.execute("UPDATE accounts SET password_hash = ? WHERE id = ?", (new_hash, row["id"]))
     db.commit()
-    return jsonify({"ok": True, "code": new_code})
+    return jsonify({"ok": True})
 
 @app.route("/api/update_email", methods=["POST"])
 @login_required
@@ -457,6 +528,9 @@ def update_email():
     db.commit()
     return jsonify({"ok": True, "email": email})
 
+# =================================================
+# GÄSTE
+# =================================================
 @app.route("/api/guest/create", methods=["POST"])
 def guest_create():
     db = get_db()
@@ -535,6 +609,9 @@ def guest_set_name():
     print(f"✅ Gast {guest_id[:10]}… → Name: {username}")
     return jsonify({"ok": True, "username": username})
 
+# =================================================
+# USER-SUCHE
+# =================================================
 @app.route("/api/users/search", methods=["POST"])
 def users_search():
     data = request.get_json(silent=True) or {}
@@ -566,6 +643,9 @@ def users_search():
 
     return jsonify({"users": users[:15]})
 
+# =================================================
+# PAY
+# =================================================
 @app.route("/api/pay", methods=["POST"])
 def pay():
     data = request.get_json(silent=True) or {}
@@ -667,6 +747,9 @@ def pay():
         print(f"❌ Pay-Fehler: {type(e).__name__}: {e}")
         return jsonify({"error": f"Buchungsfehler: {str(e)}"}), 500
 
+# =================================================
+# GUTHABEN-SYNC
+# =================================================
 def update_account_balance(delta, history_entry=None):
     row = get_current_account()
     if not row:
@@ -688,6 +771,9 @@ def update_account_balance(delta, history_entry=None):
     print(f"✅ Account {row['id']} ({row['username']}): {row['balance']:.2f} → {new_balance:.2f} €")
     return new_balance, ts
 
+# =================================================
+# SPIELE
+# =================================================
 @app.route("/api/coinflip", methods=["POST"])
 def coinflip():
     data = request.get_json(silent=True) or {}
@@ -895,6 +981,9 @@ def slider():
         "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row),
     })
 
+# =================================================
+# INIT
+# =================================================
 with app.app_context():
     init_db()
 

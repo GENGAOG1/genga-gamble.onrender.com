@@ -53,6 +53,7 @@
   .btn-success { background: #16a34a; color: white; }
   .btn-success:hover { background: #15803d; }
   .btn-small { padding: 0.35rem 0.7rem; font-size: 0.85rem; border-radius: 6px; }
+
   .stats {
     display: flex;
     gap: 1rem;
@@ -92,6 +93,7 @@
     text-align: left;
     border-bottom: 1px solid #334155;
     font-size: 0.9rem;
+    vertical-align: middle;
   }
   th {
     background: #0f172a;
@@ -124,6 +126,7 @@
   }
   .badge.account { background: #14532d; color: #bbf7d0; }
   .badge.guest { background: #334155; color: #cbd5e1; }
+  .badge.guest.named { background: #16a34a; color: white; }
   .section-title {
     margin: 1.5rem 0 0.8rem;
     font-size: 1.1rem;
@@ -277,6 +280,7 @@ function escapeHtml(s) {
 function renderTables() {
   const search = (document.getElementById('searchInput').value || '').toLowerCase();
 
+  // Accounts
   const accContainer = document.getElementById('accountsTable');
   const accFiltered = data.accounts.filter(a =>
     !search || a.name.toLowerCase().includes(search) || (a.email || '').toLowerCase().includes(search)
@@ -314,10 +318,14 @@ function renderTables() {
     `;
   }
 
+  // Gäste
   const guestContainer = document.getElementById('guestsTable');
-  const guestFiltered = data.guests.filter(g =>
-    !search || (g.name || '').toLowerCase().includes(search)
-  );
+  const guestFiltered = data.guests.filter(g => {
+    if (!search) return true;
+    const nameMatch = g.name && g.name.toLowerCase().includes(search);
+    const idMatch = g.id.toLowerCase().includes(search);
+    return nameMatch || idMatch;
+  });
   if (!guestFiltered.length) {
     guestContainer.innerHTML = '<div class="empty">Keine Gäste.</div>';
   } else {
@@ -325,7 +333,7 @@ function renderTables() {
       <table>
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Name / ID</th>
             <th>Zuletzt gesehen</th>
             <th>Guthaben</th>
             <th>Aktionen</th>
@@ -334,7 +342,12 @@ function renderTables() {
         <tbody>
           ${guestFiltered.map(g => `
             <tr>
-              <td><span class="badge guest">Gast</span> <code style="font-size:0.75rem;">${escapeHtml(g.id.slice(0,10))}…</code></td>
+              <td>
+                ${g.has_name
+                  ? `<span class="badge guest named">👤 ${escapeHtml(g.name)}</span><br><code style="font-size:0.65rem; color:#94a3b8;">${escapeHtml(g.id.slice(0,10))}…</code>`
+                  : `<span class="badge guest">Gast</span><br><code style="font-size:0.65rem; color:#94a3b8;">${escapeHtml(g.id.slice(0,10))}…</code>`
+                }
+              </td>
               <td>${escapeHtml((g.last_seen || '').slice(0,16).replace('T',' '))}</td>
               <td>
                 <input type="number" step="0.01" class="balance-input" id="bal-guest-${g.id}" value="${g.balance}">

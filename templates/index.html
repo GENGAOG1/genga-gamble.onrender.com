@@ -1059,20 +1059,9 @@
     font-size: 0.9rem;
     flex-shrink: 0;
   }
-  .pay-recipient-display .name {
-    font-weight: 700;
-    color: #e2e8f0;
-    font-size: 1rem;
-  }
-  .pay-recipient-display .type {
-    font-size: 0.7rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-  }
-  .pay-recipient-display.empty {
-    color: #94a3b8;
-    font-style: italic;
-  }
+  .pay-recipient-display .name { font-weight: 700; color: #e2e8f0; font-size: 1rem; }
+  .pay-recipient-display .type { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+  .pay-recipient-display.empty { color: #94a3b8; font-style: italic; }
   .user-list {
     max-height: 180px;
     overflow-y: auto;
@@ -1109,12 +1098,7 @@
   .user-item .info { display: flex; flex-direction: column; }
   .user-item .name { font-weight: 700; color: #e2e8f0; }
   .user-item .type { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
-  .quick-amount-row {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-  }
+  .quick-amount-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
   .quick-amount {
     flex: 1;
     min-width: 50px;
@@ -1130,30 +1114,15 @@
   }
   .quick-amount:hover { border-color: #8b5cf6; }
   .quick-amount.selected { background: #6d28d9; border-color: #8b5cf6; color: white; }
-  .pay-success {
-    text-align: center;
-    padding: 1.2rem 0.5rem;
-  }
-  .pay-success .emoji {
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
-    animation: payBounce 0.6s ease;
-  }
+  .pay-success { text-align: center; padding: 1.2rem 0.5rem; }
+  .pay-success .emoji { font-size: 3.5rem; margin-bottom: 0.5rem; animation: payBounce 0.6s ease; }
   @keyframes payBounce {
     0% { transform: scale(0); }
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }
   }
-  .pay-success .text {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #4ade80;
-    margin-bottom: 0.4rem;
-  }
-  .pay-success .sub {
-    color: #94a3b8;
-    font-size: 0.9rem;
-  }
+  .pay-success .text { font-size: 1.1rem; font-weight: 700; color: #4ade80; margin-bottom: 0.4rem; }
+  .pay-success .sub { color: #94a3b8; font-size: 0.9rem; }
 </style>
 </head>
 <body>
@@ -2047,6 +2016,7 @@ async function searchUsers(q) {
       list.innerHTML = '<div style="padding:0.8rem;color:#94a3b8;font-size:0.9rem;text-align:center;">Keine Nutzer gefunden</div>';
       return;
     }
+    window.__payUsers = data.users;
     list.innerHTML = '<div class="user-list">' + data.users.map((u, i) => `
       <div class="user-item" onclick='selectPayRecipientByIndex(${i})'>
         <div class="avatar ${u.type}">${escapeHtml(u.username.charAt(0).toUpperCase())}</div>
@@ -2056,7 +2026,6 @@ async function searchUsers(q) {
         </div>
       </div>
     `).join('') + '</div>';
-    window.__payUsers = data.users;
   } catch (e) {
     list.innerHTML = '<div style="padding:0.8rem;color:#f87171;font-size:0.9rem;text-align:center;">Fehler beim Suchen</div>';
   }

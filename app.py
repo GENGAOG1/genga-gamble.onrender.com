@@ -8,7 +8,6 @@ import socket
 from datetime import datetime, timedelta
 from functools import wraps
 
-# NEU: Verwende das 'libsql'-Paket statt 'libsql-experimental'
 import libsql
 from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
 
@@ -24,7 +23,6 @@ TURSO_URL = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 
-# ---------- Slot-Symbole ----------
 SLOT_SYMBOLS = [
     {"id": "cherry",  "emoji": "🍒", "payout3": 5},
     {"id": "lemon",   "emoji": "🍋", "payout3": 8},
@@ -34,11 +32,9 @@ SLOT_SYMBOLS = [
     {"id": "diamond", "emoji": "💎", "payout3": 100},
 ]
 
-# ---------- Datenbank ----------
 def get_db():
     if "db" not in g:
         if TURSO_URL and TURSO_TOKEN:
-            # Verbindung über das 'libsql'-Paket
             g.db = libsql.connect(database=TURSO_URL, auth_token=TURSO_TOKEN)
         else:
             g.db = sqlite3.connect("accounts.db")
@@ -101,7 +97,6 @@ def init_db():
     db.commit()
     print("✅ Datenbank initialisiert (Turso)" if TURSO_URL else "✅ Datenbank initialisiert (lokal)")
 
-# ---------- Helpers ----------
 def generate_code(length=6):
     alphabet = string.ascii_uppercase + string.digits
     alphabet = alphabet.replace("O", "").replace("0", "").replace("I", "").replace("1", "")
@@ -232,7 +227,6 @@ def add_history_to_guest(db, guest_id, entry):
     history = history[:50]
     db.execute("UPDATE guests SET history = ? WHERE id = ?", (json.dumps(history), guest_id))
 
-# ---------- Hauptseiten ----------
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -249,7 +243,6 @@ def service_worker():
 def manifest():
     return send_from_directory(app.static_folder, "manifest.json", mimetype="application/manifest+json")
 
-# ---------- Admin ----------
 @app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     data = request.get_json(silent=True) or {}
@@ -273,7 +266,12 @@ def admin_check():
 def admin_data():
     db = get_db()
     accounts_rows = db.execute("SELECT * FROM accounts ORDER BY created_at DESC").fetchall()
-    guests_rows = db.execute("SELECT * FROM guests ORDER BY last_seen DESC").fetchall()
+    guests_rows = db.execute("""
+        SELECT * FROM guests
+        ORDER BY
+            CASE WHEN username IS NULL THEN 1 ELSE 0 END,
+            last_seen DESC
+    """).fetchall()
 
     accounts = [{
         "type": "account",
@@ -346,7 +344,6 @@ def admin_delete():
     db.commit()
     return jsonify({"ok": True})
 
-# ---------- Auth ----------
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json(silent=True) or {}
@@ -460,7 +457,6 @@ def update_email():
     db.commit()
     return jsonify({"ok": True, "email": email})
 
-# ---------- Gäste ----------
 @app.route("/api/guest/create", methods=["POST"])
 def guest_create():
     db = get_db()
@@ -539,7 +535,6 @@ def guest_set_name():
     print(f"✅ Gast {guest_id[:10]}… → Name: {username}")
     return jsonify({"ok": True, "username": username})
 
-# ---------- User-Suche ----------
 @app.route("/api/users/search", methods=["POST"])
 def users_search():
     data = request.get_json(silent=True) or {}
@@ -571,7 +566,6 @@ def users_search():
 
     return jsonify({"users": users[:15]})
 
-# ---------- Pay ----------
 @app.route("/api/pay", methods=["POST"])
 def pay():
     data = request.get_json(silent=True) or {}
@@ -673,7 +667,6 @@ def pay():
         print(f"❌ Pay-Fehler: {type(e).__name__}: {e}")
         return jsonify({"error": f"Buchungsfehler: {str(e)}"}), 500
 
-# ---------- Guthaben-Sync (Account) ----------
 def update_account_balance(delta, history_entry=None):
     row = get_current_account()
     if not row:
@@ -695,7 +688,6 @@ def update_account_balance(delta, history_entry=None):
     print(f"✅ Account {row['id']} ({row['username']}): {row['balance']:.2f} → {new_balance:.2f} €")
     return new_balance, ts
 
-# ---------- Spiele ----------
 @app.route("/api/coinflip", methods=["POST"])
 def coinflip():
     data = request.get_json(silent=True) or {}
@@ -903,7 +895,6 @@ def slider():
         "new_balance": new_balance, "last_update": ts, "logged_in": bool(acc_row),
     })
 
-# ---------- Init ----------
 with app.app_context():
     init_db()
 

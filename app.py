@@ -59,13 +59,12 @@ def verify_password(password, stored):
         return False
 
 # =================================================
-# DATENBANK (Lazy-Init!)
+# DATENBANK
 # =================================================
 _db_initialized = False
 _init_lock = threading.Lock()
 
 def _ensure_tables(db):
-    """Erstellt Tabellen falls sie fehlen. Wird nur 1x pro Prozess aufgerufen."""
     global _db_initialized
     if _db_initialized:
         return
@@ -85,7 +84,6 @@ def _ensure_tables(db):
                     created_at TEXT NOT NULL,
                     last_update TEXT NOT NULL DEFAULT ''
                 );
-
                 CREATE TABLE IF NOT EXISTS guests (
                     id TEXT PRIMARY KEY,
                     username TEXT UNIQUE,
@@ -97,65 +95,47 @@ def _ensure_tables(db):
                 );
             """)
             db.commit()
-            print("✅ Tabellen angelegt / geprüft")
         except Exception as e:
-            print(f"⚠️ Table-Create Fehler: {e}")
+            print(f"⚠️ Table-Create: {e}")
 
-        # Migrationen (falls alte DB ohne bestimmte Spalten)
         try:
             cols = [r[1] for r in db.execute("PRAGMA table_info(accounts)").fetchall()]
-            if "password_hash" not in cols:
-                try:
-                    db.execute("ALTER TABLE accounts ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''")
-                except Exception:
-                    pass
-            if "code" not in cols:
-                try:
-                    db.execute("ALTER TABLE accounts ADD COLUMN code TEXT NOT NULL DEFAULT ''")
-                except Exception:
-                    pass
-            if "last_update" not in cols:
-                try:
-                    db.execute("ALTER TABLE accounts ADD COLUMN last_update TEXT NOT NULL DEFAULT ''")
-                except Exception:
-                    pass
+            for col, ddl in [
+                ("password_hash", "ALTER TABLE accounts ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''"),
+                ("code", "ALTER TABLE accounts ADD COLUMN code TEXT NOT NULL DEFAULT ''"),
+                ("last_update", "ALTER TABLE accounts ADD COLUMN last_update TEXT NOT NULL DEFAULT ''"),
+            ]:
+                if col not in cols:
+                    try: db.execute(ddl)
+                    except Exception: pass
         except Exception as e:
             print(f"Migration accounts: {e}")
 
         try:
             cols = [r[1] for r in db.execute("PRAGMA table_info(guests)").fetchall()]
-            if "username" not in cols:
-                try:
-                    db.execute("ALTER TABLE guests ADD COLUMN username TEXT")
-                except Exception:
-                    pass
-            if "last_update" not in cols:
-                try:
-                    db.execute("ALTER TABLE guests ADD COLUMN last_update TEXT NOT NULL DEFAULT ''")
-                except Exception:
-                    pass
+            for col, ddl in [
+                ("username", "ALTER TABLE guests ADD COLUMN username TEXT"),
+                ("last_update", "ALTER TABLE guests ADD COLUMN last_update TEXT NOT NULL DEFAULT ''"),
+            ]:
+                if col not in cols:
+                    try: db.execute(ddl)
+                    except Exception: pass
         except Exception as e:
             print(f"Migration guests: {e}")
 
-        try:
-            db.commit()
-        except Exception:
-            pass
+        try: db.commit()
+        except Exception: pass
         _db_initialized = True
 
 def get_db():
-    """Verbindung zur DB. Bei Turso OHNE row_factory (nicht unterstützt!)."""
     if "db" not in g:
         if USE_TURSO:
             g.db = libsql.connect(database=TURSO_URL, auth_token=TURSO_TOKEN)
         else:
             g.db = sqlite3.connect("accounts.db")
             g.db.row_factory = sqlite3.Row
-            try:
-                g.db.execute("PRAGMA foreign_keys = ON")
-            except Exception:
-                pass
-        # Tabellen sicherstellen (Lazy)
+            try: g.db.execute("PRAGMA foreign_keys = ON")
+            except Exception: pass
         _ensure_tables(g.db)
     return g.db
 
@@ -163,10 +143,8 @@ def get_db():
 def close_db(exc):
     db = g.pop("db", None)
     if db is not None:
-        try:
-            db.close()
-        except Exception:
-            pass
+        try: db.close()
+        except Exception: pass
 
 def row_get(row, key, default=None):
     """Sicherer Zugriff auf Spalten (funktioniert mit und ohne row_factory)."""
@@ -180,9 +158,31 @@ def row_get(row, key, default=None):
     except Exception:
         pass
     try:
-        return row[key]
+        val = row[key]
+        return default if val is None else val
     except Exception:
         return default
+
+def row_get_int(row, key, default=0):
+    """Zugriff auf Integer-Spalten mit sicherem Cast."""
+    val = row_get(row, key, default)
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return default
+
+def row_to_dict(row):
+    """Wandelt eine Row in ein dict um (funktioniert mit und ohne row_factory)."""
+    if row is None:
+        return {}
+    try:
+        return dict(row)
+    except Exception:
+        pass
+    try:
+        return {k: row[k] for k in row.keys()}
+    except Exception:
+        return {}
 
 # =================================================
 # HELPER
@@ -219,41 +219,44 @@ def now_iso():
 def username_exists(db, username, exclude_account_id=None, exclude_guest_id=None):
     row = db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone()
     if row:
-        if exclude_account_id is None or row_get(row, "id") != exclude_account_id:
+        if exclude_account_id is None or row_get_int(row, "id") != exclude_account_id:
             return True
     row = db.execute("SELECT id FROM guests WHERE username = ?", (username,)).fetchone()
     if row:
-        if exclude_guest_id is None or row_get(row, "id") != exclude_guest_id:
+        if exclude_guest_id is None or str(row_get(row, "id", "")) != str(exclude_guest_id):
             return True
     return False
 
 def account_to_dict(row):
+    """Konvertiert Account-Row zu dict. Nutzt row_to_dict für maximale Kompatibilität."""
+    d = row_to_dict(row)
     try:
-        history = json.loads(row_get(row, "history", "[]") or "[]")
+        history = json.loads(d.get("history") or "[]")
     except Exception:
         history = []
     return {
-        "id": row_get(row, "id"),
-        "username": row_get(row, "username"),
-        "email": row_get(row, "email"),
-        "balance": row_get(row, "balance", 0.0),
+        "id": d.get("id"),
+        "username": d.get("username") or "",
+        "email": d.get("email") or "",
+        "balance": d.get("balance") if d.get("balance") is not None else 0.0,
         "history": history,
-        "last_update": row_get(row, "last_update", ""),
+        "last_update": d.get("last_update") or "",
     }
 
 def guest_to_dict(row):
+    d = row_to_dict(row)
     try:
-        history = json.loads(row_get(row, "history", "[]") or "[]")
+        history = json.loads(d.get("history") or "[]")
     except Exception:
         history = []
     return {
-        "id": row_get(row, "id"),
-        "username": row_get(row, "username"),
-        "balance": row_get(row, "balance", 0.0),
+        "id": d.get("id"),
+        "username": d.get("username"),
+        "balance": d.get("balance") if d.get("balance") is not None else 0.0,
         "history": history,
-        "created_at": row_get(row, "created_at", ""),
-        "last_seen": row_get(row, "last_seen", ""),
-        "last_update": row_get(row, "last_update", ""),
+        "created_at": d.get("created_at") or "",
+        "last_seen": d.get("last_seen") or "",
+        "last_update": d.get("last_update") or "",
     }
 
 def login_required(f):
@@ -364,36 +367,39 @@ def admin_check():
 def admin_data():
     db = get_db()
     accounts_rows = db.execute("SELECT * FROM accounts ORDER BY created_at DESC").fetchall()
-    guests_rows = db.execute("""
-        SELECT * FROM guests
-        ORDER BY
-            CASE WHEN username IS NULL THEN 1 ELSE 0 END,
-            last_seen DESC
-    """).fetchall()
+    guests_rows = db.execute("SELECT * FROM guests ORDER BY last_seen DESC").fetchall()
 
     accounts = []
     for r in accounts_rows:
+        d = row_to_dict(r)
+        name = d.get("username") or ""
+        email = d.get("email") or ""
+        bal = d.get("balance")
+        if bal is None: bal = 0.0
         accounts.append({
             "type": "account",
-            "id": row_get(r, "id"),
-            "name": row_get(r, "username"),
-            "email": row_get(r, "email"),
-            "balance": row_get(r, "balance", 0.0),
-            "created_at": row_get(r, "created_at", ""),
+            "id": d.get("id"),
+            "name": name,
+            "email": email if email else "-",
+            "balance": bal,
+            "created_at": d.get("created_at") or "",
         })
 
     guests = []
     for r in guests_rows:
-        uname = row_get(r, "username")
+        d = row_to_dict(r)
+        uname = d.get("username")
+        bal = d.get("balance")
+        if bal is None: bal = 0.0
         guests.append({
             "type": "guest",
-            "id": row_get(r, "id"),
-            "name": uname,
+            "id": d.get("id"),
+            "name": uname if uname else None,
             "has_name": bool(uname),
             "email": "-",
-            "balance": row_get(r, "balance", 0.0),
-            "created_at": row_get(r, "created_at", ""),
-            "last_seen": row_get(r, "last_seen", ""),
+            "balance": bal,
+            "created_at": d.get("created_at") or "",
+            "last_seen": d.get("last_seen") or "",
         })
 
     return jsonify({
@@ -467,8 +473,6 @@ def register():
         return jsonify({"error": "Nur Buchstaben, Zahlen, _ und - erlaubt."}), 400
     if not password or len(password) < 6:
         return jsonify({"error": "Passwort muss mind. 6 Zeichen haben."}), 400
-    if len(password) > 100:
-        return jsonify({"error": "Passwort zu lang."}), 400
 
     ok, msg = check_email(email)
     if not ok:
@@ -499,7 +503,14 @@ def register():
         (username, email, pwd_hash, balance, json.dumps(history), ts, ts)
     )
     db.commit()
-    acc_id = cur.lastrowid
+    try:
+        acc_id = cur.lastrowid
+    except Exception:
+        acc_id = None
+    if not acc_id:
+        row = db.execute("SELECT id FROM accounts WHERE username = ?", (username,)).fetchone()
+        acc_id = row_get_int(row, "id")
+
     session.clear()
     session["account_id"] = acc_id
     session.permanent = True
@@ -525,7 +536,7 @@ def login():
         return jsonify({"error": "Nutzername oder Passwort falsch."}), 401
 
     session.clear()
-    session["account_id"] = row_get(row, "id")
+    session["account_id"] = row_get_int(row, "id")
     session.permanent = True
     print(f"✅ Login: {row_get(row, 'username')}")
     return jsonify({"ok": True, "account": account_to_dict(row)})
@@ -557,7 +568,7 @@ def update_password():
         return jsonify({"error": "Neues Passwort muss mind. 6 Zeichen haben."}), 400
 
     new_hash = hash_password(new_password)
-    db.execute("UPDATE accounts SET password_hash = ? WHERE id = ?", (new_hash, row_get(row, "id")))
+    db.execute("UPDATE accounts SET password_hash = ? WHERE id = ?", (new_hash, row_get_int(row, "id")))
     db.commit()
     return jsonify({"ok": True})
 
@@ -571,7 +582,7 @@ def update_email():
     ok, msg = check_email(email)
     if not ok:
         return jsonify({"error": msg}), 400
-    db.execute("UPDATE accounts SET email = ? WHERE id = ?", (email, row_get(row, "id")))
+    db.execute("UPDATE accounts SET email = ? WHERE id = ?", (email, row_get_int(row, "id")))
     db.commit()
     return jsonify({"ok": True, "email": email})
 
@@ -684,9 +695,11 @@ def users_search():
 
     users = []
     for r in account_rows:
-        users.append({"type": "account", "id": row_get(r, "id"), "username": row_get(r, "username")})
+        d = row_to_dict(r)
+        users.append({"type": "account", "id": d.get("id"), "username": d.get("username")})
     for r in guest_rows:
-        users.append({"type": "guest", "id": row_get(r, "id"), "username": row_get(r, "username")})
+        d = row_to_dict(r)
+        users.append({"type": "guest", "id": d.get("id"), "username": d.get("username")})
 
     return jsonify({"users": users[:15]})
 
@@ -722,8 +735,7 @@ def pay():
         g = get_guest_by_id(guest_id)
         if not g:
             return jsonify({"error": "Gast nicht gefunden."}), 404
-        sender_username = row_get(g, "username")
-        if not sender_username:
+        if not row_get(g, "username"):
             return jsonify({"error": "Du brauchst erst einen Namen."}), 400
         sender_type = "guest"
         sender_row = g
@@ -787,10 +799,8 @@ def pay():
         })
 
     except Exception as e:
-        try:
-            db.rollback()
-        except Exception:
-            pass
+        try: db.rollback()
+        except Exception: pass
         print(f"❌ Pay-Fehler: {type(e).__name__}: {e}")
         return jsonify({"error": f"Buchungsfehler: {str(e)}"}), 500
 
@@ -803,7 +813,8 @@ def update_account_balance(delta, history_entry=None):
         print("⚠️ Kein Account in Session")
         return None, None
     db = get_db()
-    new_balance = row_get(row, "balance", 0.0) + delta
+    old_balance = row_get(row, "balance", 0.0)
+    new_balance = old_balance + delta
     try:
         history = json.loads(row_get(row, "history", "[]") or "[]")
     except Exception:
@@ -813,9 +824,9 @@ def update_account_balance(delta, history_entry=None):
         history = history[:50]
     ts = now_iso()
     db.execute("UPDATE accounts SET balance = ?, history = ?, last_update = ? WHERE id = ?",
-               (new_balance, json.dumps(history), ts, row_get(row, "id")))
+               (new_balance, json.dumps(history), ts, row_get_int(row, "id")))
     db.commit()
-    print(f"✅ Account {row_get(row, 'id')}: {row_get(row, 'balance', 0.0):.2f} → {new_balance:.2f} €")
+    print(f"✅ Account {row_get(row, 'id')}: {old_balance:.2f} → {new_balance:.2f} €")
     return new_balance, ts
 
 # =================================================
@@ -1031,10 +1042,6 @@ def slider():
 # =================================================
 # START
 # =================================================
-# WICHTIG: KEIN init_db() beim Start!
-# Die Tabellen werden beim ersten Request angelegt (Lazy-Init).
-# Das verhindert den 502-Fehler, weil Render den Health-Check sofort beantworten kann.
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

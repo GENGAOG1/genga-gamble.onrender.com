@@ -53,12 +53,7 @@
   .btn-success { background: #16a34a; color: white; }
   .btn-success:hover { background: #15803d; }
   .btn-small { padding: 0.35rem 0.7rem; font-size: 0.85rem; border-radius: 6px; }
-  .stats {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-  }
+  .stats { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
   .stat-card {
     background: #1e293b;
     border: 1px solid #334155;
@@ -92,6 +87,7 @@
     text-align: left;
     border-bottom: 1px solid #334155;
     font-size: 0.9rem;
+    vertical-align: middle;
   }
   th {
     background: #0f172a;
@@ -279,7 +275,7 @@ function renderTables() {
 
   const accContainer = document.getElementById('accountsTable');
   const accFiltered = data.accounts.filter(a =>
-    !search || a.name.toLowerCase().includes(search) || (a.email || '').toLowerCase().includes(search)
+    !search || (a.name || '').toLowerCase().includes(search) || (a.email || '').toLowerCase().includes(search)
   );
   if (!accFiltered.length) {
     accContainer.innerHTML = '<div class="empty">Keine Accounts.</div>';
@@ -297,7 +293,7 @@ function renderTables() {
         <tbody>
           ${accFiltered.map(a => `
             <tr>
-              <td><span class="badge account">Account</span> ${escapeHtml(a.name)}</td>
+              <td><span class="badge account">Account</span> ${escapeHtml(a.name || 'Unbekannt')}</td>
               <td>${escapeHtml(a.email || '-')}</td>
               <td>
                 <input type="number" step="0.01" class="balance-input" id="bal-acc-${a.id}" value="${a.balance}">
@@ -316,7 +312,7 @@ function renderTables() {
 
   const guestContainer = document.getElementById('guestsTable');
   const guestFiltered = data.guests.filter(g =>
-    !search || (g.name || '').toLowerCase().includes(search)
+    !search || (g.name || '').toLowerCase().includes(search) || (g.id || '').toLowerCase().includes(search)
   );
   if (!guestFiltered.length) {
     guestContainer.innerHTML = '<div class="empty">Keine Gäste.</div>';
@@ -334,7 +330,13 @@ function renderTables() {
         <tbody>
           ${guestFiltered.map(g => `
             <tr>
-              <td><span class="badge guest">Gast</span> <code style="font-size:0.75rem;">${escapeHtml(g.id.slice(0,10))}…</code></td>
+              <td>
+                ${g.has_name
+                  ? `<span class="badge guest" style="background:#16a34a;color:white;">👤 ${escapeHtml(g.name)}</span>`
+                  : `<span class="badge guest">Gast</span>`
+                }
+                <br><code style="font-size:0.7rem; color:#94a3b8;">${escapeHtml((g.id || '').slice(0,10))}…</code>
+              </td>
               <td>${escapeHtml((g.last_seen || '').slice(0,16).replace('T',' '))}</td>
               <td>
                 <input type="number" step="0.01" class="balance-input" id="bal-guest-${g.id}" value="${g.balance}">
@@ -356,31 +358,36 @@ async function saveBalance(type, id) {
   const inputId = type === 'account' ? `bal-acc-${id}` : `bal-guest-${id}`;
   const value = parseFloat(document.getElementById(inputId).value);
   if (isNaN(value)) return;
-  await fetch('/api/admin/set_balance', {
+  const res = await fetch('/api/admin/set_balance', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({type, id, balance: value})
   });
+  if (!res.ok) {
+    alert('Fehler beim Speichern');
+  }
   await loadData();
 }
 
 async function setZero(type, id) {
   if (!confirm('Guthaben wirklich auf 0 setzen?')) return;
-  await fetch('/api/admin/set_balance', {
+  const res = await fetch('/api/admin/set_balance', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({type, id, balance: 0})
   });
+  if (!res.ok) alert('Fehler');
   await loadData();
 }
 
 async function deleteItem(type, id) {
   if (!confirm('Wirklich löschen?')) return;
-  await fetch('/api/admin/delete', {
+  const res = await fetch('/api/admin/delete', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({type, id})
   });
+  if (!res.ok) alert('Fehler beim Löschen');
   await loadData();
 }
 
